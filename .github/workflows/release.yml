@@ -71,7 +71,15 @@ jobs:
         run: |
           $pin = Get-Content -LiteralPath packaging/nsis-toolchain.json -Raw | ConvertFrom-Json
           New-Item -ItemType Directory -Force build/toolchain | Out-Null
-          Invoke-WebRequest -Uri $pin.source -OutFile build/toolchain/nsis.zip
+          $download = Invoke-WebRequest -Uri $pin.source -OutFile build/toolchain/nsis.zip -PassThru -TimeoutSec 60
+          if ((Get-FileHash build/toolchain/nsis.zip -Algorithm SHA256).Hash.ToLowerInvariant() -ne $pin.sha256) {
+            if ([string]$download.Headers['Content-Type'] -notlike 'text/html*' -or (Get-Item build/toolchain/nsis.zip).Length -gt 1MB) { throw 'Unexpected NSIS download response' }
+            $path = ([Uri]$pin.source).AbsolutePath
+            $pattern = 'https://downloads\.sourceforge\.net' + [regex]::Escape($path) + '\?ts=[^"\s<>]+'
+            $link = [regex]::Match((Get-Content -LiteralPath build/toolchain/nsis.zip -Raw), $pattern)
+            if (-not $link.Success) { throw 'Official NSIS download link not found' }
+            Invoke-WebRequest -Uri ([Net.WebUtility]::HtmlDecode($link.Value)) -OutFile build/toolchain/nsis.zip -TimeoutSec 60
+          }
           if ((Get-FileHash build/toolchain/nsis.zip -Algorithm SHA256).Hash.ToLowerInvariant() -ne $pin.sha256) { throw 'NSIS checksum mismatch' }
           Expand-Archive -LiteralPath build/toolchain/nsis.zip -DestinationPath build/toolchain/nsis
           $compiler = (Get-ChildItem -LiteralPath build/toolchain/nsis -Recurse -File -Filter makensis.exe | Select-Object -First 1).FullName
