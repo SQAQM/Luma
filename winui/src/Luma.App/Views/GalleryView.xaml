@@ -1,0 +1,86 @@
+<UserControl
+ x:Class="Luma.Preview.Views.GalleryView"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:controls="using:Luma.Preview.Views.Controls">
+ <Grid RowSpacing="12">
+  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+   <Grid x:Name="SearchRow" ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+    <TextBox x:Name="SearchBox" MaxLength="2000" PlaceholderText="搜索当前图库" TextChanged="SearchChanged" AutomationProperties.AutomationId="GallerySearch" AutomationProperties.Name="搜索图库"/>
+    <ComboBox x:Name="SortBox" Grid.Column="1" SelectionChanged="SortChanged" AutomationProperties.AutomationId="GallerySort" AutomationProperties.Name="图库排序"/>
+   </Grid>
+  <ScrollViewer x:Name="ToolbarScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" AutomationProperties.AutomationId="GalleryToolbarScroll"><StackPanel Spacing="8">
+   <controls:TagChipPanel x:Name="ToolbarActions">
+    <ComboBox x:Name="RootsBox" SelectionChanged="RootChanged" AutomationProperties.AutomationId="GalleryRoots" AutomationProperties.Name="图库目录" MaxWidth="240"/>
+    <Button Content="筛选" Click="FiltersClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryFilters"/>
+    <Button Content="清除筛选" Click="ClearClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryClear" ToolTipService.ToolTip="清除搜索和筛选，返回全部目录"/>
+    <Button x:Name="ViewButton" Click="ViewClicked" Style="{StaticResource LumaViewerIcon}" AutomationProperties.AutomationId="GalleryViewMode" AutomationProperties.Name="列表视图" ToolTipService.ToolTip="列表视图"><FontIcon Glyph="&#xE8FD;" FontSize="16"/></Button>
+    <Button x:Name="DetailsButton" Click="DetailsClicked" Style="{StaticResource LumaViewerIcon}" AutomationProperties.AutomationId="GalleryDetails" AutomationProperties.Name="图片信息 (Alt+Enter)" ToolTipService.ToolTip="图片信息 (Alt+Enter)"><FontIcon Glyph="&#xE946;" FontSize="16"/></Button>
+    <Button Click="RefreshClicked" Style="{StaticResource LumaViewerIcon}" AutomationProperties.AutomationId="GalleryRefresh" AutomationProperties.Name="刷新" ToolTipService.ToolTip="刷新"><FontIcon Glyph="&#xE72C;" FontSize="16"/></Button>
+    <Button x:Name="CancelButton" Content="取消加载" Click="CancelClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryCancel"/>
+   </controls:TagChipPanel>
+   <controls:TagChipPanel x:Name="FilterFields" Visibility="Collapsed">
+    <ComboBox x:Name="FilterKind" SelectionChanged="FilterKindChanged" Width="130" AutomationProperties.AutomationId="GalleryFilterKind" AutomationProperties.Name="筛选类型"><ComboBoxItem Content="模型"/><ComboBoxItem Content="格式"/><ComboBoxItem Content="画师"/><ComboBoxItem Content="内容标签"/><ComboBoxItem Content="提示词词项"/></ComboBox>
+    <TextBox x:Name="FilterInput" Width="230" MaxLength="2048" PlaceholderText="输入精确名称" AutomationProperties.AutomationId="GalleryFilterInput" AutomationProperties.Name="精确筛选名称"/>
+    <ComboBox x:Name="FilterValue" Width="110" SelectionChanged="FilterSelectionChanged" PlaceholderText="候选" ToolTipService.ToolTip="筛选候选" AutomationProperties.AutomationId="GalleryFilterValue" AutomationProperties.Name="筛选候选"/>
+    <Button Content="应用" Click="ApplyFilterClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryApplyFilter"/>
+   </controls:TagChipPanel>
+   <controls:TagChipPanel x:Name="ActiveFilters"/>
+   <StackPanel x:Name="ManagementActions" Spacing="6"/>
+  </StackPanel></ScrollViewer>
+  <Grid x:Name="Body" Grid.Row="2" ColumnSpacing="16">
+   <Grid.ColumnDefinitions><ColumnDefinition x:Name="ImagesColumn" Width="*"/><ColumnDefinition x:Name="InspectorColumn" Width="0"/></Grid.ColumnDefinitions>
+   <Grid x:Name="ImagesPanel">
+    <GridView x:Name="Images" SelectionMode="Extended" IsMultiSelectCheckBoxEnabled="True" SelectionChanged="SelectionChanged" ContainerContentChanging="ContainerChanging" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.IsVerticalScrollChainingEnabled="False" AutomationProperties.AutomationId="GalleryImages">
+     <GridView.ItemsPanel><ItemsPanelTemplate><ItemsWrapGrid Orientation="Horizontal"/></ItemsPanelTemplate></GridView.ItemsPanel>
+     <GridView.ItemTemplate><DataTemplate>
+      <Grid Padding="6" RowSpacing="3" MinWidth="156">
+       <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+       <Border Height="{Binding ImageHeight}" Background="{ThemeResource LumaSurface}" CornerRadius="6"><Grid><TextBlock Text="{Binding Status}" VerticalAlignment="Center" HorizontalAlignment="Center" Style="{StaticResource LumaCaption}"/><Image Source="{Binding Image}" Stretch="Uniform"/></Grid></Border>
+       <TextBlock Grid.Row="1" Text="{Binding Name}" Style="{StaticResource LumaBody}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+       <controls:ImageReactions Grid.Row="2" Favorite="{Binding Favorite}" Rating="{Binding Rating}" CanEdit="{Binding CanEdit}" IdPrefix="{Binding ReactionId}" Loaded="ReactionsLoaded"/>
+      </Grid>
+     </DataTemplate></GridView.ItemTemplate>
+    </GridView>
+    <ListView x:Name="Rows" Visibility="Collapsed" SelectionMode="Extended" IsMultiSelectCheckBoxEnabled="True" SelectionChanged="SelectionChanged" ContainerContentChanging="ContainerChanging" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" AutomationProperties.AutomationId="GalleryRows">
+     <ListView.ItemsPanel><ItemsPanelTemplate><ItemsStackPanel/></ItemsPanelTemplate></ListView.ItemsPanel>
+     <ListView.ItemTemplate><DataTemplate>
+      <Grid ColumnSpacing="12" Padding="6" MinHeight="{Binding RowHeight}"><Grid.ColumnDefinitions><ColumnDefinition Width="90"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+       <Border Height="64" Background="{ThemeResource LumaSurface}"><Image Source="{Binding Image}" Stretch="Uniform"/></Border>
+       <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center"><TextBlock Text="{Binding Name}" Style="{StaticResource LumaBody}" TextTrimming="CharacterEllipsis"/><TextBlock Text="{Binding Metadata}" Style="{StaticResource LumaCaption}" TextTrimming="CharacterEllipsis"/></StackPanel>
+       <controls:ImageReactions Grid.Column="2" VerticalAlignment="Center" Favorite="{Binding Favorite}" Rating="{Binding Rating}" CanEdit="{Binding CanEdit}" IdPrefix="{Binding ReactionId}" Loaded="ReactionsLoaded"/>
+      </Grid>
+     </DataTemplate></ListView.ItemTemplate>
+    </ListView>
+    <StackPanel x:Name="MessagePanel" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" MaxWidth="400"><ProgressRing x:Name="Ring" Width="28" Height="28"/><TextBlock x:Name="Message" TextWrapping="Wrap" Style="{StaticResource LumaBody}" AutomationProperties.AutomationId="GalleryMessage"/></StackPanel>
+   </Grid>
+   <Grid x:Name="Inspector" Grid.Column="1" Visibility="Collapsed" RowSpacing="10">
+    <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <ScrollViewer x:Name="InspectorScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" AutomationProperties.AutomationId="GalleryInspectorScroll">
+     <StackPanel Spacing="12">
+      <TextBlock x:Name="DetailName" Text="请选择图片" Style="{StaticResource LumaBody}" TextWrapping="Wrap" AutomationProperties.AutomationId="GalleryDetailName"/>
+      <TextBlock x:Name="ModelText" Style="{StaticResource LumaCaption}" TextWrapping="Wrap"/>
+      <controls:TagChipPanel x:Name="ContentTags"/>
+
+      <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="正面提示词" Style="{StaticResource LumaBody}" VerticalAlignment="Center"/><Button x:Name="CopyPrompt" Grid.Column="1" Content="复制" Click="CopyPromptClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryCopyPrompt" AutomationProperties.Name="复制正面提示词"/></Grid>
+      <ListView x:Name="PromptText" Height="170" SelectionMode="None" AutomationProperties.AutomationId="GalleryPrompt"><ListView.ItemsPanel><ItemsPanelTemplate><ItemsStackPanel/></ItemsPanelTemplate></ListView.ItemsPanel><ListView.ItemTemplate><DataTemplate><TextBlock Text="{Binding Text}" FontSize="{Binding FontSize}" IsTextSelectionEnabled="True" TextWrapping="Wrap" Style="{StaticResource LumaBody}"/></DataTemplate></ListView.ItemTemplate></ListView>
+      <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="负面提示词" Style="{StaticResource LumaBody}" VerticalAlignment="Center"/><Button x:Name="CopyNegative" Grid.Column="1" Content="复制" Click="CopyNegativeClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryCopyNegative" AutomationProperties.Name="复制负面提示词"/></Grid>
+      <ListView x:Name="NegativeText" Height="120" SelectionMode="None" AutomationProperties.AutomationId="GalleryNegative"><ListView.ItemsPanel><ItemsPanelTemplate><ItemsStackPanel/></ItemsPanelTemplate></ListView.ItemsPanel><ListView.ItemTemplate><DataTemplate><TextBlock Text="{Binding Text}" FontSize="{Binding FontSize}" IsTextSelectionEnabled="True" TextWrapping="Wrap" Style="{StaticResource LumaBody}"/></DataTemplate></ListView.ItemTemplate></ListView>
+      <Expander Header="提示词解析词（非内容标签）" HorizontalAlignment="Stretch" AutomationProperties.AutomationId="GalleryPromptTokens"><StackPanel Spacing="8"><controls:TagChipPanel x:Name="PromptTokens"/><Button x:Name="TokensNext" Click="TokensNextClicked" Style="{StaticResource LumaButton}"/></StackPanel></Expander>
+     </StackPanel>
+    </ScrollViewer>
+    <controls:TagChipPanel Grid.Row="1" x:Name="FileActions">
+     <Button Content="打开原图" Tag="open" Click="FileClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryOpenOriginal"/>
+     <Button Content="复制路径" Tag="copy" Click="FileClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryCopyPath"/>
+    </controls:TagChipPanel>
+   </Grid>
+  </Grid>
+  <StackPanel Grid.Row="3" Spacing="8">
+   <TextBlock x:Name="Feedback" TextWrapping="Wrap" Style="{StaticResource LumaCaption}" AutomationProperties.AutomationId="GalleryFeedback"/>
+   <Grid x:Name="Pagination" ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+    <TextBlock x:Name="Count" Style="{StaticResource LumaCaption}" VerticalAlignment="Center" AutomationProperties.AutomationId="GalleryCount"/>
+    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"><Button Content="首页" Click="FirstClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryFirst"/><Button x:Name="Previous" Content="上一页" Click="PreviousClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryPrevious"/><Button x:Name="Next" Content="下一页" Click="NextClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryNext"/></StackPanel>
+   </Grid>
+  </StackPanel>
+ </Grid>
+</UserControl>

@@ -1,0 +1,8 @@
+{
+  "version": "3.13",
+  "source": "https://twds.dl.sourceforge.net/project/nsis/NSIS%203/3.13/nsis-3.13.zip",
+  "sha256": "ba63dffc4410ee89193e1cb5a41989991bd77c61068da17e3156d136b7b0b3d8",
+  "zipCRCVerified": true,
+  "compiler_sha256": "4ec390d0f96f9728507fbc2f4e91311dd90bfc6c8ddfe2159357b3651ae151c0",
+  "license_sha256": "388357c1215ff403c5ebde3a5ecd273e68f8b79a579996775245d1ee65442aba"
+}

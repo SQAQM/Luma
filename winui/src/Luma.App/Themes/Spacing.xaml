@@ -1,0 +1,3 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+ <Thickness x:Key="LumaPagePadding">24</Thickness><Thickness x:Key="LumaControlPadding">12,8</Thickness><CornerRadius x:Key="LumaControlRadius">6</CornerRadius><CornerRadius x:Key="LumaPhotoRadius">10</CornerRadius>
+</ResourceDictionary>

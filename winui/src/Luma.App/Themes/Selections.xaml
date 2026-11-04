@@ -1,0 +1,539 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals" xmlns:controls="using:Microsoft.UI.Xaml.Controls" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:primitives="using:Microsoft.UI.Xaml.Controls.Primitives" xmlns:services="using:Luma.Preview.Services">
+  <!--
+  ComboBox templates adapted from Microsoft WinUI (MIT); structural baseline verified against
+  installed microsoft.windowsappsdk.winui/2.3.9 generic.xaml (Windows App SDK 2.5.1 lock).
+  Source: Microsoft WinUI ComboBox_themeresources.xaml; full reference in design spec.
+  Keep the native ComboBox/ComboBoxItem classes, named parts, bindings and CarouselPanel.
+  Only material/chrome changes here. Merge after Controls.xaml. Native theme transitions
+  retain system behavior; no application animation, selection proxy, or popup input handler.
+
+  Copyright (c) Microsoft Corporation. All rights reserved.
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+  <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="SelectionColors.xaml"/></ResourceDictionary.MergedDictionaries>
+  <Style x:Key="LumaSelectionIndicator" TargetType="Rectangle">
+    <Setter Property="Width" Value="3" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="RadiusX" Value="1" />
+    <Setter Property="RadiusY" Value="1" />
+    <Setter Property="Fill" Value="{ThemeResource LumaAccent}" />
+    <Setter Property="RenderTransformOrigin" Value="0.5,0.5" />
+  </Style>
+  <Style TargetType="TextBox" x:Key="LumaGlassComboBoxTextBox">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{ThemeResource LumaText}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0.5" />
+    <Setter Property="PlaceholderForeground" Value="{ThemeResource LumaSecondary}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="TextBox">
+          <Grid>
+            <VisualStateManager.VisualStateGroups>
+              <VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal" />
+                <VisualState x:Name="Disabled">
+                  <VisualState.Setters>
+                    <Setter Target="BorderElement.Background" Value="Transparent" />
+                    <Setter Target="BorderElement.BorderBrush" Value="Transparent" />
+                    <Setter Target="ContentElement.Foreground" Value="{ThemeResource LumaGlassDisabledText}" />
+                    <Setter Target="PlaceholderTextContentPresenter.Foreground" Value="{ThemeResource LumaGlassDisabledText}" />
+                  </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="PointerOver">
+                  <VisualState.Setters>
+                    <Setter Target="BorderElement.Background" Value="Transparent" />
+                    <Setter Target="BorderElement.BorderBrush" Value="Transparent" />
+                    <Setter Target="ContentElement.Foreground" Value="{ThemeResource LumaText}" />
+                    <Setter Target="PlaceholderTextContentPresenter.Foreground" Value="{Binding PlaceholderForeground, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue={ThemeResource LumaSecondary}}" />
+                  </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Focused">
+                  <VisualState.Setters>
+                    <Setter Target="BorderElement.Background" Value="Transparent" />
+                    <Setter Target="BorderElement.BorderBrush" Value="{ThemeResource LumaGlassFocus}" />
+                    <Setter Target="BorderElement.BorderThickness" Value="2" />
+                    <Setter Target="ContentElement.Foreground" Value="{ThemeResource LumaText}" />
+                    <Setter Target="PlaceholderTextContentPresenter.Foreground" Value="{Binding PlaceholderForeground, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue={ThemeResource LumaSecondary}}" />
+                  </VisualState.Setters>
+                </VisualState>
+              </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+            <Border x:Name="BorderElement" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Control.IsTemplateFocusTarget="True" CornerRadius="{TemplateBinding CornerRadius}" />
+            <ScrollViewer x:Name="ContentElement" Margin="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" HorizontalScrollMode="{TemplateBinding ScrollViewer.HorizontalScrollMode}" HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}" VerticalScrollMode="{TemplateBinding ScrollViewer.VerticalScrollMode}" VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}" IsHorizontalRailEnabled="{TemplateBinding ScrollViewer.IsHorizontalRailEnabled}" IsVerticalRailEnabled="{TemplateBinding ScrollViewer.IsVerticalRailEnabled}" IsDeferredScrollingEnabled="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}" IsTabStop="False" ZoomMode="Disabled" AutomationProperties.AccessibilityView="Raw" />
+            <TextBlock x:Name="PlaceholderTextContentPresenter" Foreground="{Binding PlaceholderForeground, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue={ThemeResource LumaSecondary}}" Margin="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" Text="{TemplateBinding PlaceholderText}" TextAlignment="{TemplateBinding TextAlignment}" TextWrapping="{TemplateBinding TextWrapping}" IsHitTestVisible="False" />
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style TargetType="ComboBoxItem" x:Key="LumaGlassComboBoxItem">
+    <Setter Property="FocusVisualSecondaryBrush" Value="{ThemeResource LumaSelectionPopupFocusInner}" />
+    <Setter Property="FocusVisualPrimaryBrush" Value="{ThemeResource LumaGlassFocus}" />
+    <Setter Property="BorderBrush" Value="{ThemeResource LumaSelectionTransparent}" />
+    <Setter Property="BorderThickness" Value="0.5" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="MinHeight" Value="36" />
+    <Setter Property="Foreground" Value="{ThemeResource LumaText}" />
+    <Setter Property="Background" Value="{ThemeResource LumaSelectionTransparent}" />
+    <Setter Property="TabNavigation" Value="Local" />
+    <Setter Property="Padding" Value="34,7,14,7" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="UseSystemFocusVisuals" Value="True" />
+    <Setter Property="FocusVisualMargin" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ComboBoxItem">
+          <Grid x:Name="LayoutRoot" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Margin="3,1,3,1" CornerRadius="{TemplateBinding CornerRadius}" Control.IsTemplateFocusTarget="True">
+            <VisualStateManager.VisualStateGroups>
+              <VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal" />
+                <VisualState x:Name="PointerOver">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionItemHover}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaGlassRim}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionItemInteractiveText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="ItemSpecular.Opacity" Value="0.55" />
+                  </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Disabled">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionTransparent}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionTransparent}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaGlassDisabledText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                </VisualState>
+                <VisualState x:Name="Pressed">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionItemPressed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaGlassRim}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionItemInteractiveText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="ItemSpecular.Opacity" Value="0.18" />
+                  </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Selected">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Pill" Storyboard.TargetProperty="Opacity">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="1" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionItemSelected}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaGlassRim}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionItemSelectedText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="ItemSpecular.Opacity" Value="0.55" />
+                  </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="SelectedUnfocused">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Pill" Storyboard.TargetProperty="Opacity">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="1" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionItemSelected}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaGlassRim}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionItemSelectedText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="ItemSpecular.Opacity" Value="0.55" />
+                  </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="SelectedDisabled">
+                  <VisualState.Setters>
+                    <Setter Target="Pill.Fill" Value="{ThemeResource LumaGlassDisabledText}" />
+                  </VisualState.Setters>
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Pill" Storyboard.TargetProperty="Opacity">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="1" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionItemSelectedDisabled}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionTransparent}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaGlassDisabledText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                </VisualState>
+                <VisualState x:Name="SelectedPointerOver">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Pill" Storyboard.TargetProperty="Opacity">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="1" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionItemSelectedHover}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaGlassRim}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionItemSelectedText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="ItemSpecular.Opacity" Value="0.55" />
+                  </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="SelectedPressed">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Pill" Storyboard.TargetProperty="Opacity">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="1" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionItemSelectedPressed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="LayoutRoot" Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaGlassRim}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaSelectionItemSelectedText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="ItemSpecular.Opacity" Value="0.18" />
+                    <Setter Target="PillTransform.ScaleY" Value="0.75" />
+                  </VisualState.Setters>
+                </VisualState>
+              </VisualStateGroup>
+              <VisualStateGroup x:Name="InputModeStates">
+                <VisualState x:Name="InputModeDefault" />
+                <VisualState x:Name="TouchInputMode">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Margin">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource ComboBoxItemThemeTouchPadding}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                </VisualState>
+                <VisualState x:Name="GameControllerInputMode">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Margin">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource ComboBoxItemThemeGameControllerPadding}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                </VisualState>
+              </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+            <Border x:Name="ItemSpecular" Background="{ThemeResource LumaGlassSpecular}" CornerRadius="{TemplateBinding CornerRadius}" Opacity="0" IsHitTestVisible="False" />
+            <Path x:Name="Pill" Width="13" Height="13" Margin="12,0,0,0" HorizontalAlignment="Left" VerticalAlignment="Center" Stretch="Uniform" Data="M0,6 L2,4 L5,7 L11,0 L13,2 L5,12 Z" Opacity="0" Fill="{ThemeResource LumaSelectionIndicatorFill}">
+              <Path.RenderTransform>
+                <CompositeTransform x:Name="PillTransform" ScaleY="1" />
+              </Path.RenderTransform>
+            </Path>
+            <ContentPresenter x:Name="ContentPresenter" Content="{TemplateBinding Content}" ContentTransitions="{TemplateBinding ContentTransitions}" ContentTemplate="{TemplateBinding ContentTemplate}" Foreground="{TemplateBinding Foreground}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Margin="{TemplateBinding Padding}" />
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style TargetType="ComboBoxItem" BasedOn="{StaticResource LumaGlassComboBoxItem}" />
+  <Style x:Key="LumaGlassComboBox" TargetType="ComboBox">
+    <Setter Property="services:DropdownLayout.Enabled" Value="True" />
+    <Setter Property="ItemContainerStyle" Value="{StaticResource LumaGlassComboBoxItem}" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="MinHeight" Value="36" />
+    <Setter Property="Padding" Value="12,6,0,6" />
+    <Setter Property="MaxDropDownHeight" Value="504" />
+    <Setter Property="Foreground" Value="{ThemeResource LumaText}" />
+    <Setter Property="Background" Value="{ThemeResource LumaSelectionFieldBackground}" />
+    <Setter Property="BorderBrush" Value="{ThemeResource LumaSelectionFieldStroke}" />
+    <Setter Property="BorderThickness" Value="0.5" />
+    <Setter Property="TabNavigation" Value="Once" />
+    <Setter Property="TextBoxStyle" Value="{StaticResource LumaGlassComboBoxTextBox}" />
+    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+    <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Disabled" />
+    <Setter Property="ScrollViewer.VerticalScrollMode" Value="Auto" />
+    <Setter Property="ScrollViewer.IsVerticalRailEnabled" Value="True" />
+    <Setter Property="ScrollViewer.IsDeferredScrollingEnabled" Value="False" />
+    <Setter Property="ScrollViewer.BringIntoViewOnFocusChange" Value="True" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{ThemeResource ControlContentThemeFontSize}" />
+    <Setter Property="UseSystemFocusVisuals" Value="False" />
+    <Setter Property="primitives:ComboBoxHelper.KeepInteriorCornersSquare" Value="False" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="ItemsPanel">
+      <Setter.Value>
+        <ItemsPanelTemplate>
+          <CarouselPanel />
+        </ItemsPanelTemplate>
+      </Setter.Value>
+    </Setter>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="ComboBox">
+          <Grid x:Name="LayoutRoot">
+            <Grid.Resources>
+              <Storyboard x:Key="OverlayOpeningAnimation">
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
+                  <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.0" />
+                  <SplineDoubleKeyFrame KeyTime="0" KeySpline="{StaticResource ControlFastOutSlowInKeySpline}" Value="1.0" />
+                </DoubleAnimationUsingKeyFrames>
+              </Storyboard>
+              <Storyboard x:Key="OverlayClosingAnimation">
+                <DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="Opacity">
+                  <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="1.0" />
+                  <SplineDoubleKeyFrame KeyTime="0" KeySpline="{StaticResource ControlFastOutSlowInKeySpline}" Value="0.0" />
+                </DoubleAnimationUsingKeyFrames>
+              </Storyboard>
+            </Grid.Resources>
+            <VisualStateManager.VisualStateGroups>
+              <VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal" />
+                <VisualState x:Name="PointerOver">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Background" Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaStroke}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PlaceholderTextBlock" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{Binding PlaceholderForeground, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue={ThemeResource LumaSecondary}}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="DropDownGlyph.(controls:AnimatedIcon.State)" Value="PointerOver" />
+                    <Setter Target="GlassHover.Opacity" Value="1" />
+                  </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Pressed">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Background" Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaStroke}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PlaceholderTextBlock" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{Binding PlaceholderForeground, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue={ThemeResource LumaSecondary}}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="DropDownGlyph.(controls:AnimatedIcon.State)" Value="Pressed" />
+                    <Setter Target="GlassPressed.Opacity" Value="1" />
+                  </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Disabled">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Background" Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaStroke}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HeaderContentPresenter" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaGlassDisabledText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaGlassDisabledText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PlaceholderTextBlock" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{Binding PlaceholderForeground, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue={ThemeResource LumaGlassDisabledText}}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="DropDownGlyph" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaGlassDisabledText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="GlassSpecular.Opacity" Value="0.15" />
+                    <Setter Target="GlassRim.Opacity" Value="0.35" />
+                  </VisualState.Setters>
+                </VisualState>
+              </VisualStateGroup>
+              <VisualStateGroup x:Name="FocusStates">
+                <VisualState x:Name="Focused">
+                  <Storyboard>
+                    <DoubleAnimation Storyboard.TargetName="HighlightBackground" Storyboard.TargetProperty="Opacity" To="1" Duration="0" />
+                    <DoubleAnimation Storyboard.TargetName="Pill" Storyboard.TargetProperty="Opacity" To="1" Duration="0" />
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PlaceholderTextBlock" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{Binding PlaceholderForeground, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue={ThemeResource LumaSecondary}}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="DropDownGlyph" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                </VisualState>
+                <VisualState x:Name="FocusedPressed">
+                  <Storyboard>
+                    <DoubleAnimation Storyboard.TargetName="HighlightBackground" Storyboard.TargetProperty="Opacity" To="1" Duration="0" />
+                    <DoubleAnimation Storyboard.TargetName="Pill" Storyboard.TargetProperty="Opacity" To="1" Duration="0" />
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PlaceholderTextBlock" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{Binding PlaceholderForeground, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue={ThemeResource LumaSecondary}}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="DropDownGlyph" Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource LumaText}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                </VisualState>
+                <VisualState x:Name="Unfocused" />
+                <VisualState x:Name="PointerFocused" />
+                <VisualState x:Name="FocusedDropDown">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PopupBorder" Storyboard.TargetProperty="Visibility" Duration="0">
+                      <DiscreteObjectKeyFrame KeyTime="0">
+                        <DiscreteObjectKeyFrame.Value>
+                          <Visibility>Visible</Visibility>
+                        </DiscreteObjectKeyFrame.Value>
+                      </DiscreteObjectKeyFrame>
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="HighlightBackground.Opacity" Value="1" />
+                  </VisualState.Setters>
+                </VisualState>
+              </VisualStateGroup>
+              <VisualStateGroup x:Name="DropDownStates">
+                <VisualState x:Name="Opened">
+                  <Storyboard>
+                    <DoubleAnimation Storyboard.TargetName="PopupBorder" Storyboard.TargetProperty="Opacity" To="1" Duration="0" />
+                  </Storyboard>
+                </VisualState>
+                <VisualState x:Name="Closed">
+                  <Storyboard>
+                    <DoubleAnimation Storyboard.TargetName="PopupBorder" Storyboard.TargetProperty="Opacity" To="0" Duration="0" />
+                  </Storyboard>
+                </VisualState>
+              </VisualStateGroup>
+              <VisualStateGroup x:Name="EditableModeStates">
+                <VisualState x:Name="TextBoxFocused">
+                  <VisualState.Setters>
+                    <Setter Target="DropDownGlyph.Foreground" Value="{ThemeResource LumaText}" />
+                  </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="TextBoxFocusedOverlayPointerOver">
+                  <VisualState.Setters>
+                    <Setter Target="DropDownGlyph.Foreground" Value="{ThemeResource LumaText}" />
+                    <Setter Target="DropDownOverlay.Background" Value="{ThemeResource LumaGlassHover}" />
+                  </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="TextBoxFocusedOverlayPressed">
+                  <VisualState.Setters>
+                    <Setter Target="DropDownGlyph.Foreground" Value="{ThemeResource LumaText}" />
+                    <Setter Target="DropDownOverlay.Background" Value="{ThemeResource LumaGlassPressed}" />
+                  </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="TextBoxOverlayPointerOver">
+                  <VisualState.Setters>
+                    <Setter Target="DropDownOverlay.Background" Value="{ThemeResource LumaGlassHover}" />
+                  </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="TextBoxOverlayPressed">
+                  <VisualState.Setters>
+                    <Setter Target="DropDownOverlay.Background" Value="{ThemeResource LumaGlassPressed}" />
+                  </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="TextBoxUnfocused" />
+              </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="*" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="38" />
+            </Grid.ColumnDefinitions>
+            <ContentPresenter x:Name="HeaderContentPresenter" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}" FlowDirection="{TemplateBinding FlowDirection}" Foreground="{ThemeResource LumaText}" FontWeight="{ThemeResource ComboBoxHeaderThemeFontWeight}" LineHeight="20" Margin="{ThemeResource ComboBoxTopHeaderMargin}" TextWrapping="Wrap" VerticalAlignment="Top" Visibility="Collapsed" x:DeferLoadStrategy="Lazy" />
+            <Border x:Name="Background" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Translation="0,0,0" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}" Control.IsTemplateFocusTarget="True" MinWidth="{ThemeResource ComboBoxThemeMinWidth}" />
+            <Border x:Name="GlassSpecular" Grid.Row="1" Grid.ColumnSpan="2" CornerRadius="{TemplateBinding CornerRadius}" IsHitTestVisible="False" Background="{ThemeResource LumaGlassSpecular}" />
+            <Border x:Name="GlassUnderEdge" Grid.Row="1" Grid.ColumnSpan="2" CornerRadius="{TemplateBinding CornerRadius}" Opacity="0.08" IsHitTestVisible="False" Background="{ThemeResource LumaGlassUnderEdge}" />
+            <Border x:Name="GlassHover" Grid.Row="1" Grid.ColumnSpan="2" CornerRadius="{TemplateBinding CornerRadius}" IsHitTestVisible="False" Opacity="0" Background="{ThemeResource LumaGlassHover}" />
+            <Border x:Name="GlassPressed" Grid.Row="1" Grid.ColumnSpan="2" CornerRadius="{TemplateBinding CornerRadius}" IsHitTestVisible="False" Opacity="0" Background="{ThemeResource LumaGlassPressed}" />
+            <Border x:Name="GlassRim" Grid.Row="1" Grid.ColumnSpan="2" CornerRadius="{TemplateBinding CornerRadius}" IsHitTestVisible="False" BorderBrush="{ThemeResource LumaGlassRim}" BorderThickness="1" />
+            <Rectangle x:Name="Pill" Style="{StaticResource LumaSelectionIndicator}" Margin="1,0,0,0" Grid.Row="1" Grid.Column="0" Opacity="0" Visibility="Collapsed">
+              <Rectangle.RenderTransform>
+                <CompositeTransform x:Name="PillTransform" ScaleY="1" />
+              </Rectangle.RenderTransform>
+            </Rectangle>
+            <ContentPresenter x:Name="ContentPresenter" Grid.Row="1" Grid.Column="0" Foreground="{TemplateBinding Foreground}" Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+              <TextBlock x:Name="PlaceholderTextBlock" Text="{TemplateBinding PlaceholderText}" Foreground="{Binding PlaceholderForeground, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue={ThemeResource LumaSecondary}}" />
+            </ContentPresenter>
+            <TextBox x:Name="EditableText" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Style="{TemplateBinding TextBoxStyle}" Margin="0,0,0,0" Padding="{ThemeResource ComboBoxEditableTextPadding}" BorderBrush="Transparent" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" PlaceholderText="{TemplateBinding PlaceholderText}" Foreground="{Binding PlaceholderForeground, RelativeSource={RelativeSource TemplatedParent}, TargetNullValue={ThemeResource LumaSecondary}}" Text="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Visibility="Collapsed" Header="{TemplateBinding Header}" AutomationProperties.Name="{TemplateBinding AutomationProperties.Name}" x:Load="False" CornerRadius="{TemplateBinding CornerRadius}" />
+            <Border x:Name="DropDownOverlay" Grid.Row="1" Grid.Column="1" Background="Transparent" Margin="4,4,4,4" Visibility="Collapsed" CornerRadius="8" Width="30" HorizontalAlignment="Right" x:Load="False" />
+            <controls:AnimatedIcon x:Name="DropDownGlyph" controls:AnimatedIcon.State="Normal" MinHeight="{ThemeResource ComboBoxMinHeight}" Grid.Row="1" Grid.Column="1" IsHitTestVisible="False" Margin="0,0,14,0" Foreground="{ThemeResource LumaSecondary}" HorizontalAlignment="Right" VerticalAlignment="Center" AutomationProperties.AccessibilityView="Raw" Width="12" Height="12">
+              <animatedvisuals:AnimatedChevronDownSmallVisualSource />
+              <controls:AnimatedIcon.FallbackIconSource>
+                <controls:FontIconSource Foreground="{ThemeResource LumaSecondary}" FontFamily="{ThemeResource SymbolThemeFontFamily}" FontSize="12" Glyph="" />
+              </controls:AnimatedIcon.FallbackIconSource>
+            </controls:AnimatedIcon>
+            <Border x:Name="HighlightBackground" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="2" Background="Transparent" BorderBrush="{ThemeResource LumaGlassFocus}" BorderThickness="2" CornerRadius="{TemplateBinding CornerRadius}" Opacity="0" IsHitTestVisible="False" />
+            <ContentPresenter x:Name="DescriptionPresenter" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Foreground="{ThemeResource LumaSecondary}" Content="{TemplateBinding Description}" x:Load="False" />
+            <TextBlock x:Name="OpenSelectionText" Grid.Row="1" Grid.Column="0" Visibility="Collapsed" IsHitTestVisible="False" Margin="{TemplateBinding Padding}" VerticalAlignment="Center" Foreground="{TemplateBinding Foreground}" TextTrimming="CharacterEllipsis" AutomationProperties.AccessibilityView="Raw" />
+            <Popup x:Name="Popup">
+              <Border x:Name="PopupBorder" Background="{ThemeResource LumaSelectionPopupBackground}" BackgroundSizing="InnerBorderEdge" BorderBrush="{ThemeResource LumaSelectionFieldStroke}" BorderThickness="0.5" Margin="0" Padding="5" HorizontalAlignment="Stretch" CornerRadius="13" Translation="0,0,24">
+                <Border.Shadow>
+                  <ThemeShadow />
+                </Border.Shadow>
+                <ScrollViewer x:Name="ScrollViewer" Foreground="{ThemeResource LumaText}" MinWidth="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=TemplateSettings.DropDownContentMinWidth}" VerticalSnapPointsType="OptionalSingle" VerticalSnapPointsAlignment="Near" HorizontalScrollMode="{TemplateBinding ScrollViewer.HorizontalScrollMode}" HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}" VerticalScrollMode="{TemplateBinding ScrollViewer.VerticalScrollMode}" VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}" IsHorizontalRailEnabled="{TemplateBinding ScrollViewer.IsHorizontalRailEnabled}" IsVerticalRailEnabled="{TemplateBinding ScrollViewer.IsVerticalRailEnabled}" IsDeferredScrollingEnabled="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}" BringIntoViewOnFocusChange="{TemplateBinding ScrollViewer.BringIntoViewOnFocusChange}" ZoomMode="Disabled" AutomationProperties.AccessibilityView="Raw">
+                    <ItemsPresenter Margin="0,4" />
+                  </ScrollViewer>
+              </Border>
+            </Popup>
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <Style TargetType="ComboBox" BasedOn="{StaticResource LumaGlassComboBox}" />
+  <Style TargetType="MenuFlyoutPresenter"><Setter Property="Background" Value="{ThemeResource LumaSelectionPopupBackground}"/><Setter Property="Foreground" Value="{ThemeResource LumaText}"/><Setter Property="BorderBrush" Value="{ThemeResource LumaSelectionFieldStroke}"/><Setter Property="BorderThickness" Value="0.5"/><Setter Property="CornerRadius" Value="10"/><Setter Property="Padding" Value="5"/></Style>
+  <Style TargetType="MenuFlyoutItem"><Setter Property="MinHeight" Value="36"/><Setter Property="Padding" Value="12,7"/><Setter Property="FontSize" Value="14"/><Setter Property="CornerRadius" Value="7"/><Setter Property="Foreground" Value="{ThemeResource LumaText}"/></Style>
+</ResourceDictionary>

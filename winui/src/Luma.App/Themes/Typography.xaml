@@ -1,0 +1,5 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+ <Style x:Key="LumaBody" TargetType="TextBlock"><Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="14"/><Setter Property="Foreground" Value="{ThemeResource LumaText}"/><Setter Property="TextWrapping" Value="Wrap"/></Style>
+ <Style x:Key="LumaCaption" TargetType="TextBlock" BasedOn="{StaticResource LumaBody}"><Setter Property="FontSize" Value="12"/><Setter Property="Foreground" Value="{ThemeResource LumaSecondary}"/></Style>
+ <Style x:Key="LumaHeading" TargetType="TextBlock" BasedOn="{StaticResource LumaBody}"><Setter Property="FontSize" Value="28"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
+</ResourceDictionary>

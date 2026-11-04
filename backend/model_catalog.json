@@ -1,0 +1,728 @@
+{
+  "schema_version": 1,
+  "version": "2026.10.06.1",
+  "verified_date": "2026-10-06",
+  "source_policy": "Author-published model cards and exact file SHA256 metadata only. No images or model weights downloaded. Repository-only split pipelines are explicitly separated from complete checkpoints.",
+  "entries": [
+    {
+      "id": "illustrious-xl-v0.1",
+      "display_name": "Illustrious XL v0.1",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "Illustrious-XL-v0.1.safetensors"
+      ],
+      "sha256": [
+        "3e15ba00387db678ab4a099f75771c4f5ac67fda9e7100a01d263eaf30145aa9"
+      ],
+      "repository_ids": [
+        "OnomaAIResearch/Illustrious-xl-early-release-v0"
+      ],
+      "source_urls": [
+        "https://huggingface.co/OnomaAIResearch/Illustrious-xl-early-release-v0/blob/dca0dac303e6dc4b0c31d8001bc685b89b5d0204/README.md",
+        "https://huggingface.co/OnomaAIResearch/Illustrious-xl-early-release-v0/blob/dca0dac303e6dc4b0c31d8001bc685b89b5d0204/Illustrious-XL-v0.1.safetensors"
+      ],
+      "revision": "dca0dac303e6dc4b0c31d8001bc685b89b5d0204",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "d8ae2a30a54882d2a08448838e062eac32d06cfe20530a7ee18dbed536e4e5cf",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "illustrious-xl-v0.1-guided",
+      "display_name": "Illustrious XL v0.1 GUIDED",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "Illustrious-XL-v0.1-GUIDED.safetensors"
+      ],
+      "sha256": [
+        "e3d12d0f76d61aa31d2668a2217e5b642592193f2946842c44d7056ea5469cce"
+      ],
+      "repository_ids": [],
+      "source_urls": [
+        "https://huggingface.co/OnomaAIResearch/Illustrious-xl-early-release-v0/blob/dca0dac303e6dc4b0c31d8001bc685b89b5d0204/README.md",
+        "https://huggingface.co/OnomaAIResearch/Illustrious-xl-early-release-v0/blob/dca0dac303e6dc4b0c31d8001bc685b89b5d0204/Illustrious-XL-v0.1-GUIDED.safetensors"
+      ],
+      "revision": "dca0dac303e6dc4b0c31d8001bc685b89b5d0204",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "d8ae2a30a54882d2a08448838e062eac32d06cfe20530a7ee18dbed536e4e5cf",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "noobai-xl-v0.6",
+      "display_name": "NoobAI XL v0.6",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "NoobAI-XL-v0.6.safetensors"
+      ],
+      "sha256": [
+        "1f51db2816bd292e3584b588c6c1755ac128a177fd9733b52127ebc8e5feafae"
+      ],
+      "repository_ids": [
+        "Laxhar/noobai-XL-0.6"
+      ],
+      "source_urls": [
+        "https://huggingface.co/Laxhar/noobai-XL-0.6/blob/ef2064f2f2176ba5524e7a25834998fcfa276afb/README.md",
+        "https://huggingface.co/Laxhar/noobai-XL-0.6/blob/ef2064f2f2176ba5524e7a25834998fcfa276afb/NoobAI-XL-v0.6.safetensors",
+        "https://huggingface.co/Laxhar/noobai-XL-0.6/blob/ef2064f2f2176ba5524e7a25834998fcfa276afb/model_index.json"
+      ],
+      "revision": "ef2064f2f2176ba5524e7a25834998fcfa276afb",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "affd71e53a5bc486e5e378a25df6b481531d982ab9d42a507dfaaf5e348e67ec",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "noobai-xl-v0.77",
+      "display_name": "NoobAI XL v0.77",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "NoobAI-XL-v0.77.safetensors"
+      ],
+      "sha256": [
+        "a5e17da21b45bcc33afc09e4f56be0efa3994c7220c2e106774ba8feb64420b3"
+      ],
+      "repository_ids": [
+        "Laxhar/noobai-XL-0.77"
+      ],
+      "source_urls": [
+        "https://huggingface.co/Laxhar/noobai-XL-0.77/blob/1559b5292df17bd14af759f643d0b177e5321235/README.md",
+        "https://huggingface.co/Laxhar/noobai-XL-0.77/blob/1559b5292df17bd14af759f643d0b177e5321235/NoobAI-XL-v0.77.safetensors",
+        "https://huggingface.co/Laxhar/noobai-XL-0.77/blob/1559b5292df17bd14af759f643d0b177e5321235/model_index.json"
+      ],
+      "revision": "1559b5292df17bd14af759f643d0b177e5321235",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "860e848471beebc5b9ac7e50762f226071c0313856b01add37fa16f49a1a95a3",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "noobai-xl-v1.0",
+      "display_name": "NoobAI XL v1.0",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "NoobAI-XL-v1.0.safetensors"
+      ],
+      "sha256": [
+        "ff827fc34584853257d6de64b8bc3e34156814f6b0cfd1a5112a5e9164806df1"
+      ],
+      "repository_ids": [
+        "Laxhar/noobai-XL-1.0"
+      ],
+      "source_urls": [
+        "https://huggingface.co/Laxhar/noobai-XL-1.0/blob/70dee4d903b83cc6d1e8d12e65051cfdbcf54ab3/README.md",
+        "https://huggingface.co/Laxhar/noobai-XL-1.0/blob/70dee4d903b83cc6d1e8d12e65051cfdbcf54ab3/NoobAI-XL-v1.0.safetensors",
+        "https://huggingface.co/Laxhar/noobai-XL-1.0/blob/70dee4d903b83cc6d1e8d12e65051cfdbcf54ab3/model_index.json"
+      ],
+      "revision": "70dee4d903b83cc6d1e8d12e65051cfdbcf54ab3",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "203f119c410c971206eff45c3131281e169a5c0d35e157316e27ce1ff08469cf",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "noobai-xl-v1.1",
+      "display_name": "NoobAI XL v1.1",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "NoobAI-XL-v1.1.safetensors"
+      ],
+      "sha256": [
+        "6681e8e4b134c81f16533acedb0d406d7e5e366e1624b4105178c64d00b05d51"
+      ],
+      "repository_ids": [
+        "Laxhar/noobai-XL-1.1"
+      ],
+      "source_urls": [
+        "https://huggingface.co/Laxhar/noobai-XL-1.1/blob/814a274af2b8097c0828819d561ec74c7d0c6cea/README.md",
+        "https://huggingface.co/Laxhar/noobai-XL-1.1/blob/814a274af2b8097c0828819d561ec74c7d0c6cea/NoobAI-XL-v1.1.safetensors",
+        "https://huggingface.co/Laxhar/noobai-XL-1.1/blob/814a274af2b8097c0828819d561ec74c7d0c6cea/model_index.json"
+      ],
+      "revision": "814a274af2b8097c0828819d561ec74c7d0c6cea",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "cb41da9567a882f51941502cb365bba3467eda9e9e120a4a381f5bb008b5a517",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "noobai-xl-vpred-v0.75",
+      "display_name": "NoobAI XL V-pred v0.75",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "NoobAI-XL-Vpred-v0.75.safetensors"
+      ],
+      "sha256": [
+        "ed6a3d58cf02fe20c19d87c9ee760e46d3ca6fd4c40fb0270bda8918637c55cd"
+      ],
+      "repository_ids": [
+        "Laxhar/noobai-XL-Vpred-0.75"
+      ],
+      "source_urls": [
+        "https://huggingface.co/Laxhar/noobai-XL-Vpred-0.75/blob/7bda33bedd5cfc52df128b7c934e0634991ef528/README.md",
+        "https://huggingface.co/Laxhar/noobai-XL-Vpred-0.75/blob/7bda33bedd5cfc52df128b7c934e0634991ef528/NoobAI-XL-Vpred-v0.75.safetensors",
+        "https://huggingface.co/Laxhar/noobai-XL-Vpred-0.75/blob/7bda33bedd5cfc52df128b7c934e0634991ef528/model_index.json"
+      ],
+      "revision": "7bda33bedd5cfc52df128b7c934e0634991ef528",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "57aa2c7d28b3994a082e2793a29ddbfdce27c1ab330cacc5f7099551d36c6d5e",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "noobai-xl-vpred-v0.75s",
+      "display_name": "NoobAI XL V-pred v0.75s",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "NoobAI-XL-Vpred-v0.75s.safetensors"
+      ],
+      "sha256": [
+        "466a9208bccef3aad1f7f5234043f20fe60caad8967ddd08f77c40f02b642535"
+      ],
+      "repository_ids": [
+        "Laxhar/noobai-XL-Vpred-0.75s"
+      ],
+      "source_urls": [
+        "https://huggingface.co/Laxhar/noobai-XL-Vpred-0.75s/blob/24ae62b304a262d80e9e13f0e9765ecf91f95f4c/README.md",
+        "https://huggingface.co/Laxhar/noobai-XL-Vpred-0.75s/blob/24ae62b304a262d80e9e13f0e9765ecf91f95f4c/NoobAI-XL-Vpred-v0.75s.safetensors",
+        "https://huggingface.co/Laxhar/noobai-XL-Vpred-0.75s/blob/24ae62b304a262d80e9e13f0e9765ecf91f95f4c/model_index.json"
+      ],
+      "revision": "24ae62b304a262d80e9e13f0e9765ecf91f95f4c",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "4ebfd6d43671a8f9b973ac830b96c8aa931d9acd11776224e57ece199e653c03",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "noobai-xl-vpred-v0.9r",
+      "display_name": "NoobAI XL V-pred v0.9r",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "NoobAI-XL-Vpred-v0.9r.safetensors"
+      ],
+      "sha256": [
+        "e41b3cdbfa68321de393a155e7faec6b1ef5d1b633b622cb5ecd7594ec279e07"
+      ],
+      "repository_ids": [
+        "Laxhar/noobai-XL-Vpred-0.9r"
+      ],
+      "source_urls": [
+        "https://huggingface.co/Laxhar/noobai-XL-Vpred-0.9r/blob/41669508fc6fa617ee674afc811c8beab0390585/README.md",
+        "https://huggingface.co/Laxhar/noobai-XL-Vpred-0.9r/blob/41669508fc6fa617ee674afc811c8beab0390585/NoobAI-XL-Vpred-v0.9r.safetensors",
+        "https://huggingface.co/Laxhar/noobai-XL-Vpred-0.9r/blob/41669508fc6fa617ee674afc811c8beab0390585/model_index.json"
+      ],
+      "revision": "41669508fc6fa617ee674afc811c8beab0390585",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "1cb0ac4a1402766483076dd6cd445a1e7cb9f8302e0269963e60e4db9ebfb3bb",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "noobai-xl-vpred-v1.0",
+      "display_name": "NoobAI XL V-pred v1.0",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "NoobAI-XL-Vpred-v1.0.safetensors"
+      ],
+      "sha256": [
+        "ea349eeae87ca8d25ba902c93810f7ca83e5c82f920edf12f273af004ae02819"
+      ],
+      "repository_ids": [
+        "Laxhar/noobai-XL-Vpred-1.0"
+      ],
+      "source_urls": [
+        "https://huggingface.co/Laxhar/noobai-XL-Vpred-1.0/blob/66aa55e3469c27c29a89813cd35dd95fb7485fa1/README.md",
+        "https://huggingface.co/Laxhar/noobai-XL-Vpred-1.0/blob/66aa55e3469c27c29a89813cd35dd95fb7485fa1/NoobAI-XL-Vpred-v1.0.safetensors",
+        "https://huggingface.co/Laxhar/noobai-XL-Vpred-1.0/blob/66aa55e3469c27c29a89813cd35dd95fb7485fa1/model_index.json"
+      ],
+      "revision": "66aa55e3469c27c29a89813cd35dd95fb7485fa1",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "bf91855db95f3cc7396ebb66b581b3b38d18f4eb313897def4fa8fa4b37fcdf8",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "animagine-xl-3.0",
+      "display_name": "Animagine XL 3.0",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "animagine-xl-3.0.safetensors"
+      ],
+      "sha256": [
+        "1449e5b0b9de87b0f414c5f29cb11ce3b3dc61fa2b320e784c9441720bf7b766"
+      ],
+      "repository_ids": [
+        "cagliostrolab/animagine-xl-3.0"
+      ],
+      "source_urls": [
+        "https://huggingface.co/cagliostrolab/animagine-xl-3.0/blob/d02fc0b0b01a6fbbe9bfca4db176c1f065663b2a/README.md",
+        "https://huggingface.co/cagliostrolab/animagine-xl-3.0/blob/d02fc0b0b01a6fbbe9bfca4db176c1f065663b2a/animagine-xl-3.0.safetensors"
+      ],
+      "revision": "d02fc0b0b01a6fbbe9bfca4db176c1f065663b2a",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "dc76cefeb8e849b8d7ff74f4837e965cb6e70328de4917e889cfad47ae544629",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "animagine-xl-3.1",
+      "display_name": "Animagine XL 3.1",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "animagine-xl-3.1.safetensors"
+      ],
+      "sha256": [
+        "e3c47aedb06418c6c331443cd89f2b3b3b34b7ed2102a3d4c4408a8d35aad6b0"
+      ],
+      "repository_ids": [
+        "cagliostrolab/animagine-xl-3.1"
+      ],
+      "source_urls": [
+        "https://huggingface.co/cagliostrolab/animagine-xl-3.1/blob/483f0c322568ed13697ed01dd0be07204746d12b/README.md",
+        "https://huggingface.co/cagliostrolab/animagine-xl-3.1/blob/483f0c322568ed13697ed01dd0be07204746d12b/animagine-xl-3.1.safetensors"
+      ],
+      "revision": "483f0c322568ed13697ed01dd0be07204746d12b",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "c152f66c0c8e00822d957f3ba7bebe6fd1b567bedd091f8da543f5fc2aa43862",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "animagine-xl-4.0",
+      "display_name": "Animagine XL 4.0",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "animagine-xl-4.0.safetensors"
+      ],
+      "sha256": [
+        "1d5b43ff75b6ab598502d4c779d2fbfa3dceca51c60c3b609640a60772333916"
+      ],
+      "repository_ids": [
+        "cagliostrolab/animagine-xl-4.0"
+      ],
+      "source_urls": [
+        "https://huggingface.co/cagliostrolab/animagine-xl-4.0/blob/2b7c1b397761bf5bd3cc42e5b39ec99314a75a96/README.md",
+        "https://huggingface.co/cagliostrolab/animagine-xl-4.0/blob/2b7c1b397761bf5bd3cc42e5b39ec99314a75a96/animagine-xl-4.0.safetensors"
+      ],
+      "revision": "2b7c1b397761bf5bd3cc42e5b39ec99314a75a96",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "542341e52b55ed97d57a786ded7307e016a75e3c32e2c811d5faee9d1be838b6",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "animagine-xl-4.0-zero",
+      "display_name": "Animagine XL 4.0-zero",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "animagine-xl-4.0-zero.safetensors"
+      ],
+      "sha256": [
+        "f15812e65c2ea7f4e19ce37fb2a8445eb65c64da450a508dd9c8f237c73f6bb8"
+      ],
+      "repository_ids": [
+        "cagliostrolab/animagine-xl-4.0-zero"
+      ],
+      "source_urls": [
+        "https://huggingface.co/cagliostrolab/animagine-xl-4.0-zero/blob/22e4c70aa48a58db60e7fd7fd9d959f69339327f/README.md",
+        "https://huggingface.co/cagliostrolab/animagine-xl-4.0-zero/blob/22e4c70aa48a58db60e7fd7fd9d959f69339327f/animagine-xl-4.0-zero.safetensors"
+      ],
+      "revision": "22e4c70aa48a58db60e7fd7fd9d959f69339327f",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "053e9a449bed58554d0f2f9525446989ce0afd5b7670d2354c4e9ad81f79ecbe",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "animagine-xl-4.0-opt",
+      "display_name": "Animagine XL 4.0 optimized",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "animagine-xl-4.0-opt.safetensors"
+      ],
+      "sha256": [
+        "6327eca98bfb6538dd7a4edce22484a1bbc57a8cff6b11d075d40da1afb847ac"
+      ],
+      "repository_ids": [],
+      "source_urls": [
+        "https://huggingface.co/cagliostrolab/animagine-xl-4.0/blob/2b7c1b397761bf5bd3cc42e5b39ec99314a75a96/README.md",
+        "https://huggingface.co/cagliostrolab/animagine-xl-4.0/blob/2b7c1b397761bf5bd3cc42e5b39ec99314a75a96/animagine-xl-4.0-opt.safetensors"
+      ],
+      "revision": "2b7c1b397761bf5bd3cc42e5b39ec99314a75a96",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "542341e52b55ed97d57a786ded7307e016a75e3c32e2c811d5faee9d1be838b6",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "dreamshaper-8-pruned",
+      "display_name": "DreamShaper 8 pruned",
+      "family": "Stable Diffusion",
+      "variant": "SD1.5",
+      "checkpoint_names": [
+        "DreamShaper_8_pruned.safetensors"
+      ],
+      "sha256": [
+        "879db523c30d3b9017143d56705015e15a2cb5628762c11d086fed9538abd7fd"
+      ],
+      "repository_ids": [
+        "Lykon/dreamshaper-8"
+      ],
+      "source_urls": [
+        "https://huggingface.co/Lykon/DreamShaper/blob/228d79cb20811466f5c5710aa91f05dabd0b8a14/README.md",
+        "https://huggingface.co/Lykon/DreamShaper/blob/228d79cb20811466f5c5710aa91f05dabd0b8a14/DreamShaper_8_pruned.safetensors",
+        "https://huggingface.co/Lykon/dreamshaper-8/blob/a7e52b98680b1ba8ff7bce97c7f9f2e2e5337917/README.md"
+      ],
+      "revision": "228d79cb20811466f5c5710aa91f05dabd0b8a14",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "09b0d3826ea18a7fced9345e9b84dad58d676705a2c67dbabe847c99fedf6e3f",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "dreamshaper-xl-lightning",
+      "display_name": "DreamShaper XL Lightning",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "DreamShaperXL_Lightning.safetensors"
+      ],
+      "sha256": [
+        "fdbe56354b8f876b736f24d3ad867ecd4140c019f57642ec8ddd878088d44f64"
+      ],
+      "repository_ids": [
+        "Lykon/dreamshaper-xl-lightning"
+      ],
+      "source_urls": [
+        "https://huggingface.co/Lykon/dreamshaper-xl-lightning/blob/561086c22aba3925b1e8803a73857f061635c7c3/README.md",
+        "https://huggingface.co/Lykon/dreamshaper-xl-lightning/blob/561086c22aba3925b1e8803a73857f061635c7c3/DreamShaperXL_Lightning.safetensors"
+      ],
+      "revision": "561086c22aba3925b1e8803a73857f061635c7c3",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "db0acb36f2cc8bbe4af6449fcfdb3bba3bcfc0ddec09640038487ed0e6b0ed89",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "dreamshaper-xl-turbo-v2",
+      "display_name": "DreamShaper XL Turbo v2",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "DreamShaperXL_Turbo_v2.safetensors"
+      ],
+      "sha256": [
+        "4726d3bab1876f5c23734c871c47901fde305115e15fbfa3f33354ac45b11c67"
+      ],
+      "repository_ids": [
+        "Lykon/dreamshaper-xl-v2-turbo"
+      ],
+      "source_urls": [
+        "https://huggingface.co/Lykon/dreamshaper-xl-v2-turbo/blob/f70ad5bce436c640d23fc02cd0a6ccc787280b6e/README.md",
+        "https://huggingface.co/Lykon/dreamshaper-xl-v2-turbo/blob/f70ad5bce436c640d23fc02cd0a6ccc787280b6e/DreamShaperXL_Turbo_v2.safetensors"
+      ],
+      "revision": "f70ad5bce436c640d23fc02cd0a6ccc787280b6e",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "4a08aff1cf5b2d8bb822a131fa98a734ac3458cae3b46df327f525186979ca59",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "dreamshaper-xl-turbo-v2.1",
+      "display_name": "DreamShaper XL Turbo v2.1",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "DreamShaperXL_Turbo_v2_1.safetensors"
+      ],
+      "sha256": [
+        "4496b36d48bfd7cfe4e5dbce3485db567bcefa2bef7238d290dbd45612125083"
+      ],
+      "repository_ids": [],
+      "source_urls": [
+        "https://huggingface.co/Lykon/dreamshaper-xl-v2-turbo/blob/f70ad5bce436c640d23fc02cd0a6ccc787280b6e/README.md",
+        "https://huggingface.co/Lykon/dreamshaper-xl-v2-turbo/blob/f70ad5bce436c640d23fc02cd0a6ccc787280b6e/DreamShaperXL_Turbo_v2_1.safetensors"
+      ],
+      "revision": "f70ad5bce436c640d23fc02cd0a6ccc787280b6e",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "4a08aff1cf5b2d8bb822a131fa98a734ac3458cae3b46df327f525186979ca59",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "juggernaut-xl-v9",
+      "display_name": "Juggernaut XL v9 / RunDiffusion Photo v2",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors"
+      ],
+      "sha256": [
+        "c9e3e68f89b8e38689e1097d4be4573cf308de4e3fd044c64ca697bdb4aa8bca"
+      ],
+      "repository_ids": [
+        "RunDiffusion/Juggernaut-XL-v9"
+      ],
+      "source_urls": [
+        "https://huggingface.co/RunDiffusion/Juggernaut-XL-v9/blob/cf419233522daa0b9ea36c3aff98fa2cab1fb0fb/README.md",
+        "https://huggingface.co/RunDiffusion/Juggernaut-XL-v9/blob/cf419233522daa0b9ea36c3aff98fa2cab1fb0fb/Juggernaut-XL_v9_RunDiffusionPhoto_v2.safetensors"
+      ],
+      "revision": "cf419233522daa0b9ea36c3aff98fa2cab1fb0fb",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "b200f072376d32726134b9fb3bbc1efdd9559e1de44f80627e780dc47b7f063a",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "juggernaut-x-v10",
+      "display_name": "Juggernaut X v10",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "Juggernaut-X-RunDiffusion-NSFW.safetensors"
+      ],
+      "sha256": [
+        "d91d35736d8f2be038f760a9b0009a771ecf0a417e9b38c244a84ea4cb9c0c45"
+      ],
+      "repository_ids": [
+        "RunDiffusion/Juggernaut-X-v10"
+      ],
+      "source_urls": [
+        "https://huggingface.co/RunDiffusion/Juggernaut-X-v10/blob/35e4f3ccbe745c3e1221715d04a452aaa1ee5761/README.md",
+        "https://huggingface.co/RunDiffusion/Juggernaut-X-v10/blob/35e4f3ccbe745c3e1221715d04a452aaa1ee5761/Juggernaut-X-RunDiffusion-NSFW.safetensors"
+      ],
+      "revision": "35e4f3ccbe745c3e1221715d04a452aaa1ee5761",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "3274ad793b243dbe204ddd8480cd07c3900ef3458029f2577e9d1f56d9b3199c",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "counterfeit-v2.5-pruned",
+      "display_name": "Counterfeit v2.5 pruned",
+      "family": "Stable Diffusion",
+      "variant": "SD1.5",
+      "checkpoint_names": [
+        "Counterfeit-V2.5_pruned.safetensors",
+        "counterfeitV30_25.safetensors"
+      ],
+      "sha256": [
+        "a074b8864e31b8681e40db3dfde0005df7b5309fd2a2f592a2caee59e4591cae"
+      ],
+      "repository_ids": [
+        "gsdf/Counterfeit-V2.5"
+      ],
+      "source_urls": [
+        "https://huggingface.co/gsdf/Counterfeit-V2.5/blob/93c5412baf37cbfa23a3278f7b33b0328db581fb/README.md",
+        "https://huggingface.co/gsdf/Counterfeit-V2.5/blob/93c5412baf37cbfa23a3278f7b33b0328db581fb/Counterfeit-V2.5_pruned.safetensors",
+        "https://civitai.com/models/4468?modelVersionId=7425",
+        "https://civitai.com/api/v1/models/4468"
+      ],
+      "revision": "93c5412baf37cbfa23a3278f7b33b0328db581fb",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "86a27ddf3cd076d042236d226b4f3fe0c3402d3dca9dc5f759374246732e5086",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "counterfeit-v3.0-fixed-fp16",
+      "display_name": "Counterfeit v3.0 fixed fp16",
+      "family": "Stable Diffusion",
+      "variant": "SD1.5",
+      "checkpoint_names": [
+        "Counterfeit-V3.0_fix_fp16.safetensors"
+      ],
+      "sha256": [
+        "a54c944e4c04e9d9ca43468ef5b90ea0408bb6264829a4980de79a768df7179f"
+      ],
+      "repository_ids": [
+        "gsdf/Counterfeit-V3.0"
+      ],
+      "source_urls": [
+        "https://huggingface.co/gsdf/Counterfeit-V3.0/blob/d8ce63b3eb8e9102e54b3fcc07f9cb7a28ef30fc/README.md",
+        "https://huggingface.co/gsdf/Counterfeit-V3.0/blob/d8ce63b3eb8e9102e54b3fcc07f9cb7a28ef30fc/Counterfeit-V3.0_fix_fp16.safetensors",
+        "https://civitai.com/models/4468?modelVersionId=57618",
+        "https://civitai.com/api/v1/models/4468"
+      ],
+      "revision": "d8ce63b3eb8e9102e54b3fcc07f9cb7a28ef30fc",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "27f44b23eabc3d19cb5136dfe817111214c050ef739ecfc2ccdb55ef370ee818",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "counterfeit-v3.0-fp32",
+      "display_name": "Counterfeit v3.0 fp32",
+      "family": "Stable Diffusion",
+      "variant": "SD1.5",
+      "checkpoint_names": [
+        "Counterfeit-V3.0_fp32.safetensors",
+        "counterfeitV30_v30_41074.safetensors"
+      ],
+      "sha256": [
+        "17277fbe68541b183f48855f7998e72068e96dca55c102013a8cefed92aaaaa3"
+      ],
+      "repository_ids": [],
+      "source_urls": [
+        "https://huggingface.co/gsdf/Counterfeit-V3.0/blob/d8ce63b3eb8e9102e54b3fcc07f9cb7a28ef30fc/README.md",
+        "https://huggingface.co/gsdf/Counterfeit-V3.0/blob/d8ce63b3eb8e9102e54b3fcc07f9cb7a28ef30fc/Counterfeit-V3.0_fp32.safetensors",
+        "https://civitai.com/models/4468?modelVersionId=57618",
+        "https://civitai.com/api/v1/models/4468"
+      ],
+      "revision": "d8ce63b3eb8e9102e54b3fcc07f9cb7a28ef30fc",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "27f44b23eabc3d19cb5136dfe817111214c050ef739ecfc2ccdb55ef370ee818",
+      "note": "作者发布的具体完整 checkpoint；只匹配精确文件名、对应 SHA256 或完整官方仓库 ID。"
+    },
+    {
+      "id": "pony-diffusion-v6-xl",
+      "display_name": "Pony Diffusion v6 XL",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "ponyDiffusionV6XL_v6StartWithThisOne.safetensors"
+      ],
+      "sha256": [
+        "67ab2fd8ec439a89b3fedb15cc65f54336af163c7eb5e4f2acc98f090a29b0b3"
+      ],
+      "repository_ids": [
+        "AstraliteHeart/pony-diffusion-v6"
+      ],
+      "source_urls": [
+        "https://civitai.com/models/257749?modelVersionId=290640",
+        "https://civitai.com/api/v1/model-versions/290640",
+        "https://civitai.com/api/v1/models/257749",
+        "https://huggingface.co/AstraliteHeart/pony-diffusion-v6/blob/5ec9c05863255568f1b59753e3838107befaa712/v6.safetensors"
+      ],
+      "revision": "civitai:model-version:290640:file:228616",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "d42c0cdb891da8f35ad6f877fd6cb3133b9710a4d59b32ca563910e7134ff46d",
+      "note": "模型作者发布的精确版本与文件 SHA256；家族/架构依据该版本 baseModel，不根据文件名中的 XL 或提示词猜测。"
+    },
+    {
+      "id": "anything-v5.0",
+      "display_name": "Anything V5.0",
+      "family": "Stable Diffusion",
+      "variant": "SD1.5",
+      "checkpoint_names": [
+        "AnythingXL_v50.safetensors"
+      ],
+      "sha256": [
+        "7f96a1a9ca9b3a3242a9ae95d19284f0d2da8d5282b42d2d974398bf7663a252"
+      ],
+      "repository_ids": [],
+      "source_urls": [
+        "https://civitai.com/models/9409?modelVersionId=30163",
+        "https://civitai.com/api/v1/model-versions/30163",
+        "https://civitai.com/api/v1/models/9409"
+      ],
+      "revision": "civitai:model-version:30163:file:24906",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "a829fa54b6f0c17f52813b636aaa4797db7ea00e950623a0b749708ca4352895",
+      "note": "模型作者发布的精确版本与文件 SHA256；家族/架构依据该版本 baseModel，不根据文件名中的 XL 或提示词猜测。"
+    },
+    {
+      "id": "anything-ink-base",
+      "display_name": "Anything Ink base",
+      "family": "Stable Diffusion",
+      "variant": "SD1.5",
+      "checkpoint_names": [
+        "AnythingXL_inkBase.safetensors"
+      ],
+      "sha256": [
+        "a1535d0a42ce4f8822ed034c15aeff62cc515836e388511d294645d11db8c10d"
+      ],
+      "repository_ids": [],
+      "source_urls": [
+        "https://civitai.com/models/9409?modelVersionId=90854",
+        "https://civitai.com/api/v1/model-versions/90854",
+        "https://civitai.com/api/v1/models/9409"
+      ],
+      "revision": "civitai:model-version:90854:file:62542",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "ddcb99daef12dbb6a760595f598e41753732602df985678088ba8ca1d49e35a3",
+      "note": "模型作者发布的精确版本与文件 SHA256；家族/架构依据该版本 baseModel，不根据文件名中的 XL 或提示词猜测。"
+    },
+    {
+      "id": "anything-xl",
+      "display_name": "Anything XL",
+      "family": "Stable Diffusion",
+      "variant": "SDXL",
+      "checkpoint_names": [
+        "AnythingXL_xl.safetensors"
+      ],
+      "sha256": [
+        "8421598e930be75d6e7afc80db0ef38cf324901966bd0fb8739e69c448e18a89"
+      ],
+      "repository_ids": [],
+      "source_urls": [
+        "https://civitai.com/models/9409?modelVersionId=384264",
+        "https://civitai.com/api/v1/model-versions/384264",
+        "https://civitai.com/api/v1/models/9409"
+      ],
+      "revision": "civitai:model-version:384264:file:308621",
+      "verified_date": "2026-10-06",
+      "evidence_type": "checkpoint",
+      "source_metadata_sha256": "37472b5471184541f50f6518fdad248561e9cdb9f132c1b8b8e6d699021e045c",
+      "note": "模型作者发布的精确版本与文件 SHA256；家族/架构依据该版本 baseModel，不根据文件名中的 XL 或提示词猜测。"
+    },
+    {
+      "id": "anima-official-pipeline",
+      "display_name": "Anima official split pipeline",
+      "family": "Anima",
+      "variant": "Anima",
+      "checkpoint_names": [],
+      "sha256": [],
+      "repository_ids": [
+        "circlestone-labs/Anima"
+      ],
+      "source_urls": [
+        "https://huggingface.co/circlestone-labs/Anima/blob/f973fc41ec7545364ac9776c2440285f43ff2a30/README.md",
+        "https://huggingface.co/circlestone-labs/Anima/tree/f973fc41ec7545364ac9776c2440285f43ff2a30"
+      ],
+      "revision": "f973fc41ec7545364ac9776c2440285f43ff2a30",
+      "verified_date": "2026-10-06",
+      "evidence_type": "official_pipeline_repo",
+      "source_metadata_sha256": "9f992472bef5b8a3ce5cf2429209e863408276dac67805670108cb6e4d49f463",
+      "note": "只匹配完整官方 repo ID；split_files/diffusion_models 与文本编码器/VAE 不登记为完整 checkpoint。"
+    },
+    {
+      "id": "flux1-krea-dev-official-pipeline",
+      "display_name": "FLUX.1 Krea dev official pipeline",
+      "family": "FLUX",
+      "variant": "FLUX.1 Krea dev",
+      "checkpoint_names": [],
+      "sha256": [],
+      "repository_ids": [
+        "black-forest-labs/FLUX.1-Krea-dev"
+      ],
+      "source_urls": [
+        "https://huggingface.co/black-forest-labs/FLUX.1-Krea-dev/blob/8162a9c7b05a641be098422bf2fcf335615c2f28/README.md",
+        "https://huggingface.co/black-forest-labs/FLUX.1-Krea-dev/tree/8162a9c7b05a641be098422bf2fcf335615c2f28"
+      ],
+      "revision": "8162a9c7b05a641be098422bf2fcf335615c2f28",
+      "verified_date": "2026-10-06",
+      "evidence_type": "official_pipeline_repo",
+      "source_metadata_sha256": "fb70dd80577d46fbca17cd737516a9be1f748a5e6370d126589aeb93d7f9a55b",
+      "note": "只匹配完整官方 repo ID；拆分 diffusion model、CLIP/文本编码器及 VAE 权重均不登记为完整 checkpoint。FLUX.1 Krea dev 属于 FLUX，不是 Krea 2。"
+    }
+  ]
+}

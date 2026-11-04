@@ -1,0 +1,46 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals" xmlns:controls="using:Microsoft.UI.Xaml.Controls" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:primitives="using:Microsoft.UI.Xaml.Controls.Primitives">
+  <ResourceDictionary.ThemeDictionaries>
+    <ResourceDictionary x:Key="Light"><AcrylicBrush x:Key="LumaSelectionFieldBackground" TintColor="#FFFFFF" TintOpacity="0.20" TintLuminosityOpacity="0.75" FallbackColor="#F2F5FA"/><SolidColorBrush x:Key="LumaSelectionFieldStroke" Color="#40808A9A"/>
+      <AcrylicBrush x:Key="LumaSelectionPopupBackground" TintColor="#F8FAFF" TintOpacity="0.34" TintLuminosityOpacity="0.72" FallbackColor="#F5F7FC" />
+      <SolidColorBrush x:Key="LumaSelectionTransparent" Color="Transparent" />
+      <SolidColorBrush x:Key="LumaSelectionItemInteractiveText" Color="#202329" />
+      <SolidColorBrush x:Key="LumaSelectionItemSelectedText" Color="#202329" />
+      <SolidColorBrush x:Key="LumaSelectionItemHover" Color="#3CFFFFFF" />
+      <SolidColorBrush x:Key="LumaSelectionItemPressed" Color="#14000000" />
+      <SolidColorBrush x:Key="LumaSelectionItemSelected" Color="#194F7DF5" />
+      <SolidColorBrush x:Key="LumaSelectionItemSelectedHover" Color="#284F7DF5" />
+      <SolidColorBrush x:Key="LumaSelectionItemSelectedPressed" Color="#B7CCF2" />
+      <SolidColorBrush x:Key="LumaSelectionItemSelectedDisabled" Color="#2482A6FF" />
+      <SolidColorBrush x:Key="LumaSelectionIndicatorFill" Color="#3762DF" />
+      <SolidColorBrush x:Key="LumaSelectionPopupFocusInner" Color="#F5F7FC" />
+    </ResourceDictionary>
+    <ResourceDictionary x:Key="Default"><AcrylicBrush x:Key="LumaSelectionFieldBackground" TintColor="#2B3341" TintOpacity="0.20" TintLuminosityOpacity="0.24" FallbackColor="#29313D"/><SolidColorBrush x:Key="LumaSelectionFieldStroke" Color="#40FFFFFF"/>
+      <AcrylicBrush x:Key="LumaSelectionPopupBackground" TintColor="#202633" TintOpacity="0.42" TintLuminosityOpacity="0.32" FallbackColor="#262E3B" />
+      <SolidColorBrush x:Key="LumaSelectionTransparent" Color="Transparent" />
+      <SolidColorBrush x:Key="LumaSelectionItemInteractiveText" Color="#F2F4F7" />
+      <SolidColorBrush x:Key="LumaSelectionItemSelectedText" Color="#F2F4F7" />
+      <SolidColorBrush x:Key="LumaSelectionItemHover" Color="#20FFFFFF" />
+      <SolidColorBrush x:Key="LumaSelectionItemPressed" Color="#28000000" />
+      <SolidColorBrush x:Key="LumaSelectionItemSelected" Color="#304A70" />
+      <SolidColorBrush x:Key="LumaSelectionItemSelectedHover" Color="#405A7F" />
+      <SolidColorBrush x:Key="LumaSelectionItemSelectedPressed" Color="#787B9EFF" />
+      <SolidColorBrush x:Key="LumaSelectionItemSelectedDisabled" Color="#287B9EFF" />
+      <SolidColorBrush x:Key="LumaSelectionIndicatorFill" Color="#B4C8FF" />
+      <SolidColorBrush x:Key="LumaSelectionPopupFocusInner" Color="#262E3B" />
+    </ResourceDictionary>
+    <ResourceDictionary x:Key="HighContrast"><SolidColorBrush x:Key="LumaSelectionFieldBackground" Color="{ThemeResource SystemColorWindowColor}"/><SolidColorBrush x:Key="LumaSelectionFieldStroke" Color="{ThemeResource SystemColorWindowTextColor}"/>
+      <SolidColorBrush x:Key="LumaSelectionPopupBackground" Color="{ThemeResource SystemColorWindowColor}" />
+      <SolidColorBrush x:Key="LumaSelectionTransparent" Color="Transparent" />
+      <SolidColorBrush x:Key="LumaSelectionItemInteractiveText" Color="{ThemeResource SystemColorHighlightTextColor}" />
+      <SolidColorBrush x:Key="LumaSelectionItemSelectedText" Color="{ThemeResource SystemColorHighlightTextColor}" />
+      <SolidColorBrush x:Key="LumaSelectionItemHover" Color="{ThemeResource SystemColorHighlightColor}" />
+      <SolidColorBrush x:Key="LumaSelectionItemPressed" Color="{ThemeResource SystemColorHighlightColor}" />
+      <SolidColorBrush x:Key="LumaSelectionItemSelected" Color="{ThemeResource SystemColorHighlightColor}" />
+      <SolidColorBrush x:Key="LumaSelectionItemSelectedHover" Color="{ThemeResource SystemColorHighlightColor}" />
+      <SolidColorBrush x:Key="LumaSelectionItemSelectedPressed" Color="{ThemeResource SystemColorHighlightColor}" />
+      <SolidColorBrush x:Key="LumaSelectionItemSelectedDisabled" Color="{ThemeResource SystemColorWindowColor}" />
+      <SolidColorBrush x:Key="LumaSelectionIndicatorFill" Color="{ThemeResource SystemColorHighlightTextColor}" />
+      <SolidColorBrush x:Key="LumaSelectionPopupFocusInner" Color="{ThemeResource SystemColorWindowColor}" />
+    </ResourceDictionary>
+  </ResourceDictionary.ThemeDictionaries>
+</ResourceDictionary>
