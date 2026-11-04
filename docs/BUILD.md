@@ -28,4 +28,4 @@ dotnet run --project tests/Luma.Core.Tests/Luma.Core.Tests.csproj -c Release
 Pop-Location
 ```
 
-v1.x 标签、main 上的 VERSION 或发布工作流更新可触发原生发布，上传 EXE、ZIP、SHA256SUMS 和交付清单。已有版本标签时固定构建该标签的源码；也可在 Actions 手动运行。
+先推送与 VERSION 对应的版本标签。v1.x 标签、main 上的 VERSION 或发布工作流更新可触发原生发布，上传 EXE、ZIP、SHA256SUMS 和交付清单。始终固定构建该标签的源码；也可在 Actions 手动运行。

@@ -27,10 +27,9 @@ jobs:
         run: |
           $tag = 'v' + (Get-Content -LiteralPath VERSION -Raw).Trim()
           git rev-parse --verify --quiet "$tag^{commit}" *> $null
-          if ($LASTEXITCODE -eq 0) {
-            git checkout --detach $tag
-            if ($LASTEXITCODE) { throw 'Release source checkout failed' }
-          }
+          if ($LASTEXITCODE) { throw "Push the version tag $tag before releasing" }
+          git checkout --detach $tag
+          if ($LASTEXITCODE) { throw 'Release source checkout failed' }
           "RELEASE_TAG=$tag" >> $env:GITHUB_ENV
           "RELEASE_COMMIT=$(git rev-parse HEAD)" >> $env:GITHUB_ENV
       - uses: actions/setup-python@v5
@@ -91,7 +90,7 @@ jobs:
         run: |
           $tag = $env:RELEASE_TAG
           gh release view $tag *> $null
-          if ($LASTEXITCODE) { gh release create $tag --target $env:RELEASE_COMMIT --title "Luma $($tag.Substring(1))" --notes-file docs/RELEASE_NOTES.md --draft }
+          if ($LASTEXITCODE) { gh release create $tag --verify-tag --title "Luma $($tag.Substring(1))" --notes-file docs/RELEASE_NOTES.md --draft }
           if ($LASTEXITCODE) { throw 'Release creation failed' }
           gh release upload $tag release/Luma-1.0.0/Luma-1.0.0-Setup-x64.exe release/Luma-1.0.0/Luma-1.0.0-Portable-x64.zip release/Luma-1.0.0/SHA256SUMS.txt release/Luma-1.0.0/delivery-manifest.json --clobber
           if ($LASTEXITCODE) { throw 'Release upload failed' }
