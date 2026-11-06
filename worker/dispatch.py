@@ -8,7 +8,7 @@ import time
 from .protocol import FrameError, MAX_FRAME
 
 METHODS = ('catalog.query', 'catalog.stats', 'catalog.facets', 'catalog.roots', 'catalog.detail', 'catalog.neighbors',
-           'catalog.thumbnail', 'catalog.preview.v2', 'job.get', 'job.cancel', 'engine.status', 'diagnostics.echo', 'diagnostics.wait', 'manage.read', 'manage.write', 'manage.status')
+           'catalog.thumbnail', 'catalog.preview.v2', 'catalog.preview.release', 'job.get', 'job.cancel', 'engine.status', 'diagnostics.echo', 'diagnostics.wait', 'manage.read', 'manage.write', 'manage.status')
 
 
 class DispatchError(ValueError):
@@ -57,15 +57,20 @@ def dispatch(service, method, payload, cancelled):
         fields(payload, ())
         with service.store.connect() as db:
             return [dict(r) for r in db.execute("SELECT r.id,r.name,COALESCE(c.count,0) AS count FROM roots r LEFT JOIN catalog_counts c ON c.kind='root' AND c.name=CAST(r.id AS TEXT) ORDER BY r.id LIMIT 200")]
-    if method in ('catalog.detail', 'catalog.neighbors', 'catalog.thumbnail','catalog.preview.v2'):
+    if method in ('catalog.detail', 'catalog.neighbors', 'catalog.thumbnail','catalog.preview.v2','catalog.preview.release'):
         identity=payload.get('identity')
         if identity is not None and (not isinstance(identity,str) or len(identity)!=64 or any(c not in '0123456789abcdef' for c in identity)):raise DispatchError()
         image_id = integer(payload.get('imageId'), 1, 2**63-1)
+        if method=='catalog.preview.release':
+            fields(payload,('imageId','identity'))
+            if identity is None:raise DispatchError()
+            from .preview_assets import release
+            return release(service,image_id,identity)
         if method=='catalog.preview.v2':
-            fields(payload,('imageId','identity','mode'))
+            fields(payload,('imageId','identity','mode','frame'))
             if identity is None or payload.get('mode','standard') not in ('standard','original'):raise DispatchError()
             from .preview_assets import preview
-            return preview(service,image_id,identity,payload.get('mode','standard'),cancelled)
+            return preview(service,image_id,identity,payload.get('mode','standard'),cancelled,integer(payload.get('frame',0),0,4095))
         if method == 'catalog.detail':
             fields(payload, ('imageId','identity'))
             from .read_catalog import detail
@@ -100,5 +105,5 @@ def dispatch(service, method, payload, cancelled):
 
 
 def hello():
-    return {'protocol': 1, 'engineVersion':'1.1.0', 'preview': True, 'writesEnabled': False, 'managementWrites': True, 'destructiveWrites': True, 'fileOperations': True, 'maxFrameBytes': MAX_FRAME,
+    return {'protocol': 1, 'engineVersion':'1.2.0', 'preview': True, 'writesEnabled': False, 'managementWrites': True, 'destructiveWrites': True, 'fileOperations': True, 'maxFrameBytes': MAX_FRAME,
             'maxQuery': 120, 'maxNeighbors': 9, 'capabilities': list(METHODS), 'workers': 2, 'admitted': 4}

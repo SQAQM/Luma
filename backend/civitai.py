@@ -251,7 +251,7 @@ class CivitaiClient:
                 raise CivitaiError("redirect")
             self._cancel(cancelled)
             return self._read(target, maximum, cancelled, cover=True, _redirects=_redirects + 1, _deadline=deadline)
-        headers = {"User-Agent": "Luma/1.1.0 Civitai metadata client", "Accept-Encoding": "identity",
+        headers = {"User-Agent": "Luma/1.2.0 Civitai metadata client", "Accept-Encoding": "identity",
                    "Accept": "image/png,image/jpeg,image/webp" if cover else "application/json"}
         if token:
             headers["Authorization"] = "Bearer " + token

@@ -56,7 +56,7 @@ def audit(directory, before, verify=False):
         if not p.is_file() or p.name == 'engine-build-info.json': continue
         if any(x in p.name.lower() for x in ('pyside','shiboken','qt6','webview','chrome')) or p.suffix.lower() in ('.db','.sqlite','.sqlite3','.safetensors','.ckpt','.html','.js'): raise RuntimeError('engine_forbidden_payload')
         payload[p.relative_to(directory).as_posix()] = {'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()}
-    value = {'stage':8,'version':'1.1.0','python':platform.python_version(),'pillow':version('pillow'),'pyinstaller':version('pyinstaller'),'qtFree':True,'webUI':False,'previewOnly':False,'sourceInputs':before,'modules':modules,'payload':payload}
+    value = {'stage':8,'version':'1.2.0','python':platform.python_version(),'pillow':version('pillow'),'pyinstaller':version('pyinstaller'),'qtFree':True,'webUI':False,'previewOnly':False,'sourceInputs':before,'modules':modules,'payload':payload}
     if verify:
         if json.loads((directory/'engine-build-info.json').read_text(encoding='utf-8')) != value: raise RuntimeError('engine_payload_drift')
     else: (directory/'engine-build-info.json').write_text(json.dumps(value,indent=2),encoding='utf-8')

@@ -1,6 +1,6 @@
 param(
-    [string]$OutputDirectory='release/Luma-native-1.1.0',
-    [string]$EngineDirectory='release/Engine-1.1.0/engine',
+    [string]$OutputDirectory='release/Luma-native-1.2.0',
+    [string]$EngineDirectory='release/Engine-1.2.0/engine',
     [string]$CrtDirectory='C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Redist/MSVC/14.44.35112/x64/Microsoft.VC143.CRT',
     [string]$CrtVersion='14.44.35211.0'
 )
@@ -74,6 +74,6 @@ foreach ($notice in @('LICENSE.txt','THIRD-PARTY-NOTICES.txt')) {
 Copy-Item -LiteralPath (Join-Path $workspace 'packaging/NSIS-COPYING.txt') -Destination (Join-Path $licenseRoot 'NSIS-COPYING.txt')
 Copy-Item -LiteralPath (Join-Path $workspace 'winui/src/Luma.App/packages.lock.json') -Destination (Join-Path $target 'packages.lock.json')
 $sourceSnapshot | Set-Content -LiteralPath (Join-Path $target 'build-source-snapshot.json') -Encoding UTF8
-Copy-Item -LiteralPath (Join-Path $workspace 'docs/WINUI_1.1.0_PACKAGE.txt') -Destination (Join-Path $target 'README.txt')
+Copy-Item -LiteralPath (Join-Path $workspace 'docs/WINUI_1.2.0_PACKAGE.txt') -Destination (Join-Path $target 'README.txt')
 & (Join-Path $PSScriptRoot 'Audit-WinUI.ps1') -BundleDirectory $target -CrtVersion $CrtVersion
 Write-Output ('WINUI_PUBLISHED '+$target)

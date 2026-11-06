@@ -8,6 +8,12 @@ internal static class EngineLifecycleTests
  {
   string temporaryRoot=Path.GetFullPath(Path.GetTempPath());string directory=Path.GetFullPath(Path.Combine(temporaryRoot,"luma-stage7-closed-pipe-"+Guid.NewGuid().ToString("N")));if(Path.GetDirectoryName(directory)!=Path.TrimEndingDirectorySeparator(temporaryRoot))throw new Exception("synthetic temporary boundary");Directory.CreateDirectory(directory);
   File.WriteAllText(Path.Combine(directory,"fake-mode.txt"),"normal");
+  string fake=Path.Combine(directory,"fake-engine");Directory.CreateDirectory(fake);
+  foreach(string file in Directory.GetFiles(AppContext.BaseDirectory).Where(p=>p.EndsWith(".dll")||p.EndsWith(".json")))File.Copy(file,Path.Combine(fake,Path.GetFileName(file)));
+  File.Copy(Path.Combine(AppContext.BaseDirectory,"Luma.Core.Tests.exe"),Path.Combine(fake,"Luma.Engine.exe"));
+  await using(var client=new EngineClient(Path.Combine(fake,"Luma.Engine.exe"),directory)){
+   await client.ConnectAsync();await client.CallAsync("catalog.preview.release",new{imageId=1,identity=new string('a',64)});await client.StopAsync();
+  }
   var start=new ProcessStartInfo(Path.Combine(AppContext.BaseDirectory,"Luma.Core.Tests.exe")){UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};start.ArgumentList.Add("--data-dir");start.ArgumentList.Add(directory);
   using var process=Process.Start(start)!;
   var owner=new EngineProcess();typeof(EngineProcess).GetMethod("TrackProcess",BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(owner,[process]);
@@ -21,7 +27,7 @@ internal static class EngineLifecycleTests
    await Task.WhenAll(Enumerable.Range(0,16).Select(_=>Task.Run(owner.CloseInput)));
    using var timeout=new CancellationTokenSource(TimeSpan.FromSeconds(10));await owner.WaitForExitAsync(timeout.Token);
    if(process.ExitCode!=0||owner.IsAlive)throw new Exception("synthetic pipe child did not exit cleanly");
-   owner.CloseInput();return 7;
+   owner.CloseInput();return 8;
   }
   finally{if(!process.HasExited){process.StandardInput.Close();await process.WaitForExitAsync();}Directory.Delete(directory,true);}
  }

@@ -107,6 +107,8 @@ public sealed partial class ViewerView
                 Grid.SetRow(Body, immersive ? 0 : 1);
                 Grid.SetRowSpan(Body, immersive ? 4 : 1);
                 Grid.SetColumnSpan(StageContainer, immersive ? 2 : 1);
+                DockRow.Height=immersive?new GridLength(0):GridLength.Auto;
+                Grid.SetRow(ToolDock,immersive?0:1);
                 Grid.SetRow(Header, 0);
                 Grid.SetRowSpan(Header, immersive ? 4 : 1);
                 Header.VerticalAlignment = immersive ? VerticalAlignment.Top : VerticalAlignment.Stretch;

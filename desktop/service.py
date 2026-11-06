@@ -952,6 +952,9 @@ class LibraryService(ModelService):
                             if path.exists():
                                 signature(path)
                                 path.unlink()
+                            if path.parent.parent.name in ('viewer-v2','viewer-v3') and path.suffix=='.png' and len(path.stem)==64 and all(c in '0123456789abcdef' for c in path.stem):
+                                seal=path.with_suffix('.json')
+                                if seal.exists():signature(seal);seal.unlink()
                         except (OSError, ValueError):
                             continue
                     db.execute("DELETE FROM thumbnail_cache WHERE key=?", (row["key"],))
@@ -980,6 +983,8 @@ class LibraryService(ModelService):
             with self.store.connect() as db:
                 db.execute("PRAGMA wal_checkpoint(PASSIVE)")
         finally:
+            cache=getattr(self,'_viewer_source_cache',None)
+            if cache is not None:cache.close()
             with self._condition:
                 self._closed = True
                 self._condition.notify_all()

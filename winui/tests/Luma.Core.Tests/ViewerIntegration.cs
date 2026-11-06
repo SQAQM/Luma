@@ -12,6 +12,7 @@ internal static class ViewerIntegration
   var first=page.Items[0];foreach(string mode in new[]{"standard","original"}){
    var asset=PreviewAsset.Parse(await client.CallAsync("catalog.preview.v2",new{imageId=first.Id,identity=first.Identity,mode}),first.Identity);string path=EngineAssets.Resolve(data,new CachedAsset(asset.ResourceId,asset.RelativePath));using var file=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.Read);EngineAssets.VerifyOpenedFile(file,data);byte[] bytes=new byte[file.Length];file.ReadExactly(bytes);asset.Verify(bytes);Check(asset.Width==1600&&asset.Height==1067&&asset.Kind==(mode=="original"?"original":"standard"),"v2 actual resource "+mode);
   }
+  Check((await client.CallAsync("catalog.preview.release",new{imageId=first.Id,identity=first.Identity})).GetProperty("released").GetBoolean(),"native client releases source container");
   Check(hashes.All(x=>Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(x.Key)))==x.Value),"all131 original bytes unchanged");model.Close();await client.StopAsync();Check(!client.IsAlive,"safe read-only viewer shutdown");
   File.WriteAllText(Path.Combine(output,"viewer-integration-report.json"),JsonSerializer.Serialize(new{result="passed",count=n,originals=hashes.Count,allOriginalBytesUnchanged=true}));return n;
  }

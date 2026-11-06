@@ -30,7 +30,7 @@ public sealed class EngineClient(string executable, string directory) : IAsyncDi
     private readonly TaskCompletionSource<bool> _initialized = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private volatile bool _connected, _stopping;
     private int _faultNotified;
-    private static readonly HashSet<string> Methods = ["catalog.query", "catalog.stats", "catalog.facets", "catalog.roots", "catalog.detail", "catalog.neighbors", "catalog.thumbnail", "catalog.preview.v2", "job.get", "job.cancel", "engine.status", "diagnostics.echo", "diagnostics.wait", "manage.read", "manage.write", "manage.status"];
+    private static readonly HashSet<string> Methods = ["catalog.query", "catalog.stats", "catalog.facets", "catalog.roots", "catalog.detail", "catalog.neighbors", "catalog.thumbnail", "catalog.preview.v2", "catalog.preview.release", "job.get", "job.cancel", "engine.status", "diagnostics.echo", "diagnostics.wait", "manage.read", "manage.write", "manage.status"];
     private static readonly HashSet<string> ErrorCodes = ["invalid_request", "method_not_allowed", "cancelled", "asset_boundary", "not_found", "busy", "recovering", "closed", "operation_failed", "response_invalid", "response_too_large","stale_identity","stale_cursor","unsupported","conflict","not_ready","invalid_token","model_hash_missing","stale_review","confirmation_required","recovery_required","duplicate_recovery"];
     public bool IsAlive => _process.IsAlive;
     public int? ProcessId => _process.ProcessId;

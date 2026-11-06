@@ -38,10 +38,11 @@ public sealed partial class ViewerView
  }
  internal void PausePlayback()
  {
-  bool changed=_playback.Playing;_playback.Stop();_playbackTimer?.Stop();SyncPlayback();if(changed)Changed?.Invoke();
+  bool changed=_playback.Playing||_media.Playing;_playback.Stop();_playbackTimer?.Stop();_media.Pause();_mediaTimer?.Stop();SyncPlayback();if(changed)Changed?.Invoke();
  }
  private void TogglePlayback()
  {
+  if(IsAnimation){if(_media.Playing)PausePlayback();else{if(_media.Start(_playbackTime.Elapsed) is{} frame)RequestMediaFrame(frame);else ScheduleMedia();RestoreControls();SyncPlayback();Changed?.Invoke();}return;}
   if(_playback.Playing){PausePlayback();return;}
   if(!IsOpen||_model?.Current is null||_model.NextId is null)return;
   _playback.Start();_playbackTimer.Start();RestoreControls();SyncPlayback();Changed?.Invoke();
@@ -49,9 +50,10 @@ public sealed partial class ViewerView
  private void SyncPlayback()
  {
   if(PlaybackButton is null)return;
-  string label=_playback.Playing?"暂停播放 (空格)":"自动播放 (空格)";
-  PlaybackIcon.Glyph=_playback.Playing?"\uE769":"\uE768";
-  PlaybackButton.IsEnabled=_playback.Playing||IsOpen&&_model?.Current is not null&&_model.NextId is not null;
+  bool playing=IsAnimation?_media.Playing:_playback.Playing;
+  string label=IsAnimation?(playing?"暂停动图 (空格)":"播放动图 (空格)"):(playing?"暂停切图 (空格)":"自动切图 (空格)");
+  PlaybackIcon.Glyph=playing?"\uE769":"\uE768";
+  PlaybackButton.IsEnabled=IsAnimation||_playback.Playing||IsOpen&&_model?.Current is not null&&_model.NextId is not null;
   AutomationProperties.SetName(PlaybackButton,label);ToolTipService.SetToolTip(PlaybackButton,label);
  }
  private void PlaybackClicked(object sender,RoutedEventArgs args)=>TogglePlayback();

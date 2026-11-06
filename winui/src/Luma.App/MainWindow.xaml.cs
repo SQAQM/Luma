@@ -101,6 +101,7 @@ public sealed partial class MainWindow : Window
         if(_options.OpenFile is{} file)_=_engine.OpenFileAsync(file);
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_RELEASE_UI_TEST")=="1")_=Shell.VerifyReleaseUi(_options.DataDirectory,CaptureVerificationFrame);
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_FEATURE_UI_TEST")=="1")_=Shell.VerifyFeatureUi(_options.DataDirectory,CaptureVerificationFrame);
+        if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_MEDIA_UI_TEST")=="1")_=Shell.VerifyMediaUi(_options.DataDirectory,CaptureVerificationFrame);
     }
     private async void PickImage()
     {

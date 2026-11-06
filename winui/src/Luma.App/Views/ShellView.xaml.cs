@@ -155,7 +155,7 @@ public sealed partial class ShellView : UserControl, IDisposable
         RailContent.Padding=new Thickness(10,12,10,12);FooterActions.ColumnSpacing=4;
         LiveGallery.Configure(_scale,_diagnostics);
         Management.Configure(_scale);Files.Configure(_scale,_diagnostics);Management.SetDiagnostics(_diagnostics);
-        _viewer.Configure(_scale);
+        _viewer.Configure(_scale);_viewer.SetMediaReducedMotion(Reduced);
         _layout = layout;
         ScaleTree(this);ScaleTree(Preferences);if(Preferences.Children.FirstOrDefault() is TextBlock appearanceHeading)appearanceHeading.FontSize=20*_scale;
         _storage.ConfigureScale(_scale);
@@ -287,7 +287,7 @@ public sealed partial class ShellView : UserControl, IDisposable
     private void Refresh() { Render(); Changed?.Invoke(); }
     private void ThemeClicked(object sender, RoutedEventArgs e) { _theme = (string)((Button)sender).Tag; RequestedTheme = _theme == "Dark" ? ElementTheme.Dark : _theme == "Light" ? ElementTheme.Light : ElementTheme.Default; UpdateThemeButtons(); Render(); Changed?.Invoke(); }
     private void UpdateThemeButtons() { foreach (var button in new[] { LightButton, DarkButton, SystemButton }) { button.BorderBrush = Brush((string)button.Tag == _theme ? "LumaAccent" : "LumaStroke"); button.BorderThickness = new Thickness((string)button.Tag == _theme ? 2 : 1); AutomationProperties.SetItemStatus(button, (string)button.Tag == _theme ? "已选择" : ""); } }
-    private void MotionChanged(object sender, RoutedEventArgs e) { if(Management is not null)Management.CurrentReducedMotion=ReduceMotionPreference; _transition?.Stop(); if (PageBody is not null) PageBody.Opacity = 1; Changed?.Invoke(); }
+    private void MotionChanged(object sender, RoutedEventArgs e) {_viewer?.SetMediaReducedMotion(Reduced); if(Management is not null)Management.CurrentReducedMotion=ReduceMotionPreference; _transition?.Stop(); if (PageBody is not null) PageBody.Opacity = 1; Changed?.Invoke(); }
     private void Animate() { _transition?.Stop(); PageBody.Opacity = 1; if (Reduced) return; var animation = new DoubleAnimation { From = .9, To = 1, Duration = new Duration(TimeSpan.FromMilliseconds(120)), EnableDependentAnimation = false }; Storyboard.SetTarget(animation, PageBody); Storyboard.SetTargetProperty(animation, "Opacity"); _transition = new Storyboard(); _transition.Children.Add(animation); _transition.Begin(); }
     private void SystemMotionChanged(UISettings sender, object args) => DispatcherQueue.TryEnqueue(() => { if (!_disposed) MotionChanged(this, new RoutedEventArgs()); });
     private void SystemContrastChanged(AccessibilitySettings sender, object args) => DispatcherQueue.TryEnqueue(() => { if (!_disposed) { MotionChanged(this, new RoutedEventArgs()); UpdateThemeButtons(); Render(); } });
