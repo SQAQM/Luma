@@ -1,12 +1,13 @@
 name: Native release
 on:
   push:
-    branches: [main]
     tags: ['v[1-9]*']
-    paths: [VERSION, '.github/workflows/release.yml']
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: native-release-${{ github.repository }}
+  cancel-in-progress: false
 jobs:
   windows:
     runs-on: windows-2022
