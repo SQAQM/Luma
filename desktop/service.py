@@ -705,7 +705,8 @@ class LibraryService(ModelService):
 
     def jobs(self) -> list[dict]:
         with self._operation():
-            return self.manager.list()
+            from backend.model_sync_scope import attach_issues
+            return attach_issues(self.model_library,self.manager.list())
 
     def job(self, job_id: str) -> dict:
         with self._operation():
@@ -713,7 +714,8 @@ class LibraryService(ModelService):
             result = self.manager.get(job_id)
             if result is None:
                 raise ServiceError("任务不存在", "not_found")
-            return result
+            from backend.model_sync_scope import attach_issues
+            return attach_issues(self.model_library,[result])[0]
 
     def cancel(self, job_id: str) -> dict:
         with self._operation():
@@ -980,6 +982,8 @@ class LibraryService(ModelService):
                     self._condition.wait(timeout=0.1)
             with self.store.connect() as db:
                 db.execute("UPDATE jobs SET status='cancelled',cancel_requested=1,message='软件关闭，排队任务已取消',updated_at=? WHERE status='queued'", (time.time(),))
+            from backend.model_sync_scope import prune
+            prune(self.model_library)
             with self.store.connect() as db:
                 db.execute("PRAGMA wal_checkpoint(PASSIVE)")
         finally:

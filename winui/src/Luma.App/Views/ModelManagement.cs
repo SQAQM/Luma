@@ -26,13 +26,11 @@ public sealed partial class ManagementView
  }
  private async Task FetchModelInformation()
  {
-  var selected=Records.SelectedItems.OfType<ManagementRow>().Select(r=>r.Value).ToArray();
-  var scope=selected.Length>0?selected:_models.Where(m=>!B(m,"cover_available")||S(m,"status")!="synced").ToArray();
-  long[] ids=scope.Select(m=>N(m,"id")).Where(id=>id>0).Distinct().Take(60).ToArray();
-  if(ids.Length==0){Status.Text="已更新";Notify();return;}
-  string range=selected.Length>0?"所选":"本页待获取资料的";
-  await ConfirmTask("更新资料",$"{range} {ids.Length} 个模型","models.sync",new{ids,downloadCovers=true});
+  var request=CurrentModelSyncRequest();
+  if(request.Count==0){Status.Text="没有模型";Notify();return;}
+  await ConfirmTask("更新资料",$"{request.Range} {request.Count} 个模型","models.sync",request.Args);
  }
+ private ModelSyncRequest CurrentModelSyncRequest()=>ModelSyncRequest.Create(Records.SelectedItems.OfType<ManagementRow>().Select(r=>N(r.Value,"id")),_rootId,_modelTotal,_query,_modelTypes.ToArray(),_modelFamilies.ToArray());
  private async Task<JsonElement> ReadModelPage()
  {
   long gen=_generation;var root=_rootId;string query=_query;string? cursor=_cursor;string[] types=_modelTypes.ToArray(),families=_modelFamilies.ToArray();

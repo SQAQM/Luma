@@ -64,9 +64,9 @@ def sync_feedback(message, status):
     if message in ('正在流式计算所选模型SHA256；可请求取消', '正在获取模型封面'):
         return message
     match = re.fullmatch(r'(?:模型资料同步完成|正在计算哈希并同步模型资料)'
-                         r'(?:；封面已保存 ([0-9]{1,2}) 个)?'
-                         r'(?:；([0-9]{1,2}) 个模型未提供静态封面)?(?:；(.+))?', message)
-    if not match or any(int(value) > 60 for value in match.groups()[:2] if value is not None):
+                         r'(?:；封面已保存 ([0-9]{1,10}) 个)?'
+                         r'(?:；([0-9]{1,10}) 个模型未提供静态封面)?(?:；(.+))?', message)
+    if not match:
         return default
     error = match.group(3)
     allowed = set(_MESSAGES.values()) | {'部分文件同步失败；请重新索引或检查网络后重试'}
@@ -251,7 +251,7 @@ class CivitaiClient:
                 raise CivitaiError("redirect")
             self._cancel(cancelled)
             return self._read(target, maximum, cancelled, cover=True, _redirects=_redirects + 1, _deadline=deadline)
-        headers = {"User-Agent": "Luma/1.2.0 Civitai metadata client", "Accept-Encoding": "identity",
+        headers = {"User-Agent": "Luma/1.2.1 Civitai metadata client", "Accept-Encoding": "identity",
                    "Accept": "image/png,image/jpeg,image/webp" if cover else "application/json"}
         if token:
             headers["Authorization"] = "Bearer " + token

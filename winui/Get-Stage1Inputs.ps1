@@ -5,7 +5,7 @@ Get-ChildItem -LiteralPath $PSScriptRoot -Recurse -File | Where-Object {$_.FullN
     $relative=$_.FullName.Substring($workspace.Length+1).Replace('\','/')
     $inputs[$relative]=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
 }
-foreach ($relative in @('public/luma.ico','scripts/Build-WinUI.ps1','scripts/Audit-WinUI.ps1','scripts/verify_winui_compatibility.py','scripts/verify_local_storage.py','scripts/benchmark_catalog.py','docs/WINUI_1.2.0_PACKAGE.txt','scripts/package_native_delivery.py','scripts/test_delivery_packaging.py','scripts/Build-Delivery.ps1','scripts/Clean-NativeArtifacts.ps1','scripts/Test-NativeCleanup.ps1')) {
+foreach ($relative in @('public/luma.ico','scripts/Build-WinUI.ps1','scripts/Audit-WinUI.ps1','scripts/verify_winui_compatibility.py','scripts/verify_local_storage.py','scripts/benchmark_catalog.py','docs/WINUI_1.2.1_PACKAGE.txt','scripts/package_native_delivery.py','scripts/test_delivery_packaging.py','scripts/Build-Delivery.ps1','scripts/Clean-NativeArtifacts.ps1','scripts/Test-NativeCleanup.ps1')) {
     $inputs[$relative]=(Get-FileHash -LiteralPath (Join-Path $workspace $relative) -Algorithm SHA256).Hash.ToLowerInvariant()
 }
 Get-ChildItem -LiteralPath (Join-Path $workspace 'packaging') -File | Sort-Object Name | ForEach-Object {$relative=$_.FullName.Substring($workspace.Length+1).Replace('\','/');$inputs[$relative]=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}

@@ -96,6 +96,16 @@ class ModelService:
             if type(download_covers) is not bool: raise ValueError("封面下载选项无效")
             return self._submit_model_job('model_sync', {'ids': ids, 'download_covers': download_covers}, len(ids))
 
+    def sync_model_scope(self, filters, download_covers=True):
+        from .service import INDEX_TASKS
+        from backend import model_sync_scope
+        with self._operation(),self._submission_lock:
+            self._ensure_ready();self._ensure_no_active(INDEX_TASKS)
+            if type(download_covers) is not bool:raise ValueError('封面下载选项无效')
+            token,total=model_sync_scope.prepare(self.model_library,filters)
+            try:return self._submit_model_job('model_sync',{'scope_id':token,'download_covers':download_covers},total)
+            except BaseException:model_sync_scope.discard(self.model_library,token);raise
+
     def _cached_model_scope(self, ids=None):
         with self.store.connect() as db:
             high = db.execute('SELECT COALESCE(MAX(id),0) FROM images').fetchone()[0]

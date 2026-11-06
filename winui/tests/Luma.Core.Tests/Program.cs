@@ -81,6 +81,7 @@ try
     passed += ViewerTests.Run();
     passed += SlideshowTests.Run();
     passed += SequenceTests.Run();
+    passed += ModelSyncTests.Run();
     passed += await ViewerNavigationTests.Run();
     passed += ViewerAssetTests.Run();
     passed += await ViewerReviewTests.Run();

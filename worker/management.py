@@ -44,7 +44,9 @@ def job(value):
     result = {k:value[k] for k in JOB_FIELDS if k in value}
     if value.get('kind') == 'model_sync':
         from backend.civitai import sync_feedback
+        from backend.model_sync_scope import ISSUE_CODES
         result['feedback'] = sync_feedback(value.get('message'), value.get('status'))
+        result['issues']=[{'code':v['code'],'count':v['count']} for v in value.get('issues',[])[:32] if isinstance(v,dict) and v.get('code') in ISSUE_CODES and type(v.get('count')) is int and 0<v['count']<=2**63-1]
     return result
 
 def op(value):
@@ -226,6 +228,17 @@ def prepare(service, action, a):
         if action in ('models.remove','models.scan'):
             fields(a,('rootId',),('rootId',));ident=integer(a['rootId'])
             return lambda:service.remove_model_root(ident) if action=='models.remove' else job(service.scan_model_directory(ident))
+        if action=='models.sync' and 'scope' in a:
+            fields(a,('scope','downloadCovers'),('scope',));s=a['scope'];fields(s,('rootId','query','types','families'))
+            from backend.model_library import model_selections
+            filters={'q':text(s.get('query',''),1024,True)}
+            if s.get('rootId') is not None:filters['root_id']=integer(s['rootId'])
+            for dimension in ('types','families'):
+                if dimension in s:
+                    try:filters[dimension]=model_selections(s[dimension],dimension)
+                    except ValueError:raise ManagementError() from None
+            covers=boolean(a.get('downloadCovers',False))
+            return lambda:job(service.sync_model_scope(filters,covers))
         fields(a,('ids','downloadCovers') if action=='models.sync' else ('ids',),('ids',));selected=ids(a['ids'],60)
         if action=='models.lookup' and not service.model_library.image_lookup_hashes(selected):raise ManagementError('model_hash_missing')
         covers=boolean(a.get('downloadCovers',False))

@@ -17,7 +17,7 @@ from .duplicates import VerifiedFile, _change_stamp
 from .organizer import Cancelled, signature, check_directory_chain, reparse_point
 from .model_registry import model_name, FAMILIES
 from .model_references import initialize, update_image_references, _projection, hash_projection
-from .civitai import API_ORIGIN, normalize_trigger_words
+from .civitai import API_ORIGIN, normalize_trigger_words, CivitaiError
 from . import model_covers, model_local_info
 
 EXTENSIONS=frozenset(('.safetensors','.ckpt','.gguf','.pt','.pth','.bin'))
@@ -161,8 +161,8 @@ class ModelLibrary:
             item['source_url']=_source_url(record) if verified else local.get('source_url','')
         return item
 
-    def list_models(self,root_id=None,q='',cursor=None,limit=60,types=_UNSET,families=_UNSET):
-        if type(limit) is not int or not 1<=limit<=120: raise ValueError('模型分页数量无效')
+    @staticmethod
+    def _scope_query(db,root_id=None,q='',types=_UNSET,families=_UNSET):
         if not isinstance(q,str) or len(q)>1024: raise ValueError('模型搜索无效')
         types=model_selections(types,'types'); families=model_selections(families,'families')
         clauses=[]; args=[]
@@ -170,12 +170,20 @@ class ModelLibrary:
             clauses.append('f.id IN (SELECT file_id FROM luma_model_memberships WHERE root_id=?)');args.append(_id(root_id))
         if q.strip():
             clauses.append("(instr(lower(f.name),lower(?))>0 OR instr(lower(COALESCE(json_extract(COALESCE(v.record,li.record),'$.model_name'),'')),lower(?))>0)");args.extend([q.strip(),q.strip()])
-        where=' AND '.join(clauses) or '1'
+        db.create_function('luma_resource_type',3,lambda record,local,digest:_resource_type(_cached_record(record),digest) if _cached_record(record) else _cached_record(local).get('type','Unknown'),deterministic=True)
+        db.create_function('luma_cached_family',1,lambda record:_cached_family(_cached_record(record)),deterministic=True)
+        source=' FROM luma_model_files f LEFT JOIN luma_model_versions v ON v.version_id=f.version_id LEFT JOIN luma_model_local_info li ON li.file_id=f.id WHERE '+(' AND '.join(clauses) or '1')
+        filtered_source=source;filtered=list(args)
+        for values,expression in ((types,'luma_resource_type(v.record,li.record,f.sha256)'),(families,'luma_cached_family(COALESCE(v.record,li.record))')):
+            if values:filtered_source+=' AND '+expression+' IN ('+','.join('?' for _ in values)+')';filtered.extend(values)
+        return source,args,filtered_source,filtered,types,families
+
+    def list_models(self,root_id=None,q='',cursor=None,limit=60,types=_UNSET,families=_UNSET):
+        if type(limit) is not int or not 1<=limit<=120: raise ValueError('模型分页数量无效')
         with self.store.connect() as db:
             # SQLite evaluates these bounded cached-JSON projections per row;
             # neither all model rows nor weight bytes enter Python collections.
-            db.create_function('luma_resource_type',3,lambda record,local,digest:_resource_type(_cached_record(record),digest) if _cached_record(record) else _cached_record(local).get('type','Unknown'),deterministic=True)
-            db.create_function('luma_cached_family',1,lambda record:_cached_family(_cached_record(record)),deterministic=True)
+            source,args,filtered_source,filtered,types,families=self._scope_query(db,root_id,q,types,families)
             db.execute('BEGIN'); revision=db.execute('SELECT revision FROM query_state WHERE id=1').fetchone()[0]
             fingerprint=hashlib.sha256(json.dumps([root_id,q,types,families]).encode()).hexdigest()
             anchor=0
@@ -186,16 +194,12 @@ class ModelLibrary:
                     if data['revision']!=revision or data['filter']!=fingerprint: raise ValueError()
                     anchor=_id(data['id'])
                 except (ValueError,TypeError,KeyError,UnicodeError): raise ValueError('模型分页已过期，请刷新') from None
-            source=' FROM luma_model_files f LEFT JOIN luma_model_versions v ON v.version_id=f.version_id LEFT JOIN luma_model_local_info li ON li.file_id=f.id WHERE '+where
             facets={}
             for key,expression in (('types','luma_resource_type(v.record,li.record,f.sha256)'),('families','luma_cached_family(COALESCE(v.record,li.record))')):
                 # Scope facets precede both dimension filters. Unknown is first
                 # in SQL so it cannot be lost to the bounded type facet limit.
                 facets[key]=sorted(r[0] for r in db.execute('SELECT DISTINCT '+expression+' AS facet'+source+" ORDER BY (facet='Unknown') DESC,facet LIMIT 128",args))
-            filtered=list(args)
-            for selected,expression in ((types,'luma_resource_type(v.record,li.record,f.sha256)'),(families,'luma_cached_family(COALESCE(v.record,li.record))')):
-                if selected:
-                    source+=' AND '+expression+' IN ('+','.join('?' for _ in selected)+')';filtered.extend(selected)
+            source=filtered_source
             total=db.execute('SELECT count(*)'+source,filtered).fetchone()[0]
             rows=list(db.execute('SELECT f.id,f.root_id,f.path,f.name,f.size,f.mtime_ns,f.sha256,f.status,f.version_id,v.record,li.record local_record'+source+' AND f.id>? ORDER BY f.id LIMIT ?',[*filtered,anchor,limit+1]))
         more=len(rows)>limit; rows=rows[:limit]
@@ -313,14 +317,29 @@ class ModelLibrary:
         return True
 
     def sync(self,manager,job_id,payload):
+        from . import model_sync_scope
         ids=payload.get('ids'); covers=payload.get('download_covers',False)
-        if not isinstance(ids,list) or not 1<=len(ids)<=60 or any(type(x) is not int or x<1 for x in ids) or type(covers) is not bool: raise ValueError('请选择1至60个模型文件')
+        token=payload.get('scope_id')
+        if type(covers) is not bool:raise ValueError('封面下载选项无效')
+        if token is not None:
+            if ids is not None or not isinstance(token,str) or not re.fullmatch('[a-f0-9]{32}',token):raise ValueError('模型范围无效')
+            with self.store.connect() as db:total=db.execute('SELECT count(*) FROM luma_model_sync_selection WHERE scope_id=?',(token,)).fetchone()[0]
+            selected=model_sync_scope.selected(self,token)
+        else:
+            if not isinstance(ids,list) or not 1<=len(ids)<=60 or any(type(x) is not int or x<1 for x in ids):raise ValueError('请选择1至60个模型文件')
+            selected=list(dict.fromkeys(ids));total=len(selected)
+        try:return self._sync_selected(manager,job_id,selected,total,covers)
+        finally:
+            if token is not None:model_sync_scope.discard(self,token)
+
+    def _sync_selected(self,manager,job_id,selected,total,covers):
+        from . import model_sync_scope
         if self.client is None: raise ValueError('Civitai 连接不可用')
         cancelled=lambda:manager.cancelled(job_id); processed=errors=0; error_message=''
         covers_saved=covers_missing=0
         versions={}; profiles={}; stop_requests=False
         with self.lock:
-            for file_id in dict.fromkeys(ids):
+            for file_id in selected:
                 if cancelled(): raise Cancelled()
                 try:
                     with self.store.connect() as db: row=db.execute('SELECT * FROM luma_model_files WHERE id=?',(file_id,)).fetchone()
@@ -328,7 +347,7 @@ class ModelLibrary:
                     with _directory_guard(Path(row['path']).parent), VerifiedFile(row['path']) as file:
                         identity=_identity(file.path,file.info)
                         if identity!=tuple(row[key] for key in ('size','mtime_ns','ctime_ns','device','inode','change_ns')): raise _SourceChanged('模型文件已改变，请重新索引')
-                        manager.progress(job_id,processed=processed,total=len(set(ids)),errors=errors,message='正在流式计算所选模型SHA256；可请求取消')
+                        manager.progress(job_id,processed=processed,total=total,errors=errors,message='正在流式计算所选模型SHA256；可请求取消')
                         try:
                             # The full stat/change identity has just been checked
                             # against a held, read-only source handle. Reuse only
@@ -341,20 +360,22 @@ class ModelLibrary:
                         _verify_source(file)
                         with self.store.connect() as db: db.execute('UPDATE luma_model_files SET sha256=? WHERE id=?',(digest,file_id))
                         if digest not in versions:
+                            if len(versions)>=16:versions.pop(next(iter(versions)))
                             versions[digest]=self.client.version_by_hash(digest,cancelled=cancelled)
                         record=versions[digest]
                         if cancelled(): raise Cancelled()
                         _verify_source(file)
-                        if not isinstance(record,dict) or record.get('matched_sha256','').lower()!=digest: raise ValueError('Civitai 文件哈希不匹配')
+                        if not isinstance(record,dict) or record.get('matched_sha256','').lower()!=digest: raise CivitaiError('hash_mismatch')
                         profile_error=None; profile_updated=False
                         # The by-hash endpoint only embeds a small parent model
                         # object. Fetch its separate profile for author/intro.
                         if callable(getattr(self.client,'model',None)):
                             try:
                                 if record['model_id'] not in profiles:
+                                    if len(profiles)>=16:profiles.pop(next(iter(profiles)))
                                     profiles[record['model_id']]=self.client.model(record['model_id'],cancelled=cancelled)
                                 profile=profiles[record['model_id']]
-                                if not isinstance(profile,dict) or profile.get('model_id')!=record['model_id']: raise ValueError('invalid_profile')
+                                if not isinstance(profile,dict) or profile.get('model_id')!=record['model_id']: raise CivitaiError('invalid_response')
                                 record={**record,'model_name':profile.get('model_name') or record.get('model_name',''),
                                         'description':profile.get('description',''),'creator':profile.get('creator','')}
                                 # Hash lookup can omit previews. Use only the exact
@@ -373,14 +394,13 @@ class ModelLibrary:
                                 profile_error=error
                         if cancelled(): raise Cancelled()
                         _verify_source(file)
-                        if not self.remember_version(record,preserve_profile=not profile_updated): raise ValueError('Civitai 文件哈希不匹配')
+                        if not self.remember_version(record,preserve_profile=not profile_updated): raise CivitaiError('hash_mismatch')
                         _verify_source(file)
                         with self.store.connect() as db: db.execute("UPDATE luma_model_files SET sha256=?,version_id=?,status='synced' WHERE id=?",(digest,record['version_id'],file_id))
                     existing_cover=self.cover_path(file_id) if covers else None
                     if covers and existing_cover:
                         covers_saved+=1
                     if covers and not existing_cover:
-                        from .civitai import CivitaiError
                         if not any(i.get('type')!='video' for i in record.get('images',[]) if isinstance(i,dict)) and callable(getattr(self.client,'version_by_id',None)):
                             complete=self.client.version_by_id(record['version_id'],digest,cancelled=cancelled)
                             if complete.get('model_id')!=record['model_id'] or complete.get('version_id')!=record['version_id'] or complete.get('matched_sha256')!=digest:
@@ -395,7 +415,7 @@ class ModelLibrary:
                         data=None; last_error=None
                         for image in images[:4]:
                             if cancelled(): raise Cancelled()
-                            manager.progress(job_id,processed=processed,total=len(set(ids)),errors=errors,message='正在获取模型封面')
+                            manager.progress(job_id,processed=processed,total=total,errors=errors,message='正在获取模型封面')
                             try:
                                 data=self.client.download_cover(image['url'],cancelled=cancelled)
                                 break
@@ -408,7 +428,7 @@ class ModelLibrary:
                             covers_missing+=1
                         else:
                             if cancelled(): raise Cancelled()
-                            if not isinstance(data,bytes) or len(data)>8*1024*1024: raise ValueError('封面无效')
+                            if not isinstance(data,bytes) or len(data)>8*1024*1024: raise CivitaiError('invalid_cover')
                             self.cache_dir.mkdir(parents=True,exist_ok=True)
                             target=self.cache_dir/(digest+'.cover'); temp=self.cache_dir/(uuid.uuid4().hex+'.tmp')
                             try:
@@ -422,9 +442,10 @@ class ModelLibrary:
                 except Cancelled: raise
                 except Exception as error:
                     errors+=1
-                    from .civitai import CivitaiError
                     if isinstance(error,CivitaiError) and error.code=='cancelled': raise Cancelled() from None
                     code=error.code if isinstance(error,CivitaiError) else ''
+                    issue=code if code in model_sync_scope.ISSUE_CODES else 'source_changed' if isinstance(error,_SourceChanged) else 'file_missing' if isinstance(error,FileNotFoundError) else 'file_error' if isinstance(error,(OSError,ValueError)) else 'sync_error'
+                    model_sync_scope.record_issue(self,job_id,issue)
                     stop_requests=code in ('unauthorized','credentials','rate_limited')
                     error_message=str(CivitaiError(code)) if code else '部分文件同步失败；请重新索引或检查网络后重试'
                     # Fixed status; preserve any last valid snapshot and cover.
@@ -432,11 +453,11 @@ class ModelLibrary:
                         if isinstance(error,_SourceChanged): db.execute("UPDATE luma_model_files SET sha256='',version_id=NULL,status='changed' WHERE id=?",(file_id,))
                         else: db.execute('UPDATE luma_model_files SET status=? WHERE id=?',('sync_error_'+code if code else 'sync_error',file_id))
                 processed+=1
-                message='模型资料同步完成' if processed==len(set(ids)) or stop_requests else '正在计算哈希并同步模型资料'
+                message='模型资料同步完成' if processed==total or stop_requests else '正在计算哈希并同步模型资料'
                 if covers:
                     message+=f'；封面已保存 {covers_saved} 个'
                     if covers_missing: message+=f'；{covers_missing} 个模型未提供静态封面'
-                manager.progress(job_id,processed=processed,total=len(set(ids)),errors=errors,message=message+('；'+error_message if error_message else ''))
+                manager.progress(job_id,processed=processed,total=total,errors=errors,message=message+('；'+error_message if error_message else ''))
                 if stop_requests: break
 
     def cover_path(self,model_id):

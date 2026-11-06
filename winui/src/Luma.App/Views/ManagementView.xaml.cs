@@ -209,7 +209,8 @@ public sealed partial class ManagementView:UserControl,IDisposable
  private async Task LabelPreview(){if(_selection.Length==0){Status.Text="先在图库选择1至120张图片，再点击校正标签。";Notify();return;}long gen=_generation;var value=await Read("labels",new{ids=_selection});if(gen!=_generation)return;_labelState=value;TagForm(Selected);Status.Text="校正范围已读取；未点击的类别保持原样。";StateChanged();Notify();}
  private async Task ApplyLabel(string action){if(_selection.Length==0||_tagId is null||_labelState is null){Status.Text="请先选择类别并读取当前图片的校正快照。";Notify();return;}long gen=_generation;var snapshot=S(_labelState.Value,"snapshot_token");if(await Write("labels.apply",new{ids=_selection,changes=new[]{new{tag_id=_tagId.Value,action}},snapshot},false)&&gen==_generation&&_visible&&_page=="Tags"){_labelState=null;await LabelPreview();}}
  private async Task ConfirmTask(string title,string description,string action,object args){if(await Confirm(title,description))await Write(action,args);}
- private async Task<bool> Confirm(string title,string description){var dialog=new ContentDialog{Title=title,Content=description,PrimaryButtonText=title.Replace("预览",""),CloseButtonText="取消",XamlRoot=XamlRoot,RequestedTheme=RequestedTheme};return await dialog.ShowAsync()==ContentDialogResult.Primary;}
+ private ContentDialog Confirmation(string title,string description)=>new(){Title=title,Content=description,PrimaryButtonText=title.Replace("预览",""),CloseButtonText="取消",XamlRoot=XamlRoot,RequestedTheme=RequestedTheme};
+ private async Task<bool> Confirm(string title,string description){return await Confirmation(title,description).ShowAsync()==ContentDialogResult.Primary;}
  private async Task Pick(TextBox target,string title){try{var picker=new Microsoft.Windows.Storage.Pickers.FolderPicker(Microsoft.UI.Win32Interop.GetWindowIdFromWindow(WindowHandle)){CommitButtonText=title};var result=await picker.PickSingleFolderAsync();if(result is not null)target.Text=result.Path;else{Status.Text="已取消选择。";Notify();}}catch(Exception){Status.Text="目录选择器打开失败";Notify();}}
  private Task Missing(string message){Status.Text=message;Notify();return Task.CompletedTask;}
  private async Task LinkedImages(long modelId,string match,JsonElement page,string? cursor,long gen)
@@ -228,7 +229,7 @@ public sealed partial class ManagementView:UserControl,IDisposable
   await Task.CompletedTask;
  }
  private readonly ManagementJobSelection _jobSelection=new();private TextBlock? _jobStatus;
- private void UpdateJobDetails(){_jobSelection.Update(_jobs);if(_jobStatus is not null)_jobStatus.Text=_jobSelection.Value is{} job?JobText(job):"";StateChanged();}
+ private void UpdateJobDetails(){_jobSelection.Update(_jobs);if(_jobStatus is not null)_jobStatus.Text=_jobSelection.Value is{} job?JobText(job)+(CivitaiFeedback.Issues(job) is{Length:>0} issues?"\n\n"+issues:""):"";StateChanged();}
  internal Func<UIElement>? ConnectionContent;private StackPanel? _connectionHost;
  internal void RefreshConnection(){if(_visible&&_page=="Jobs"&&_connectionHost is not null){_connectionHost.Children.Clear();if(ConnectionContent is{} create)_connectionHost.Children.Add(create());}}
  private void JobsForm(JsonElement? job)

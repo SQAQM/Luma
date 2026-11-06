@@ -15,6 +15,8 @@ def initialize(db):
     CREATE INDEX IF NOT EXISTS ix_luma_model_membership_root ON luma_model_memberships(root_id,file_id);
     CREATE TABLE IF NOT EXISTS luma_model_versions(version_id INTEGER PRIMARY KEY,record TEXT NOT NULL,updated_at REAL NOT NULL);
     CREATE TABLE IF NOT EXISTS luma_model_local_info(file_id INTEGER PRIMARY KEY REFERENCES luma_model_files(id) ON DELETE CASCADE,record TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS luma_model_sync_selection(scope_id TEXT NOT NULL,file_id INTEGER NOT NULL,PRIMARY KEY(scope_id,file_id));
+    CREATE TABLE IF NOT EXISTS luma_model_sync_issues(job_id TEXT NOT NULL,code TEXT NOT NULL,count INTEGER NOT NULL,PRIMARY KEY(job_id,code));
     CREATE TABLE IF NOT EXISTS luma_model_version_files(version_id INTEGER REFERENCES luma_model_versions(version_id) ON DELETE CASCADE,sha256 TEXT NOT NULL,PRIMARY KEY(version_id,sha256));
     CREATE INDEX IF NOT EXISTS ix_luma_version_hash ON luma_model_version_files(sha256);
     CREATE TABLE IF NOT EXISTS luma_model_verified_hashes(version_id INTEGER REFERENCES luma_model_versions(version_id) ON DELETE CASCADE,sha256 TEXT NOT NULL,PRIMARY KEY(version_id,sha256));

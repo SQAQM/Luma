@@ -38,11 +38,29 @@ public static class CivitaiFeedback
  }
  public static string SyncResult(JsonElement job)
  {
+  string issues=Issues(job);if(issues.Length>0)return issues.Replace("\n"," · ");
   string message=Text(job,"feedback");
   foreach(var pair in new[]{("密钥无效","密钥无效"),("请求过于频繁","请求频率受限"),("无法连接","连接失败"),("拒绝访问","访问受限"),("未找到公开","未找到模型"),("无法验证","资料格式错误")})if(message.Contains(pair.Item1,StringComparison.Ordinal))return pair.Item2;
   if(job.ValueKind==JsonValueKind.Object&&job.TryGetProperty("errors",out var errors)&&errors.TryGetInt32(out var count)&&count>0)return "部分未完成";
-  var saved=System.Text.RegularExpressions.Regex.Match(message,@"封面已保存 (\d{1,2}) 个");
+  var saved=System.Text.RegularExpressions.Regex.Match(message,@"封面已保存 (\d{1,10}) 个");
   if(saved.Success)return "封面 "+saved.Groups[1].Value+" 个";
   return Text(job,"status") switch{"completed"=>"已完成","completed_with_errors"=>"部分未完成","cancelled"=>"已取消","failed"=>"获取失败",_=>"更新中"};
+ }
+ public static string Issues(JsonElement job)
+ {
+  var lines=new List<string>();
+  if(job.ValueKind!=JsonValueKind.Object)return "";
+  if(job.TryGetProperty("issues",out var issues)&&issues.ValueKind==JsonValueKind.Array)foreach(var item in issues.EnumerateArray().Take(32)){
+   string label=Text(item,"code") switch{
+    "not_found"=>"Civitai 未收录","unauthorized"=>"密钥无效","forbidden"=>"访问受限","rate_limited"=>"请求频率受限",
+    "network"=>"网络连接失败","unavailable"=>"Civitai 暂时不可用","credentials"=>"密钥读取失败","source_changed"=>"模型文件已变化",
+    "file_missing"=>"模型文件不存在","file_error"=>"本地文件操作失败","sync_error"=>"同步失败","invalid_cover"=>"封面读取失败","hash_mismatch"=>"模型哈希不匹配",
+    "response_too_large"=>"资料过大","invalid_response"=>"资料格式错误","redirect"=>"接口发生重定向","invalid_hash"=>"模型哈希无效","invalid_id"=>"模型编号无效",_=>""};
+   if(label.Length>0&&item.TryGetProperty("count",out var count)&&count.ValueKind==JsonValueKind.Number&&count.TryGetInt64(out long n)&&n>0)lines.Add($"{label}：{n} 个");
+  }
+  if(Text(job,"status") is "completed_with_errors" or "failed" or "cancelled"){
+   if(job.TryGetProperty("total",out var total)&&total.TryGetInt64(out long t)&&job.TryGetProperty("processed",out var processed)&&processed.TryGetInt64(out long p)&&t>p&&p>=0)lines.Add($"未处理：{t-p} 个");
+  }
+  return string.Join("\n",lines);
  }
 }

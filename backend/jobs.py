@@ -186,6 +186,9 @@ class JobManager:
         except Exception as exc:
             self.progress(job_id,status="failed",message=str(exc))
         finally:
+            if kind=='model_sync' and payload.get('scope_id'):
+                from .model_sync_scope import discard
+                discard(self,payload['scope_id'])
             if kind=="file_recovery":self.recovering=False
             with self._lock:
                 self._events.pop(job_id,None)
