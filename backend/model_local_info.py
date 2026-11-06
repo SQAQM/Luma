@@ -66,6 +66,9 @@ def read(model_path):
                     raw = source.file.read(MAX_BYTES+1); source.verify()
                     if len(raw) > MAX_BYTES: continue
                     result = parse(json.loads(raw.decode('utf-8-sig')), path, format_name)
+                    # JSON escapes can contain lone surrogates even when the
+                    # file bytes are UTF-8. Validate before SQLite or RPC sees it.
+                    if len(json.dumps(result, ensure_ascii=False).encode('utf-8')) > MAX_BYTES: continue
                 if result: return result
             except (OSError, ValueError, UnicodeError, RecursionError):
                 continue

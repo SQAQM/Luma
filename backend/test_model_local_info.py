@@ -116,5 +116,14 @@ class LocalModelInfoTests(unittest.TestCase):
         path.write_text('\ufeff'+path.read_text(),encoding='utf-8')
         self.assertEqual(self.scan()['source_url'],'https://civitai.com/models/17?modelVersionId=31')
 
+    def test_invalid_unicode_in_optional_info_does_not_hide_weight(self):
+        for field in ('ModelName','ModelDescription','TrainedWords'):
+            with self.subTest(field=field):
+                self.info({'ModelName':'Local', field:['\ud800'] if field=='TrainedWords' else '\ud800'})
+                self.lib.scan(Progress(),'fixture',{'root_id':self.root})
+                page=self.lib.list_models()
+                self.assertEqual(page['total'],1)
+                self.assertEqual(page['items'][0]['metadata_source'],'')
+
 
 if __name__ == '__main__': unittest.main()

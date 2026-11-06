@@ -1,5 +1,7 @@
 # Luma development
 
+Read docs/REQUIREMENTS.md on each iteration and continue the remaining work.
+
 Use the native C# / XAML WinUI 3 frontend. Keep the Python engine Qt-free at runtime.
 Use isolated synthetic profiles for development. Never open a user library, image,
 prompt, model weight or credential while testing. Store temporary/build output

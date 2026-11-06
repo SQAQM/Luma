@@ -18,7 +18,7 @@ public sealed partial class ShellView
   var checks=new List<object>();
   void Check(bool value,string name){checks.Add(new{passed=value,name});if(!value)throw new InvalidOperationException(name);}
   async Task Until(Func<Task<bool>> test){for(int i=0;i<150;i++){if(await test())return;await Task.Delay(100);}throw new TimeoutException("Own feature fixture timed out");}
-  async Task Capture(string name){await capture();File.Copy(Path.Combine(directory,"screenshot.png"),Path.Combine(directory,name+".png"),true);}
+  async Task Capture(string name){await capture();string frame=Directory.EnumerateFiles(directory,"capture-*.png").MaxBy(File.GetLastWriteTimeUtc)??throw new InvalidOperationException("Own capture missing");File.Copy(frame,Path.Combine(directory,name+".png"),true);}
   try
   {
    Navigate(WorkspacePage.Models);
