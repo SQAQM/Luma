@@ -18,7 +18,7 @@ from .organizer import Cancelled, signature, check_directory_chain, reparse_poin
 from .model_registry import model_name, FAMILIES
 from .model_references import initialize, update_image_references, _projection, hash_projection
 from .civitai import API_ORIGIN, normalize_trigger_words
-from . import model_covers
+from . import model_covers, model_local_info
 
 EXTENSIONS=frozenset(('.safetensors','.ckpt','.gguf','.pt','.pth','.bin'))
 _SHA=re.compile('[0-9a-fA-F]{64}\\Z')
@@ -145,10 +145,12 @@ class ModelLibrary:
         return {'removed':True,'root_id':root_id}
 
     def _item(self,row,detail=False):
-        item=dict(row); record=_cached_record(item.pop('record',None))
+        item=dict(row); verified=_cached_record(item.pop('record',None)); local=_cached_record(item.pop('local_record',None))
+        record=verified or local
+        item['metadata_source']='civitai' if verified else 'local' if local else ''
         for key in ('model_name','version_name','type','base_model','family','model_id','version_id'):
             item[key]=record.get(key,item.get(key) or (None if key.endswith('_id') else ''))
-        item['type']=_resource_type(record,item.get('sha256'))
+        item['type']=_resource_type(verified,item.get('sha256')) if verified else local.get('type','Unknown')
         item['family']=_cached_family(record)
         item['cover_available']=model_covers.available(item['path']) or bool(self._cover_for_hash(item.get('sha256')))
         if detail:
@@ -156,7 +158,7 @@ class ModelLibrary:
                 item[key]=record.get(key,'')
             words=normalize_trigger_words(record.get('trigger_words',record.get('trained_words',[])))
             item['trigger_words']=words; item['trained_words']=list(words)
-            item['source_url']=_source_url(record)
+            item['source_url']=_source_url(record) if verified else local.get('source_url','')
         return item
 
     def list_models(self,root_id=None,q='',cursor=None,limit=60,types=_UNSET,families=_UNSET):
@@ -167,12 +169,12 @@ class ModelLibrary:
         if root_id is not None:
             clauses.append('f.id IN (SELECT file_id FROM luma_model_memberships WHERE root_id=?)');args.append(_id(root_id))
         if q.strip():
-            clauses.append("(instr(lower(f.name),lower(?))>0 OR instr(lower(COALESCE(json_extract(v.record,'$.model_name'),'')),lower(?))>0)");args.extend([q.strip(),q.strip()])
+            clauses.append("(instr(lower(f.name),lower(?))>0 OR instr(lower(COALESCE(json_extract(COALESCE(v.record,li.record),'$.model_name'),'')),lower(?))>0)");args.extend([q.strip(),q.strip()])
         where=' AND '.join(clauses) or '1'
         with self.store.connect() as db:
             # SQLite evaluates these bounded cached-JSON projections per row;
             # neither all model rows nor weight bytes enter Python collections.
-            db.create_function('luma_resource_type',2,lambda record,digest:_resource_type(_cached_record(record),digest),deterministic=True)
+            db.create_function('luma_resource_type',3,lambda record,local,digest:_resource_type(_cached_record(record),digest) if _cached_record(record) else _cached_record(local).get('type','Unknown'),deterministic=True)
             db.create_function('luma_cached_family',1,lambda record:_cached_family(_cached_record(record)),deterministic=True)
             db.execute('BEGIN'); revision=db.execute('SELECT revision FROM query_state WHERE id=1').fetchone()[0]
             fingerprint=hashlib.sha256(json.dumps([root_id,q,types,families]).encode()).hexdigest()
@@ -184,25 +186,25 @@ class ModelLibrary:
                     if data['revision']!=revision or data['filter']!=fingerprint: raise ValueError()
                     anchor=_id(data['id'])
                 except (ValueError,TypeError,KeyError,UnicodeError): raise ValueError('模型分页已过期，请刷新') from None
-            source=' FROM luma_model_files f LEFT JOIN luma_model_versions v ON v.version_id=f.version_id WHERE '+where
+            source=' FROM luma_model_files f LEFT JOIN luma_model_versions v ON v.version_id=f.version_id LEFT JOIN luma_model_local_info li ON li.file_id=f.id WHERE '+where
             facets={}
-            for key,expression in (('types','luma_resource_type(v.record,f.sha256)'),('families','luma_cached_family(v.record)')):
+            for key,expression in (('types','luma_resource_type(v.record,li.record,f.sha256)'),('families','luma_cached_family(COALESCE(v.record,li.record))')):
                 # Scope facets precede both dimension filters. Unknown is first
                 # in SQL so it cannot be lost to the bounded type facet limit.
                 facets[key]=sorted(r[0] for r in db.execute('SELECT DISTINCT '+expression+' AS facet'+source+" ORDER BY (facet='Unknown') DESC,facet LIMIT 128",args))
             filtered=list(args)
-            for selected,expression in ((types,'luma_resource_type(v.record,f.sha256)'),(families,'luma_cached_family(v.record)')):
+            for selected,expression in ((types,'luma_resource_type(v.record,li.record,f.sha256)'),(families,'luma_cached_family(COALESCE(v.record,li.record))')):
                 if selected:
                     source+=' AND '+expression+' IN ('+','.join('?' for _ in selected)+')';filtered.extend(selected)
             total=db.execute('SELECT count(*)'+source,filtered).fetchone()[0]
-            rows=list(db.execute('SELECT f.id,f.root_id,f.path,f.name,f.size,f.mtime_ns,f.sha256,f.status,f.version_id,v.record'+source+' AND f.id>? ORDER BY f.id LIMIT ?',[*filtered,anchor,limit+1]))
+            rows=list(db.execute('SELECT f.id,f.root_id,f.path,f.name,f.size,f.mtime_ns,f.sha256,f.status,f.version_id,v.record,li.record local_record'+source+' AND f.id>? ORDER BY f.id LIMIT ?',[*filtered,anchor,limit+1]))
         more=len(rows)>limit; rows=rows[:limit]
         token=base64.urlsafe_b64encode(json.dumps({'revision':revision,'filter':fingerprint,'id':rows[-1]['id']}).encode()).decode().rstrip('=') if more else None
         return {'items':[self._item(row) for row in rows],'total':total,'next_cursor':token,'facets':facets}
 
     def detail(self,model_id):
         with self.store.connect() as db:
-            row=db.execute('SELECT f.id,f.root_id,f.path,f.name,f.size,f.mtime_ns,f.sha256,f.status,f.version_id,v.record FROM luma_model_files f LEFT JOIN luma_model_versions v ON v.version_id=f.version_id WHERE f.id=?',(_id(model_id),)).fetchone()
+            row=db.execute('SELECT f.id,f.root_id,f.path,f.name,f.size,f.mtime_ns,f.sha256,f.status,f.version_id,v.record,li.record local_record FROM luma_model_files f LEFT JOIN luma_model_versions v ON v.version_id=f.version_id LEFT JOIN luma_model_local_info li ON li.file_id=f.id WHERE f.id=?',(_id(model_id),)).fetchone()
         if row is None: raise ValueError('模型文件不存在')
         return self._item(row,True)
 
@@ -252,6 +254,7 @@ class ModelLibrary:
                         # commit. No file bytes are read during indexing.
                         with VerifiedFile(path) as held, self.store.connect() as db:
                             if _identity(path,held.info)!=identity: raise ValueError('模型文件身份改变')
+                            local_info=model_local_info.read(path)
                             held.verify()
                             old=db.execute('SELECT id,size,mtime_ns,ctime_ns,device,inode,change_ns FROM luma_model_files WHERE path=?',(str(path),)).fetchone()
                             changed=old is not None and tuple(old)[1:]!=identity
@@ -259,6 +262,11 @@ class ModelLibrary:
                               ON CONFLICT(path) DO UPDATE SET size=excluded.size,mtime_ns=excluded.mtime_ns,ctime_ns=excluded.ctime_ns,device=excluded.device,inode=excluded.inode,change_ns=excluded.change_ns,seen=excluded.seen''',(root_id,str(path),entry.name,model_name(entry.name),*identity,token))
                             file_id=db.execute('SELECT id FROM luma_model_files WHERE path=?',(str(path),)).fetchone()[0]
                             if changed: db.execute("UPDATE luma_model_files SET sha256='',version_id=NULL,status='changed' WHERE id=?",(file_id,))
+                            if local_info:
+                                db.execute('INSERT INTO luma_model_local_info(file_id,record) VALUES(?,?) ON CONFLICT(file_id) DO UPDATE SET record=excluded.record',
+                                           (file_id,json.dumps(local_info,ensure_ascii=False)))
+                            else:
+                                db.execute('DELETE FROM luma_model_local_info WHERE file_id=?',(file_id,))
                             db.execute('INSERT OR IGNORE INTO luma_model_memberships(file_id,root_id) VALUES(?,?)',(file_id,root_id))
                         count+=1
                     except (OSError,ValueError): errors+=1

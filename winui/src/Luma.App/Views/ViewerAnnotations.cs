@@ -55,6 +55,7 @@ public sealed partial class ViewerView
 
     private async void ChangeAnnotation(bool? favorite, int? rating)
     {
+        PausePlayback();
         if (_disposed || !IsOpen || _annotationWriting || _management is not { Writing: false, Uncertain: false } state || _model is not { Current: { } current } model) return;
         if (favorite is null && rating is null || rating is < 0 or > 5) return;
         var args = new Dictionary<string, object?> { ["imageId"] = current.Id, ["identity"] = current.Identity };

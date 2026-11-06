@@ -100,5 +100,5 @@ def dispatch(service, method, payload, cancelled):
 
 
 def hello():
-    return {'protocol': 1, 'engineVersion':'1.0.0', 'preview': True, 'writesEnabled': False, 'managementWrites': True, 'destructiveWrites': True, 'fileOperations': True, 'maxFrameBytes': MAX_FRAME,
+    return {'protocol': 1, 'engineVersion':'1.1.0', 'preview': True, 'writesEnabled': False, 'managementWrites': True, 'destructiveWrites': True, 'fileOperations': True, 'maxFrameBytes': MAX_FRAME,
             'maxQuery': 120, 'maxNeighbors': 9, 'capabilities': list(METHODS), 'workers': 2, 'admitted': 4}

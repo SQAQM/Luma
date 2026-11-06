@@ -14,13 +14,14 @@ def initialize(db):
     CREATE TABLE IF NOT EXISTS luma_model_memberships(file_id INTEGER REFERENCES luma_model_files(id) ON DELETE CASCADE,root_id INTEGER REFERENCES luma_model_roots(id) ON DELETE CASCADE,PRIMARY KEY(file_id,root_id));
     CREATE INDEX IF NOT EXISTS ix_luma_model_membership_root ON luma_model_memberships(root_id,file_id);
     CREATE TABLE IF NOT EXISTS luma_model_versions(version_id INTEGER PRIMARY KEY,record TEXT NOT NULL,updated_at REAL NOT NULL);
+    CREATE TABLE IF NOT EXISTS luma_model_local_info(file_id INTEGER PRIMARY KEY REFERENCES luma_model_files(id) ON DELETE CASCADE,record TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS luma_model_version_files(version_id INTEGER REFERENCES luma_model_versions(version_id) ON DELETE CASCADE,sha256 TEXT NOT NULL,PRIMARY KEY(version_id,sha256));
     CREATE INDEX IF NOT EXISTS ix_luma_version_hash ON luma_model_version_files(sha256);
     CREATE TABLE IF NOT EXISTS luma_model_verified_hashes(version_id INTEGER REFERENCES luma_model_versions(version_id) ON DELETE CASCADE,sha256 TEXT NOT NULL,PRIMARY KEY(version_id,sha256));
     CREATE TABLE IF NOT EXISTS luma_image_model_refs(image_id INTEGER NOT NULL REFERENCES images(id) ON DELETE CASCADE,role TEXT NOT NULL,kind TEXT NOT NULL,value TEXT NOT NULL,PRIMARY KEY(image_id,role,kind,value));
     CREATE INDEX IF NOT EXISTS ix_luma_image_model_refs_lookup ON luma_image_model_refs(kind,value,image_id);
     ''')
-    for table in ('luma_model_files','luma_model_memberships','luma_model_versions','luma_model_version_files','luma_model_verified_hashes','luma_image_model_refs'):
+    for table in ('luma_model_files','luma_model_memberships','luma_model_versions','luma_model_local_info','luma_model_version_files','luma_model_verified_hashes','luma_image_model_refs'):
         for op in ('INSERT','UPDATE','DELETE'):
             db.execute(f'CREATE TRIGGER IF NOT EXISTS query_revision_{table}_{op.lower()} AFTER {op} ON {table} BEGIN UPDATE query_state SET revision=revision+1 WHERE id=1; END')
 

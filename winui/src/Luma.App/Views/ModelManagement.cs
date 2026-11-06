@@ -122,7 +122,7 @@ Layout();
  private long? _editingRule;private int _registryOffset;private CheckBox? _ruleEnabled;
  private WindowsShellActions _fileActions=new(false);
  internal void SetDiagnostics(bool diagnostics){_fileActions=new(diagnostics);_verifyModelUi=diagnostics&&Environment.GetEnvironmentVariable("LUMA_MODEL_UI_TEST")=="1";}
- private static string ModelStatus(JsonElement model)=>S(model,"status") switch{"synced"=>"资料已获取","indexed"=>"尚未获取资料","changed"=>"文件已更改","sync_error_not_found"=>"未找到公开记录","sync_error_unauthorized"=>"密钥无效或已过期","sync_error_rate_limited"=>"请求频率受限","sync_error_unavailable"=>"获取失败","missing"=>"文件不存在",var status when status.StartsWith("sync_error")=>"获取失败",_=>"等待索引或获取资料"};
+ private static string ModelStatus(JsonElement model)=>S(model,"status") switch{"synced"=>"资料已获取","indexed"=>S(model,"metadata_source")=="local"?"本地资料":"尚未获取资料","changed"=>"文件已更改","sync_error_not_found"=>"未找到公开记录","sync_error_unauthorized"=>"密钥无效或已过期","sync_error_rate_limited"=>"请求频率受限","sync_error_unavailable"=>"获取失败","missing"=>"文件不存在",var status when status.StartsWith("sync_error")=>"获取失败",_=>"等待索引或获取资料"};
  private void ModelDescription(JsonElement detail,StackPanel? target=null)
  {
   target??=Fields;

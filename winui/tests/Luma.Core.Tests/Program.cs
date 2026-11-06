@@ -2,6 +2,12 @@ using System.Text;
 using System.Text.Json;
 using Luma.Core.Engine;
 
+if(args.Length==1&&args[0]=="--slideshow-only")
+{
+ try{Console.WriteLine("SLIDESHOW_PASSED "+SlideshowTests.Run());return 0;}
+ catch(Exception error){Console.Error.WriteLine(error);return 1;}
+}
+
 if(args.Length==1&&args[0]=="--shell-reveal-only")
 {
  try{Console.WriteLine("SHELL_REVEAL_PASSED "+ShellRevealTests.Run());return 0;}
@@ -73,6 +79,7 @@ try
     try { FrameCodec.Encode(new { invalid = "\ud800" }); throw new Exception("outbound invalid UTF16 was silently replaced"); } catch(EngineProtocolException) { passed++; }
     passed += await GalleryTests.Run();
     passed += ViewerTests.Run();
+    passed += SlideshowTests.Run();
     passed += await ViewerNavigationTests.Run();
     passed += ViewerAssetTests.Run();
     passed += await ViewerReviewTests.Run();
