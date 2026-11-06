@@ -12,6 +12,6 @@
 - [x] 实现逐帧资源、单容器复用及释放；扩展严格协议。
 - [x] 原生控制器与有界解码接入，保留帧期间不清空画面，避免逐帧刷新窗口背景。
 - [x] 核对多页、暂停/继续、切文件及大字体，独立代码/PNG评审。
-- [ ] 正式1.2.0，更新当前程序与两种包、公开发布并清理本轮旧产物。
+- [x] 正式1.2.0，更新当前程序与两种包、公开发布并清理本轮旧产物。
 
 依据：[微软BitmapImage](https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.media.imaging.bitmapimage)、[Pillow多帧格式](https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html)、[WebP时长在load后更新的源码/问题记录](https://github.com/python-pillow/Pillow/issues/9790)。采用逐帧方案覆盖GIF/WebP/TIFF，不限定于原生GIF自动播放。

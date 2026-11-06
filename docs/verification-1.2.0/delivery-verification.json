@@ -1,0 +1,29 @@
+{
+  "result": "passed_local_native_candidate_only",
+  "version": "1.2.0",
+  "sourceInputs": 251,
+  "engineInputs": 88,
+  "payloadFiles": 732,
+  "engineModules": 743,
+  "setup": {
+    "requestedExecutionLevel": "asInvoker",
+    "name": "Luma-1.2.0-Setup-x64.exe",
+    "bytes": 93347073,
+    "sha256": "48fe56126a0847b9f0e130f26fb0a0e5aa8d3a62897d7ffb71288005ecacaf57"
+  },
+  "portable": {
+    "name": "Luma-1.2.0-Portable-x64.zip",
+    "bytes": 130928015,
+    "sha256": "0a7f1d5bb5230fd9bfce25313fea76fa212f46f714b1f3fb2a80b958985774a9",
+    "crcAndEntriesVerified": true
+  },
+  "evidence": {
+    "build/feature-1.2/frozen-runtime.json": {
+      "sha256": "763407631e9a98d7618155152ccd75396bc08317d1d8b4bf3b5e7b1344391c1e",
+      "result": "passed_frozen_runtime_selfcheck",
+      "checks": null
+    }
+  },
+  "verifierSha256": "18a505c5066411f6284e955836d539368afdb4734e0fc6f087e33a94cd80520c",
+  "scope": "immutable payload and supplied local synthetic evidence; no production-capacity or real-library claim"
+}

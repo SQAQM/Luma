@@ -1,0 +1,21 @@
+{
+  "result": "passed_manifest_owned_program_update",
+  "oldVersion": "1.1.0",
+  "newVersion": "1.2.0",
+  "writeProgramFiles": 732,
+  "obsoleteProgramFiles": 0,
+  "dataAccessed": false,
+  "unknownFilesPreserved": true,
+  "setup": {
+    "requestedExecutionLevel": "asInvoker",
+    "name": "Luma-1.2.0-Setup-x64.exe",
+    "bytes": 93347073,
+    "sha256": "48fe56126a0847b9f0e130f26fb0a0e5aa8d3a62897d7ffb71288005ecacaf57"
+  },
+  "portable": {
+    "name": "Luma-1.2.0-Portable-x64.zip",
+    "bytes": 130928015,
+    "sha256": "0a7f1d5bb5230fd9bfce25313fea76fa212f46f714b1f3fb2a80b958985774a9",
+    "crcAndEntriesVerified": true
+  }
+}

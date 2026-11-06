@@ -35,3 +35,5 @@ Data/
 *.key
 *.sqlite
 *.db
+
+docs/verification-*/retained-build-manifests/

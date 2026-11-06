@@ -1,0 +1,7 @@
+{
+  "result": "passed_owned_cleanup",
+  "files": 5288,
+  "logicalBytes": 3008989549,
+  "dataAccessed": false,
+  "currentRootPackagesPreserved": true
+}
