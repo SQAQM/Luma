@@ -1,0 +1,5 @@
+{
+  "result": "passed",
+  "scope": "one startup with fresh project-local diagnostics, own XAML only; no UI Automation and no real library",
+  "capture": "capture-Side-Gallery-Sample-System-984x642-100-r1.png"
+}

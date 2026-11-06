@@ -1,0 +1,8 @@
+{
+  "result": "passed_source_binding_and_public_scan",
+  "trackedFiles": 270,
+  "sourceInputs": 245,
+  "findings": [],
+  "privateDataIncluded": false,
+  "sourceCommit": "d6695a708c0a436c59fd67f36ce35df2070e6ab8"
+}

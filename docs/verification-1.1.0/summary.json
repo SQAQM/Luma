@@ -29,5 +29,5 @@
   "codeReview": "No remaining P1/P2; malformed Unicode sidecar fixed with red-green regression",
   "pngReview": "No blocking clipping or overlap at either text scale",
   "privateDataRead": false,
-  "githubPublication": "pending"
+  "githubPublication": "passed_public_release_verification"
 }
