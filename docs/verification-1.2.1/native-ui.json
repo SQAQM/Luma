@@ -1,0 +1,37 @@
+{
+  "result": "passed_native_sync_ui",
+  "scales": [
+    100,
+    150
+  ],
+  "reports": [
+    {
+      "result": "passed_sync_ui",
+      "checks": [
+        "native update includes all 67 models",
+        "native update sends filter scope",
+        "explicit single selection stays single",
+        "confirmation displays 67",
+        "task shows persistent not-found reason",
+        "task total matches directory",
+        "error details stay within content width"
+      ],
+      "privateDataRead": false,
+      "networkUsed": false
+    },
+    {
+      "result": "passed_sync_ui",
+      "checks": [
+        "native update includes all 67 models",
+        "native update sends filter scope",
+        "explicit single selection stays single",
+        "confirmation displays 67",
+        "task shows persistent not-found reason",
+        "task total matches directory",
+        "error details stay within content width"
+      ],
+      "privateDataRead": false,
+      "networkUsed": false
+    }
+  ]
+}
