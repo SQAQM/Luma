@@ -86,7 +86,7 @@ class ModelCardsTests(unittest.TestCase):
                         with self.assertRaises(ValueError): call()
         for call in (lambda:self.library.list_models(families=['invented']),
                      lambda:read(self.service,'models',{'families':['invented']},threading.Event())):
-            with self.assertRaises(ValueError):call()
+            self.assertEqual(call()['total'],0) # New upstream categories are valid bounded filters.
 
     def test_missing_cache_and_conflicting_roles_are_unknown(self):
         with self.service.store.connect() as db:

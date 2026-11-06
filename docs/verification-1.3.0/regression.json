@@ -1,0 +1,10 @@
+{
+  "result": "passed_targeted_regression",
+  "pythonFullBeforeFinalOwnershipBoundary": 166,
+  "finalInteropAndLockRecovery": 25,
+  "nativeCore": 302,
+  "civitaiFeedback": 17,
+  "duplicateFileHandleRegression": 3,
+  "syntheticProfilesOnly": true,
+  "changesAfterFullRun": "Only preservation of deleted owned sidecar fields; final 25 tests cover the modified module."
+}

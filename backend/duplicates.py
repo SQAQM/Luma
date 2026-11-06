@@ -88,9 +88,11 @@ Windows file-handle mutations avoid a check/path-rename race. On other platforms
 read-only scanning is available; destructive actions fail closed.
 Microsoft FILE_RENAME_INFO: absolute name, ReplaceIfExists=False.
 """
-    def __init__(self, path, *, mutable=False):
+    def __init__(self, path, *, mutable=False, parent_writes=False):
+        if mutable and parent_writes:raise ValueError('mutable_parent_sharing')
         self.path = Path(path)
         self.mutable = mutable
+        self.parent_writes=parent_writes
         self.file = None
         self.directories = []
 
@@ -109,11 +111,13 @@ Microsoft FILE_RENAME_INFO: absolute name, ReplaceIfExists=False.
             api.CreateFileW.restype = wintypes.HANDLE
             api.CloseHandle.argtypes = (wintypes.HANDLE,)
             # Hold every existing ancestor against replacement/reparse changes.
-            # No DELETE or WRITE sharing: a busy directory is skipped safely.
+            # Destructive/default reads deny WRITE/DELETE on ancestors. Explicit
+            # sidecar export permits sibling writes only in the immediate parent;
+            # the source file itself still denies WRITE and DELETE sharing.
             current = self.path.parent
             try:
                 while current != current.parent:
-                    directory = api.CreateFileW(str(current), 0x80, 1, None, 3,
+                    directory = api.CreateFileW(str(current), 0x80, 3 if self.parent_writes and current==self.path.parent else 1, None, 3,
                                                 0x02200000, None)
                     if directory == ctypes.c_void_p(-1).value:
                         raise OSError(ctypes.get_last_error(), "无法锁定文件目录，已跳过")

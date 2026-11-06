@@ -103,6 +103,7 @@ public sealed partial class MainWindow : Window
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_FEATURE_UI_TEST")=="1")_=Shell.VerifyFeatureUi(_options.DataDirectory,CaptureVerificationFrame);
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_MEDIA_UI_TEST")=="1")_=Shell.VerifyMediaUi(_options.DataDirectory,CaptureVerificationFrame);
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_SYNC_UI_TEST")=="1")_=Shell.VerifySyncUi(_options.DataDirectory,CaptureVerificationFrame);
+        if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_MODEL_PAGING_UI_TEST")=="1")_=Shell.VerifyModelPagingUi(_options.DataDirectory,CaptureVerificationFrame);
     }
     private async void PickImage()
     {

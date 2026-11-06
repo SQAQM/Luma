@@ -29,7 +29,7 @@ public static class CivitaiFeedback
   string status=Text(model,"status");
   return status switch{
    "sync_error_unauthorized"=>"密钥验证失败",
-   "sync_error_not_found"=>"未找到模型资料",
+   "sync_error_not_found"=>"当前文件哈希未匹配",
    "sync_error_forbidden"=>"访问受限",
    "sync_error_rate_limited"=>"请求频率受限",
    "synced"=>"未获取到封面",
@@ -52,7 +52,8 @@ public static class CivitaiFeedback
   if(job.ValueKind!=JsonValueKind.Object)return "";
   if(job.TryGetProperty("issues",out var issues)&&issues.ValueKind==JsonValueKind.Array)foreach(var item in issues.EnumerateArray().Take(32)){
    string label=Text(item,"code") switch{
-    "not_found"=>"Civitai 未收录","unauthorized"=>"密钥无效","forbidden"=>"访问受限","rate_limited"=>"请求频率受限",
+    "not_found"=>"当前文件哈希未匹配","unauthorized"=>"密钥无效","forbidden"=>"访问受限","rate_limited"=>"请求频率受限",
+    "sidecar_write"=>"模型目录资料保存失败","cover_not_found"=>"封面资源不存在","profile_not_found"=>"模型介绍暂不可用","version_not_found"=>"版本资料暂不可用",
     "network"=>"网络连接失败","unavailable"=>"Civitai 暂时不可用","credentials"=>"密钥读取失败","source_changed"=>"模型文件已变化",
     "file_missing"=>"模型文件不存在","file_error"=>"本地文件操作失败","sync_error"=>"同步失败","invalid_cover"=>"封面读取失败","hash_mismatch"=>"模型哈希不匹配",
     "response_too_large"=>"资料过大","invalid_response"=>"资料格式错误","redirect"=>"接口发生重定向","invalid_hash"=>"模型哈希无效","invalid_id"=>"模型编号无效",_=>""};

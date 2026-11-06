@@ -51,13 +51,12 @@ public sealed partial class ManagementView:UserControl,IDisposable
  {
   if(ReferenceEquals(_client,client))return;Detach();_client=client;_data=directory;_api=new(client);_state=shared;_modelAdd=new(shared);_state.Changed+=StateChanged;if(_visible&&_page=="Settings")ShowPage("Settings");
  }
- public void Detach(){ResetModelCovers();_poll.Stop();Invalidate();_linkedProvider?.Dispose();_linkedProvider=null;if(_state is not null)_state.Changed-=StateChanged;_state=null;_modelAdd=null;_api=null;_client=null;_formLoading=false;_definitions=[];_roots=[];_models=[];_jobs=[];_selection=[];_labelState=null;_credential=null;_token?.Password="";if(_visible&&_page=="Settings"&&!_disposed){SettingsForm();Status.Text=SettingsConnectionFeedback?.Invoke()??"";Notify();}}
+ public void Detach(){ResetModelCovers();_poll.Stop();Invalidate();_cursor=_next=null;_history.Clear();_linkedProvider?.Dispose();_linkedProvider=null;if(_state is not null)_state.Changed-=StateChanged;_state=null;_modelAdd=null;_api=null;_client=null;_formLoading=false;_definitions=[];_roots=[];_models=[];_jobs=[];_selection=[];_labelState=null;_credential=null;_token?.Password="";if(_visible&&_page=="Settings"&&!_disposed){SettingsForm();Status.Text=SettingsConnectionFeedback?.Invoke()??"";Notify();}}
  public void ShowPage(string page,long[]? selection=null)
  {
   _suspendedForViewer=false;
   bool same=_page==page&&selection is null;_visible=true;Visibility=Visibility.Visible;
-  if(!same){_page=page;_sub="";_cursor=null;_history.Clear();_query="";_labelState=null;}
-  if(page=="Models"){_cursor=null;_history.Clear();}
+  if(!same){_page=page;_sub="";_cursor=_next=null;_history.Clear();_query="";_labelState=null;}
   if(selection is not null){_selection=selection.Take(120).ToArray();_labelState=null;}
   Invalidate();Actions.Visibility=Visibility.Visible;Actions.Children.Clear();ModelControls.Children.Clear();ModelControlScroll.Visibility=page=="Models"?Visibility.Visible:Visibility.Collapsed;ClearForm();Records.ItemsSource=null;if(page=="Models"){BuildModelControls();Layout();}else Actions.Children.Add(Button("刷新","ManageRefresh",RefreshFromStart));Status.Text="正在读取资料…";ScopeText.Text=page=="Settings"?"":page=="Tags"?$"已选 {_selection.Length} 张":page=="Models"?"读取中":"读取中";_poll.Stop();if(page=="Jobs")_poll.Start();if(page=="Settings"&&_api is null){SettingsForm();Status.Text=SettingsConnectionFeedback?.Invoke()??"读取中";Layout();Notify();}else _ = RefreshPage();
  }
@@ -135,22 +134,23 @@ public sealed partial class ManagementView:UserControl,IDisposable
   long gen=_generation;var api=_api??throw new InvalidOperationException();var token=_reads.Token;_reading++;ReadIndicator.Opacity=1;Notify();
   try{return await api.ReadAsync(section,args??new{},token);}finally{if(gen==_generation){_reading=Math.Max(0,_reading-1);ReadIndicator.Opacity=_reading>0?1:0;Notify();}}
  }
- private Task RefreshFromStart(){Invalidate();if(_page=="Models"){_cursor=null;_history.Clear();}return RefreshPage();}
- private async Task RefreshPage()
+ private Task RefreshFromStart(){Invalidate();if(_page=="Models"){_cursor=_next=null;_history.Clear();}return RefreshPage();}
+ private async Task<bool> RefreshPage()
  {
-  if(_api is null||!_visible||_disposed||!_loads.TryRefresh())return;long gen=_generation;_formLoading=true;Notify();
+  if(_api is null||!_visible||_disposed||!_loads.TryRefresh())return false;long gen=_generation;_formLoading=true;_modelPageReset=false;Notify();
   try
   {
-   if(_page=="Tags") {var defs=await Read("tags");var vision=await Read("vision");if(gen!=_generation)return;_definitions=Rows(defs);_vision=vision;}
-   if(_page=="Models") {var jobs=await Read("jobs");var roots=await Read("modelRoots");if(gen!=_generation)return;var available=Rows(roots);if(_rootId.HasValue&&!available.Any(r=>N(r,"id")==_rootId))_rootId=null;
-    var models=await ReadModelPage();var cred=await Read("credential");if(gen!=_generation)return;_roots=available;_jobs=Rows(jobs);_models=Rows(models.GetProperty("items"));_modelTotal=N(models,"total");_modelFacets=models.TryGetProperty("facets",out var facets)?facets.Clone():default;_next=models.TryGetProperty("next_cursor",out var next)&&next.ValueKind==JsonValueKind.String?next.GetString():null;_credential=cred;UpdateModelPolling();}
-   if(_page=="Jobs"){var jobs=await Read("jobs");if(gen!=_generation)return;var nextJobs=Rows(jobs);if(nextJobs.Any(j=>S(j,"status") is "completed" or "completed_with_errors"))LibraryChanged?.Invoke();_jobs=nextJobs;}
-   if(_page=="Settings"){var preferences=await Read("settings");var cred=await Read("credential");if(gen!=_generation)return;_preferences=preferences;_credential=cred;}
-   if(gen==_generation)Build();
+   if(_page=="Tags") {var defs=await Read("tags");var vision=await Read("vision");if(gen!=_generation)return false;_definitions=Rows(defs);_vision=vision;}
+   if(_page=="Models") {var jobs=await Read("jobs");var roots=await Read("modelRoots");if(gen!=_generation)return false;var available=Rows(roots);if(_rootId.HasValue&&!available.Any(r=>N(r,"id")==_rootId)){_rootId=null;_cursor=_next=null;_history.Clear();}
+    var models=await ReadModelPage();var cred=await Read("credential");if(gen!=_generation)return false;_roots=available;_jobs=Rows(jobs);_models=Rows(models.GetProperty("items"));_modelTotal=N(models,"total");_modelFacets=models.TryGetProperty("facets",out var facets)?facets.Clone():default;_next=models.TryGetProperty("next_cursor",out var next)&&next.ValueKind==JsonValueKind.String?next.GetString():null;_credential=cred;UpdateModelPolling();}
+   if(_page=="Jobs"){var jobs=await Read("jobs");if(gen!=_generation)return false;var nextJobs=Rows(jobs);if(nextJobs.Any(j=>S(j,"status") is "completed" or "completed_with_errors"))LibraryChanged?.Invoke();_jobs=nextJobs;}
+   if(_page=="Settings"){var preferences=await Read("settings");var cred=await Read("credential");if(gen!=_generation)return false;_preferences=preferences;_credential=cred;}
+   if(gen==_generation){Build();if(_page=="Models"&&_modelPageReset)Status.Text="模型列表已更新，已回到第 1 页。";return true;}
   }
   catch(OperationCanceledException){}
   catch(Exception){if(gen==_generation){Status.Text="资料读取失败，可点击刷新重试。";Notify();}}
   finally{_formLoading=false;_loads.Complete();if(_loads.RefreshPending&&_visible&&!_disposed)_=RefreshPage();else Notify();}
+  return false;
  }
  private void Build()
  {

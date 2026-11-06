@@ -1,7 +1,7 @@
 """SQL snapshots for whole-filter sync; bounded batches and fixed issue codes."""
 import uuid
 
-ISSUE_CODES=frozenset(('unauthorized','forbidden','not_found','rate_limited','unavailable','network','redirect','response_too_large','invalid_response','invalid_hash','hash_mismatch','invalid_id','invalid_cover','credentials','source_changed','file_missing','file_error','sync_error'))
+ISSUE_CODES=frozenset(('unauthorized','forbidden','not_found','rate_limited','unavailable','network','redirect','response_too_large','invalid_response','invalid_hash','hash_mismatch','invalid_id','invalid_cover','credentials','source_changed','file_missing','file_error','sync_error','sidecar_write','cover_not_found','profile_not_found','version_not_found'))
 
 def prepare(library,filters):
     token=uuid.uuid4().hex

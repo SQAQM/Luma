@@ -42,7 +42,7 @@ public sealed partial class ManagementView
  }
  internal void VerifySyncIssues(Action<bool,string> check)
  {
-  check(_jobStatus?.Text.Contains("Civitai 未收录：1 个")==true,"task shows persistent not-found reason");
+  check(_jobStatus?.Text.Contains("当前文件哈希未匹配：1 个")==true,"task shows persistent not-found reason");
   check(_jobStatus!.Text.Contains("67 / 67"),"task total matches directory");
   var bounds=_jobStatus.TransformToVisual(FormScroll).TransformBounds(new(0,0,_jobStatus.ActualWidth,_jobStatus.ActualHeight));
   check(bounds.Right<=FormScroll.ActualWidth+1,"error details stay within content width");

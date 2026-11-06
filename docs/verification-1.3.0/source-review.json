@@ -1,0 +1,14 @@
+{
+  "result": "passed_source_review_with_fixes",
+  "initialFindings": 5,
+  "resolved": [
+    "Canonical architecture value during profile merge",
+    "User-cleared field preservation",
+    "No ownership claim on equal preexisting user fields",
+    "Metadata exported even if cover download fails",
+    "Win32 JSON update holds exclusive handle and durable original backup"
+  ],
+  "additionalFix": "Preserve user-deleted owned fields through repeated refresh",
+  "existingFileUpdate": "Exclusive update with durable recovery backup; not crash-atomic",
+  "limitations": "Converted or repacked bytes with no matching public hash are not automatically bound to a different file."
+}

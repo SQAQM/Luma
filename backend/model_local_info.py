@@ -1,7 +1,7 @@
 """Bounded, same-name model descriptions; never evidence of verified weight bytes."""
 import json
 from pathlib import Path
-from .civitai import _BASES, _plain_text, _text, normalize_trigger_words
+from .civitai import _plain_text, _text, normalize_trigger_words,model_family
 from .duplicates import VerifiedFile
 from .organizer import check_directory_chain
 from .model_registry import FAMILIES
@@ -18,6 +18,13 @@ def _number(value):
 
 
 def parse(value, model_path, format_name):
+    if format_name=='rgthree' and isinstance(value,dict):
+        raw=value.get('raw',{});remote=raw.get('civitai') if isinstance(raw,dict) else None
+        if isinstance(remote,dict):return parse(remote,model_path,'civitai')
+        value={**value,'modelName':value.get('name',Path(model_path).stem),'modelType':value.get('type',''),'trainedWords':[v.get('word') for v in value.get('trainedWords',[]) if isinstance(v,dict) and isinstance(v.get('word'),str)]}
+    elif format_name=='webui' and isinstance(value,dict):
+        if not set(value).intersection(('description','activation text','baseModel','modelType','modelName','sd version')):return {}
+        value={**value,'modelName':value.get('modelName') or Path(model_path).stem,'modelType':value.get('modelType',''),'modelDescription':value.get('description',''),'trainedWords':[w.strip() for w in str(value.get('activation text','')).split(',') if w.strip()]}
     info = _fields(value)
     if not info: return {}
     model = _fields(info.get('model'))
@@ -25,7 +32,7 @@ def parse(value, model_path, format_name):
     name = _text(info.get('modelname', model.get('name')))
     if not name: return {}
     base = _text(info.get('basemodel'), 100)
-    family = _BASES.get(base, ('Unknown', ''))[0]
+    family = model_family(base)[0]
     role = _text(info.get('modeltype', model.get('type', info.get('type'))), 100)
     # A version may bundle an auxiliary file such as VAE. Prefer its explicit
     # file role when the local name identifies exactly that entry.
@@ -45,7 +52,7 @@ def parse(value, model_path, format_name):
     source_url = f'https://civitai.com/models/{model_id}?modelVersionId={version_id}' if model_id and version_id and is_civitai else ''
     return {
         'model_name':name, 'version_name':_text(info.get('versionname' if connected else 'modelversionname', info.get('name') if not connected else '')),
-        'type':role, 'base_model':base, 'family':family if family in FAMILIES else 'Unknown',
+        'type':role, 'base_model':base, 'family':family,
         'description':_plain_text(info.get('modeldescription', model.get('description', info.get('description') if connected else ''))),
         'version_description':_plain_text(info.get('versiondescription', info.get('description') if not connected else '')),
         'trigger_words':normalize_trigger_words(info.get('trainedwords', [])),
@@ -57,7 +64,7 @@ def parse(value, model_path, format_name):
 def read(model_path):
     path = Path(model_path)
     for base in dict.fromkeys((path.stem, path.name)):
-        for suffix, format_name in (('.cm-info.json', 'matrix'), ('.civitai.info', 'civitai')):
+        for suffix, format_name in (('.cm-info.json', 'matrix'), ('.civitai.info', 'civitai'),('.rgthree-info.json','rgthree'),('.json','webui')):
             candidate = path.with_name(base + suffix)
             try:
                 check_directory_chain(candidate.parent)

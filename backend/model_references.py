@@ -17,6 +17,8 @@ def initialize(db):
     CREATE TABLE IF NOT EXISTS luma_model_local_info(file_id INTEGER PRIMARY KEY REFERENCES luma_model_files(id) ON DELETE CASCADE,record TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS luma_model_sync_selection(scope_id TEXT NOT NULL,file_id INTEGER NOT NULL,PRIMARY KEY(scope_id,file_id));
     CREATE TABLE IF NOT EXISTS luma_model_sync_issues(job_id TEXT NOT NULL,code TEXT NOT NULL,count INTEGER NOT NULL,PRIMARY KEY(job_id,code));
+    CREATE TABLE IF NOT EXISTS luma_model_query_state(id INTEGER PRIMARY KEY CHECK(id=1),revision INTEGER NOT NULL);
+    INSERT OR IGNORE INTO luma_model_query_state(id,revision) VALUES(1,1);
     CREATE TABLE IF NOT EXISTS luma_model_version_files(version_id INTEGER REFERENCES luma_model_versions(version_id) ON DELETE CASCADE,sha256 TEXT NOT NULL,PRIMARY KEY(version_id,sha256));
     CREATE INDEX IF NOT EXISTS ix_luma_version_hash ON luma_model_version_files(sha256);
     CREATE TABLE IF NOT EXISTS luma_model_verified_hashes(version_id INTEGER REFERENCES luma_model_versions(version_id) ON DELETE CASCADE,sha256 TEXT NOT NULL,PRIMARY KEY(version_id,sha256));
@@ -26,6 +28,9 @@ def initialize(db):
     for table in ('luma_model_files','luma_model_memberships','luma_model_versions','luma_model_local_info','luma_model_version_files','luma_model_verified_hashes','luma_image_model_refs'):
         for op in ('INSERT','UPDATE','DELETE'):
             db.execute(f'CREATE TRIGGER IF NOT EXISTS query_revision_{table}_{op.lower()} AFTER {op} ON {table} BEGIN UPDATE query_state SET revision=revision+1 WHERE id=1; END')
+    for table in ('luma_model_roots','luma_model_files','luma_model_memberships','luma_model_versions','luma_model_local_info'):
+        for op in ('INSERT','UPDATE','DELETE'):
+            db.execute(f'CREATE TRIGGER IF NOT EXISTS model_revision_{table}_{op.lower()} AFTER {op} ON {table} BEGIN UPDATE luma_model_query_state SET revision=revision+1 WHERE id=1; END')
 
 
 _PARAMS="CASE WHEN typeof(parameters)='text' AND length(CAST(parameters AS BLOB))<=1048576 AND json_valid(parameters) THEN parameters ELSE '{}' END"

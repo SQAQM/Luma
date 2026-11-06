@@ -43,6 +43,10 @@ _MESSAGES = {
     "invalid_cover": "封面来源、格式或尺寸不符合安全限制。",
     "credentials": "无法安全读取 Civitai 密钥，请重新设置。",
     "cancelled": "Civitai 操作已取消。",
+    "sidecar_write": "模型目录资料保存失败。",
+    "cover_not_found": "Civitai 封面资源不存在。",
+    "profile_not_found": "Civitai 模型介绍暂不可用。",
+    "version_not_found": "Civitai 版本资料暂不可用。",
 }
 
 
@@ -160,6 +164,41 @@ _BASES = {
 }
 
 
+def model_family(base):
+    """Keep an explicit upstream category, including newer base-model names."""
+    value=' '.join(base.replace('\0','').split())[:100] if isinstance(base,str) else ''
+    if not value or value.casefold() in ('unknown','none'):return 'Unknown',''
+    known=next((category for name,category in _BASES.items() if name.casefold()==value.casefold()),None)
+    return known or (value,value)
+
+
+def resource_role(file_type,parent_type):
+    value=file_type.strip() if isinstance(file_type,str) else ''
+    if value.casefold() in ('model','pruned model','unet','diffusion model'):
+        return parent_type.strip() if isinstance(parent_type,str) and parent_type.strip() and parent_type.casefold()!='unknown' else ('Unknown' if value.casefold()=='model' else value)
+    return value or 'Unknown'
+
+
+def model_architecture(base):
+    family,variant=model_family(base)
+    if family=='Stable Diffusion':
+        sd=re.match(r'SD\s*([123](?:\.\d+)?)',variant)
+        variant='SDXL' if variant.startswith('SDXL') else 'SD'+sd[1] if sd else variant
+    return family,variant
+
+
+def with_profile(record,profile):
+    parent=profile.get('type') or record.get('model_type','')
+    files=[{**file,'resource_type':resource_role(file.get('type','Model'),parent)} for file in record.get('files',[])]
+    roles={f['resource_type'] for f in files if f.get('sha256')==record.get('matched_sha256')}
+    base=record.get('base_model','')
+    if not base or base.casefold() in ('unknown','未知'):
+        exact=next((v for v in profile.get('versions',[]) if v.get('version_id')==record.get('version_id')),{})
+        base=exact.get('base_model','')
+    family,variant=model_architecture(base)
+    return {**record,'model_type':parent,'type':next(iter(roles)) if len(roles)==1 else 'Unknown','files':files,'base_model':base,'family':family,'model_variant':variant}
+
+
 def _identifier(value):
     if type(value) is not int or not 0 < value <= 2**63 - 1:
         raise CivitaiError("invalid_response")
@@ -251,7 +290,7 @@ class CivitaiClient:
                 raise CivitaiError("redirect")
             self._cancel(cancelled)
             return self._read(target, maximum, cancelled, cover=True, _redirects=_redirects + 1, _deadline=deadline)
-        headers = {"User-Agent": "Luma/1.2.1 Civitai metadata client", "Accept-Encoding": "identity",
+        headers = {"User-Agent": "Luma/1.3.0 Civitai metadata client", "Accept-Encoding": "identity",
                    "Accept": "image/png,image/jpeg,image/webp" if cover else "application/json"}
         if token:
             headers["Authorization"] = "Bearer " + token
@@ -369,7 +408,7 @@ class CivitaiClient:
                     "autov2": _hash(hashes.get("AutoV2"), 10), "type": _text(item.get("type"), 100)}
             # A checkpoint version may ship VAE/config/training attachments.
             # Its parent's type cannot confer checkpoint identity on those bytes.
-            file["resource_type"] = model_type if file["type"].casefold() == "model" else "VAE" if file["type"].casefold() == "vae" else "Unknown"
+            file["resource_type"] = resource_role(file['type'],model_type)
             files.append(file)
             if file["sha256" if len(digest) == 64 else "autov2"] == digest:
                 matching.append(file)
@@ -377,12 +416,7 @@ class CivitaiClient:
                                                   or len({f["sha256"] for f in matching}) != 1)):
             raise CivitaiError("hash_mismatch")
         base = _text(value.get("baseModel"), 200)
-        family, variant = _BASES.get(base, ("未知", "未知"))
-        if family == "Stable Diffusion":
-            # Match the classifier's architecture vocabulary. The original
-            # upstream subtype stays intact in base_model for display.
-            sd = re.match(r"SD\s*([123](?:\.\d+)?)", variant)
-            variant = "SDXL" if variant.startswith("SDXL") else "SD" + sd[1] if sd else variant
+        family, variant = model_architecture(base)
         roles = {file["resource_type"] for file in matching}
         matched_type = next(iter(roles)) if len(roles) == 1 else "Unknown"
         images = _preview_images(value.get('images', []))
@@ -420,7 +454,7 @@ class CivitaiClient:
                     continue
                 if version.get('modelId', model_id) != model_id:
                     continue
-                versions.append({'version_id': version['id'], 'images': _preview_images(version.get('images', []))})
+                versions.append({'version_id': version['id'], 'images': _preview_images(version.get('images', [])),'base_model':_text(version.get('baseModel'),200)})
         self._cancel(cancelled)
         return {"model_id": model_id, "model_name": _text(value.get("name")),
                 "type": _text(value.get("type"), 100), "description": _plain_text(value.get("description")),

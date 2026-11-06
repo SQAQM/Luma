@@ -1,0 +1,9 @@
+{
+  "result": "passed_frozen_runtime_selfcheck",
+  "dependencies": {
+    "numpy": true,
+    "onnxruntime": true,
+    "tokenizers": true
+  },
+  "scope": "fresh project-local test profile; no weights, images, real Data or network"
+}

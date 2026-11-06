@@ -32,8 +32,6 @@ def model_selections(value,dimension):
     if any(not isinstance(v,str) or not v.strip() or len(v)>100 or '\0' in v for v in value):
         raise ValueError('模型筛选条件无效')
     result=sorted({v.strip() for v in value})
-    if dimension=='families' and any(v not in (*FAMILIES,'Unknown') for v in result):
-        raise ValueError('模型系筛选无效')
     return result
 
 
@@ -60,7 +58,13 @@ def _resource_type(record,digest):
 
 def _cached_family(record):
     family=record.get('family')
-    return family if isinstance(family,str) and family in FAMILIES else 'Unknown'
+    if isinstance(family,str) and family in FAMILIES:return family
+    from .civitai import model_family
+    return model_family(record.get('base_model',''))[0]
+
+
+class ModelCursorExpired(ValueError):
+    code='stale_cursor'
 
 
 class _SourceChanged(ValueError):
@@ -91,7 +95,7 @@ def _identity(path,info):
 
 
 @contextmanager
-def _directory_guard(path,ancestors=True):
+def _directory_guard(path,ancestors=True,writing=False):
     """Directory handles; holds ancestors against replacement on Windows."""
     handles=[]
     try:
@@ -104,7 +108,7 @@ def _directory_guard(path,ancestors=True):
             api.CloseHandle.argtypes=(wintypes.HANDLE,)
             current=Path(path)
             while current!=current.parent:
-                handle=api.CreateFileW(str(current),0x80000000,1,None,3,0x02200000,None)
+                handle=api.CreateFileW(str(current),0x80000000,3 if writing and current==Path(path) else 1,None,3,0x02200000,None)
                 if handle==ctypes.c_void_p(-1).value: raise ValueError('模型目录正被修改，已跳过')
                 handles.append((api,handle))
                 if not ancestors: break
@@ -184,15 +188,18 @@ class ModelLibrary:
             # SQLite evaluates these bounded cached-JSON projections per row;
             # neither all model rows nor weight bytes enter Python collections.
             source,args,filtered_source,filtered,types,families=self._scope_query(db,root_id,q,types,families)
-            db.execute('BEGIN'); revision=db.execute('SELECT revision FROM query_state WHERE id=1').fetchone()[0]
+            db.execute('BEGIN'); revision=db.execute('SELECT revision FROM luma_model_query_state WHERE id=1').fetchone()[0]
             fingerprint=hashlib.sha256(json.dumps([root_id,q,types,families]).encode()).hexdigest()
             anchor=0
             if cursor:
                 try:
                     if not isinstance(cursor,str) or len(cursor)>2048: raise ValueError()
                     data=json.loads(base64.urlsafe_b64decode(cursor+'='*(-len(cursor)%4)))
-                    if data['revision']!=revision or data['filter']!=fingerprint: raise ValueError()
+                    if not isinstance(data,dict) or set(data)!=set(('revision','filter','id')) or type(data['revision']) is not int or not 0<=data['revision']<=2**63-1 or data['filter']!=fingerprint:raise ValueError()
                     anchor=_id(data['id'])
+                    if anchor>2**63-1:raise ValueError()
+                    if data['revision']!=revision:raise ModelCursorExpired('模型分页已过期')
+                except ModelCursorExpired:raise
                 except (ValueError,TypeError,KeyError,UnicodeError): raise ValueError('模型分页已过期，请刷新') from None
             facets={}
             for key,expression in (('types','luma_resource_type(v.record,li.record,f.sha256)'),('families','luma_cached_family(COALESCE(v.record,li.record))')):
@@ -376,6 +383,8 @@ class ModelLibrary:
                                     profiles[record['model_id']]=self.client.model(record['model_id'],cancelled=cancelled)
                                 profile=profiles[record['model_id']]
                                 if not isinstance(profile,dict) or profile.get('model_id')!=record['model_id']: raise CivitaiError('invalid_response')
+                                from .civitai import with_profile
+                                record=with_profile(record,profile)
                                 record={**record,'model_name':profile.get('model_name') or record.get('model_name',''),
                                         'description':profile.get('description',''),'creator':profile.get('creator','')}
                                 # Hash lookup can omit previews. Use only the exact
@@ -391,54 +400,75 @@ class ModelLibrary:
                                 profile_updated=True
                             except Exception as error:
                                 if cancelled(): raise Cancelled() from None
-                                profile_error=error
+                                profile_error=CivitaiError('profile_not_found') if isinstance(error,CivitaiError) and error.code=='not_found' else error
                         if cancelled(): raise Cancelled()
                         _verify_source(file)
                         if not self.remember_version(record,preserve_profile=not profile_updated): raise CivitaiError('hash_mismatch')
                         _verify_source(file)
                         with self.store.connect() as db: db.execute("UPDATE luma_model_files SET sha256=?,version_id=?,status='synced' WHERE id=?",(digest,record['version_id'],file_id))
-                    existing_cover=self.cover_path(file_id) if covers else None
-                    if covers and existing_cover:
-                        covers_saved+=1
-                    if covers and not existing_cover:
-                        if not any(i.get('type')!='video' for i in record.get('images',[]) if isinstance(i,dict)) and callable(getattr(self.client,'version_by_id',None)):
-                            complete=self.client.version_by_id(record['version_id'],digest,cancelled=cancelled)
-                            if complete.get('model_id')!=record['model_id'] or complete.get('version_id')!=record['version_id'] or complete.get('matched_sha256')!=digest:
-                                raise CivitaiError('hash_mismatch')
-                            record={**record,'images':complete.get('images',[])}
-                        # The checkbox authorizes a public model cover. Prefer a
-                        # safe preview without silently excluding every other
-                        # author-provided image; videos are not still covers.
-                        images=[item for item in (record.get('images') or []) if isinstance(item,dict)
-                                and item.get('url') and item.get('type')!='video']
-                        images.sort(key=lambda item:bool(item.get('nsfw')))
-                        data=None; last_error=None
-                        for image in images[:4]:
-                            if cancelled(): raise Cancelled()
-                            manager.progress(job_id,processed=processed,total=total,errors=errors,message='正在获取模型封面')
-                            try:
-                                data=self.client.download_cover(image['url'],cancelled=cancelled)
-                                break
-                            except CivitaiError as error:
-                                if error.code=='cancelled': raise Cancelled() from None
-                                if error.code in ('unauthorized','credentials','rate_limited'): raise
-                                last_error=error
-                        if data is None:
-                            if last_error is not None: raise last_error
-                            covers_missing+=1
-                        else:
-                            if cancelled(): raise Cancelled()
-                            if not isinstance(data,bytes) or len(data)>8*1024*1024: raise CivitaiError('invalid_cover')
-                            self.cache_dir.mkdir(parents=True,exist_ok=True)
-                            target=self.cache_dir/(digest+'.cover'); temp=self.cache_dir/(uuid.uuid4().hex+'.tmp')
-                            try:
-                                temp.write_bytes(data)
+                    cover_error=None
+                    try:
+                        existing_cover=self.cover_path(file_id) if covers else None
+                        if covers and existing_cover:
+                            covers_saved+=1
+                        if covers and not existing_cover:
+                            if not any(i.get('type')!='video' for i in record.get('images',[]) if isinstance(i,dict)) and callable(getattr(self.client,'version_by_id',None)):
+                                try:complete=self.client.version_by_id(record['version_id'],digest,cancelled=cancelled)
+                                except CivitaiError as error:
+                                    if error.code=='not_found':raise CivitaiError('version_not_found') from None
+                                    raise
+                                if complete.get('model_id')!=record['model_id'] or complete.get('version_id')!=record['version_id'] or complete.get('matched_sha256')!=digest:
+                                    raise CivitaiError('hash_mismatch')
+                                record={**record,'images':complete.get('images',[])}
+                            # The checkbox authorizes a public model cover. Prefer a
+                            # safe preview without silently excluding every other
+                            # author-provided image; videos are not still covers.
+                            images=[item for item in (record.get('images') or []) if isinstance(item,dict)
+                                    and item.get('url') and item.get('type')!='video']
+                            images.sort(key=lambda item:bool(item.get('nsfw')))
+                            data=None; last_error=None
+                            for image in images[:4]:
                                 if cancelled(): raise Cancelled()
-                                os.replace(temp,target)
-                                covers_saved+=1
-                            finally:
-                                if temp.exists(): temp.unlink()
+                                manager.progress(job_id,processed=processed,total=total,errors=errors,message='正在获取模型封面')
+                                try:
+                                    data=self.client.download_cover(image['url'],cancelled=cancelled)
+                                    break
+                                except CivitaiError as error:
+                                    if error.code=='cancelled': raise Cancelled() from None
+                                    if error.code in ('unauthorized','credentials','rate_limited'): raise
+                                    last_error=CivitaiError('cover_not_found') if error.code=='not_found' else error
+                            if data is None:
+                                if last_error is not None: raise last_error
+                                covers_missing+=1
+                            else:
+                                if cancelled(): raise Cancelled()
+                                if not isinstance(data,bytes) or len(data)>8*1024*1024: raise CivitaiError('invalid_cover')
+                                self.cache_dir.mkdir(parents=True,exist_ok=True)
+                                target=self.cache_dir/(digest+'.cover'); temp=self.cache_dir/(uuid.uuid4().hex+'.tmp')
+                                try:
+                                    temp.write_bytes(data)
+                                    if cancelled(): raise Cancelled()
+                                    os.replace(temp,target)
+                                    covers_saved+=1
+                                finally:
+                                    if temp.exists(): temp.unlink()
+                    except Cancelled:raise
+                    except Exception as error:
+                        if cancelled():raise Cancelled() from None
+                        cover_error=error
+                    from . import model_sidecars
+                    with _directory_guard(Path(row['path']).parent,writing=True),VerifiedFile(row['path'],parent_writes=True) as held:
+                        if _identity(held.path,held.info)!=tuple(row[key] for key in ('size','mtime_ns','ctime_ns','device','inode','change_ns')):raise _SourceChanged('模型文件已改变')
+                        cover=self.cover_path(file_id) if covers else None
+                        pixels=None
+                        if cover is not None:
+                            with VerifiedFile(cover) as image:
+                                if image.info.st_size<=8*1024*1024:pixels=image.file.read(8*1024*1024+1);image.verify()
+                        try:model_sidecars.write(row['path'],record,digest,pixels,cancelled)
+                        except OSError:raise CivitaiError('sidecar_write') from None
+                        held.verify()
                     if profile_error is not None: raise profile_error
+                    if cover_error is not None: raise cover_error
                 except Cancelled: raise
                 except Exception as error:
                     errors+=1

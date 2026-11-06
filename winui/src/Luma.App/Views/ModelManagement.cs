@@ -31,12 +31,25 @@ public sealed partial class ManagementView
   await ConfirmTask("更新资料",$"{request.Range} {request.Count} 个模型","models.sync",request.Args);
  }
  private ModelSyncRequest CurrentModelSyncRequest()=>ModelSyncRequest.Create(Records.SelectedItems.OfType<ManagementRow>().Select(r=>N(r.Value,"id")),_rootId,_modelTotal,_query,_modelTypes.ToArray(),_modelFamilies.ToArray());
+ private bool _modelPageReset;
  private async Task<JsonElement> ReadModelPage()
  {
   long gen=_generation;var root=_rootId;string query=_query;string? cursor=_cursor;string[] types=_modelTypes.ToArray(),families=_modelFamilies.ToArray();
   try{return await Read("models",new{rootId=root,query,cursor,types,families});}
-  catch(Luma.Core.Engine.EngineRpcException error) when(gen==_generation&&cursor is not null&&error.Code=="invalid_request")
-  { _cursor=null;_history.Clear();return await Read("models",new{rootId=root,query,cursor=(string?)null,types,families}); }
+  catch(Luma.Core.Engine.EngineRpcException error) when(gen==_generation&&cursor is not null&&error.Code=="stale_cursor")
+  { _cursor=null;_history.Clear();var first=await Read("models",new{rootId=root,query,cursor=(string?)null,types,families});_modelPageReset=true;return first; }
+ }
+ private bool CanChangeModelPage=>_visible&&_page=="Models"&&!_loading&&!_formLoading&&_state is{Writing:false,Uncertain:false};
+ private async Task ChangeModelPage(bool forward)
+ {
+  if(!CanChangeModelPage||(forward?_next is null:_history.Count==0))return;
+  string? previousCursor=_cursor;string?[] previousHistory=_history.ToArray();
+  _modelInspector=false;Invalidate();long gen=_generation;
+  if(forward){_history.Push(_cursor);_cursor=_next;}else _cursor=_history.Pop();
+  if(!await RefreshPage()&&gen==_generation){
+   _cursor=previousCursor;_history.Clear();foreach(string? anchor in previousHistory.Reverse())_history.Push(anchor);
+   ScopeText.Text=$"{_modelTotal} 个模型 · 第 {_history.Count+1} 页";Notify();
+  }
  }
  private void UpdateModelPolling(){if(_visible&&_page=="Models"&&_jobs.Any(j=>ModelJob(j)&&ActiveJob(j)))_poll.Start();else if(_page=="Models")_poll.Stop();UpdateModelProgress();}
  private void UpdateModelProgress(){if(_modelProgress is null)return;var job=_jobs.FirstOrDefault(j=>ModelJob(j)&&ActiveJob(j));_modelProgress.Text=job.ValueKind==JsonValueKind.Object?JobText(job).Replace('\n',' '):"";if(_modelProgressRow is not null)_modelProgressRow.Visibility=Visibility.Visible;if(_modelStop is not null)_modelStop.Visibility=job.ValueKind==JsonValueKind.Object?Visibility.Visible:Visibility.Collapsed;}
@@ -66,8 +79,8 @@ public sealed partial class ManagementView
   folders.Children.Add(Icon("移除目录","ManageRemoveModelRoot","\uE74D",RemoveModelRoot,true,()=>_rootId is not null&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
   ModelPager.Children.Add(Icon("刷新","ManageRefresh","\uE72C",async()=>{if(_rootId is long id&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j)))await Write("models.scan",new{rootId=id},false);await RefreshFromStart();},true));
   ModelControls.Children.Add(folders);
-  var previous=Icon("上一页","ManageModelPrevious","\uE76B",async()=>{if(_history.Count>0){_modelInspector=false;Invalidate();_cursor=_history.Pop();await RefreshPage();}});previous.IsEnabled=_history.Count>0;ModelPager.Children.Add(previous);
-  var next=Icon("下一页","ManageModelNext","\uE76C",async()=>{if(_next is not null){_modelInspector=false;Invalidate();_history.Push(_cursor);_cursor=_next;await RefreshPage();}});next.IsEnabled=_next is not null;ModelPager.Children.Add(next);BuildModelFilters();
+  var previous=Icon("上一页","ManageModelPrevious","\uE76B",()=>ChangeModelPage(false),when:()=>CanChangeModelPage&&_history.Count>0);ModelPager.Children.Add(previous);
+  var next=Icon("下一页","ManageModelNext","\uE76C",()=>ChangeModelPage(true),when:()=>CanChangeModelPage&&_next is not null);ModelPager.Children.Add(next);BuildModelFilters();
   var progressRow=new Grid{Height=28,ColumnSpacing=8};progressRow.ColumnDefinitions.Add(new(){Width=new(1,GridUnitType.Star)});progressRow.ColumnDefinitions.Add(new(){Width=new(64)});
   _modelProgress=Text("");_modelProgress.FontSize=12*_scale;_modelProgress.MaxLines=1;_modelProgress.TextTrimming=TextTrimming.CharacterEllipsis;AutomationProperties.SetAutomationId(_modelProgress,"ManageModelProgress");progressRow.Children.Add(_modelProgress);
   _modelStop=Tool("停止","ManageCancelModelTask",()=>{var task=_jobs.FirstOrDefault(j=>ModelJob(j)&&ActiveJob(j));return task.ValueKind==JsonValueKind.Object?Write("job.cancel",new{jobId=S(task,"id")},false):Task.CompletedTask;},true,()=>_jobs.Any(j=>ModelJob(j)&&ActiveJob(j)));Grid.SetColumn(_modelStop,1);progressRow.Children.Add(_modelStop);_modelProgressRow=progressRow;ModelControls.Children.Add(progressRow);UpdateModelProgress();

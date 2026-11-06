@@ -115,7 +115,10 @@ def read(service, section, a, cancelled):
         if a.get('rootId') is not None:f['root_id']=integer(a['rootId'])
         cursor=a.get('cursor')
         if cursor is not None:text(cursor,2048)
-        return service.models(f,cursor,60)
+        from backend.model_library import ModelCursorExpired
+        try:return service.models(f,cursor,60)
+        except ModelCursorExpired:raise ManagementError('stale_cursor') from None
+        except ValueError:raise ManagementError() from None
     if section in ('modelDetail','modelImages','modelCover'):
         fields(a,('modelId','match','cursor') if section=='modelImages' else ('modelId',),('modelId',));ident=integer(a['modelId'])
         if section=='modelDetail':return service.model_detail(ident)

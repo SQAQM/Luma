@@ -2,14 +2,14 @@
 
 Windows 图片与 AI 模型管理软件。C# / XAML、WinUI 3 原生界面。
 
-当前版本：**1.2.1**。
+当前版本：**1.3.0**。
 
 [下载正式版](https://github.com/SQAQM/Luma/releases/latest)
 
 - 图片浏览、排序、连续切图、缩放与全屏；当前范围自动切图。
 - GIF、WebP、APNG 动图播放与暂停，TIFF 多页浏览，PageUp / PageDown 翻页。
 - 提示词、负面提示词与内容标签。
-- 本地模型封面、类型及模型系筛选、Civitai 资料；兼容 Civitai Helper / Stability Matrix 的同名本地资料。
+- 本地模型封面、类型及模型系筛选、Civitai 资料；读取同目录资料，并导出 Civitai Helper、rgthree 和 WebUI 可用的资料与封面。
 - 分类整理、完全重复检查、恢复与备份。
 
 程序：Luma.exe。应用数据：程序旁 Data。

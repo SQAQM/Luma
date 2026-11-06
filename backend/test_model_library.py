@@ -144,7 +144,7 @@ class ModelLibraryTests(unittest.TestCase):
         self.assertIn(('lora','hash','b'*64),refs)
         self.assertNotIn(('unknown','hash','c'*64),refs)
 
-    def test_paging_cursor_invalidates_and_rebuild_is_cached_only_bounded(self):
+    def test_image_link_rebuild_is_cached_and_preserves_model_cursor(self):
         for n in range(4): (self.models/f'{n}.ckpt').write_bytes(bytes([n]))
         self.scan(); first=self.library.list_models(limit=2)
         self.assertEqual(len(self.library.list_models(cursor=first['next_cursor'],limit=2)['items']),2)
@@ -153,7 +153,7 @@ class ModelLibraryTests(unittest.TestCase):
         with patch('builtins.open',side_effect=AssertionError('cached only')):
             self.library.rebuild_links(self.manager,'test',{})
         with self.store.connect() as db: self.assertEqual(db.execute('SELECT count(*) FROM luma_image_model_refs WHERE image_id=?',(image_id,)).fetchone()[0],2)
-        with self.assertRaises(ValueError): self.library.list_models(cursor=first['next_cursor'])
+        self.assertEqual(len(self.library.list_models(cursor=first['next_cursor'],limit=2)['items']),2)
 
     def test_direct_hash_lookup_has_no_name_or_auxiliary_projection(self):
         image_id=self.image({'model':'private-name','parameters':{'model_sha256':'a'*64,'lora_hashes':{'x':'b'*10}}})

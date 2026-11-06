@@ -257,8 +257,8 @@ class CivitaiTests(unittest.TestCase):
             client, _ = self.client(document(value))
             self.assertEqual(client.version_by_hash(SHA)['creator'],'')
 
-    def test_unknown_base_stays_unknown_and_lora_role_is_preserved(self):
-        for base, family in (("Future Super SDXLish", "未知"), ("Pony", "Stable Diffusion"), ("Flux.1 D", "FLUX"), ("Anima", "Anima"), ("Krea 2", "Krea 2"), ("NovelAI", "NovelAI")):
+    def test_new_base_label_is_preserved_without_substring_inference(self):
+        for base, family in (("Future Super SDXLish", "Future Super SDXLish"), ("Pony", "Stable Diffusion"), ("Flux.1 D", "FLUX"), ("Anima", "Anima"), ("Krea 2", "Krea 2"), ("NovelAI", "NovelAI")):
             value = version()
             value["baseModel"] = base
             value["model"]["type"] = "LORA"
