@@ -1,0 +1,112 @@
+{
+  "result": "passed_public_release_verification",
+  "repository": "https://github.com/SQAQM/Luma",
+  "anonymousRepositoryAccessible": true,
+  "release": "https://github.com/SQAQM/Luma/releases/tag/v1.3.1",
+  "version": "1.3.1",
+  "sourceCommit": "e06493b375ed86e5ecefa5f4d35f01e0c2fd9e70",
+  "configurationCommit": "e06493b375ed86e5ecefa5f4d35f01e0c2fd9e70",
+  "publicPageSourceCommitsMatched": true,
+  "ciRun": "https://github.com/SQAQM/Luma/actions/runs/42997559211",
+  "ciSteps": [
+    {
+      "name": "Set up job",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Run actions/checkout@v4",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Resolve release source",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Run actions/setup-python@v5",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Run actions/setup-dotnet@v4",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Prepare workspace",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Focused regression",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Freeze local engine",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Build native application",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Package installer and portable",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Publish stable release",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Post Run actions/setup-dotnet@v4",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Post Run actions/setup-python@v5",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Post Run actions/checkout@v4",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Complete job",
+      "result": "success",
+      "active": false
+    }
+  ],
+  "assets": {
+    "delivery-manifest.json": "ffd01246ae24d5e89b1486b9ce94a1c295d39288c1457e1e375aba2657e01092",
+    "Luma-1.3.1-Portable-x64.zip": "6cdb8756d79212e9af55518bf8a69b8ba9e1c86ada49848a6588859dacd74b8e",
+    "Luma-1.3.1-Setup-x64.exe": "c53894b9d7ff049a0038cbeea45801afdc80a27ff70dbe2b98ac40f267bfedac",
+    "SHA256SUMS.txt": "5a39af2d10f294927ddd0a91d30fc9428cdff93fab72d2172577ae44d490f040"
+  },
+  "packages": [
+    {
+      "name": "Luma-1.3.1-Setup-x64.exe",
+      "bytes": 99359297,
+      "sha256": "c53894b9d7ff049a0038cbeea45801afdc80a27ff70dbe2b98ac40f267bfedac",
+      "anonymousDownloadHttp": 200,
+      "digestMatchesGithubAndManifest": true
+    },
+    {
+      "name": "Luma-1.3.1-Portable-x64.zip",
+      "bytes": 141438760,
+      "sha256": "6cdb8756d79212e9af55518bf8a69b8ba9e1c86ada49848a6588859dacd74b8e",
+      "anonymousDownloadHttp": 200,
+      "digestMatchesGithubAndManifest": true
+    }
+  ],
+  "largeAssetsDownloadedLocally": false,
+  "scope": "Public latest release and source page commits, four asset digests, downloaded manifest/checksums, anonymous binary HEAD lengths, and cloud regression/build/package/upload results; cloud packaging performs full CRC and payload verification"
+}

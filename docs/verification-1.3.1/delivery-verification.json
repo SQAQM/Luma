@@ -1,0 +1,99 @@
+{
+  "result": "passed_local_native_candidate_only",
+  "version": "1.3.1",
+  "sourceInputs": 264,
+  "engineInputs": 95,
+  "payloadFiles": 732,
+  "engineModules": 745,
+  "setup": {
+    "requestedExecutionLevel": "asInvoker",
+    "name": "Luma-1.3.1-Setup-x64.exe",
+    "bytes": 93386537,
+    "sha256": "b3ae58c7f69410eb785459dbfbfc43772058b6eaad373642547aa3217bae777b"
+  },
+  "portable": {
+    "name": "Luma-1.3.1-Portable-x64.zip",
+    "bytes": 130972512,
+    "sha256": "834e02514545aca754a3563ed490d46e23a9e951d515773b2565959e9bc5f50d",
+    "crcAndEntriesVerified": true
+  },
+  "evidence": {
+    "docs/verification-1.3.1/frozen-runtime.json": {
+      "sha256": "763407631e9a98d7618155152ccd75396bc08317d1d8b4bf3b5e7b1344391c1e",
+      "result": "passed_frozen_runtime_selfcheck",
+      "checks": null
+    },
+    "docs/verification-1.3.1/tasks-ui-100.json": {
+      "sha256": "c10d3f6240e8b30a3cb0c779faafae74f8930739142b734658532d4028369bc1",
+      "result": "passed_sync_ui",
+      "checks": [
+        "native update includes all 67 models",
+        "native update sends filter scope",
+        "explicit single selection stays single",
+        "confirmation displays 67",
+        "task shows persistent not-found reason",
+        "task total matches directory",
+        "task progress uses body size instead of heading size",
+        "tasks contain no service controls or connection explanation",
+        "finished task has no cancel action",
+        "selected task title is separate from progress and errors",
+        "persistent errors form a body-size group",
+        "error details stay within content width",
+        "running task exposes cancel action",
+        "running clean task hides retry and empty errors",
+        "native progress bar follows selected task counts",
+        "successful task exposes no obsolete actions",
+        "successful task has no empty error group",
+        "failed sync has one retry action and no cancel",
+        "seven sidecar failures render fixed labels in native error group",
+        "failed sync exposes exactly one task action",
+        "retry action stays fully visible before scrolling error details",
+        "legacy task without persisted failure ids hides retry",
+        "persisted failed item enables real native retry button",
+        "native retry submits RPC and selects the new finished task",
+        "real retry processes one failed item instead of all 67 models",
+        "retry fails locally before a network request",
+        "finished retry hides cancel action",
+        "disconnected task page exposes recovery action",
+        "fault-state retry reconnects directly to task records"
+      ]
+    },
+    "docs/verification-1.3.1/tasks-ui-150.json": {
+      "sha256": "c10d3f6240e8b30a3cb0c779faafae74f8930739142b734658532d4028369bc1",
+      "result": "passed_sync_ui",
+      "checks": [
+        "native update includes all 67 models",
+        "native update sends filter scope",
+        "explicit single selection stays single",
+        "confirmation displays 67",
+        "task shows persistent not-found reason",
+        "task total matches directory",
+        "task progress uses body size instead of heading size",
+        "tasks contain no service controls or connection explanation",
+        "finished task has no cancel action",
+        "selected task title is separate from progress and errors",
+        "persistent errors form a body-size group",
+        "error details stay within content width",
+        "running task exposes cancel action",
+        "running clean task hides retry and empty errors",
+        "native progress bar follows selected task counts",
+        "successful task exposes no obsolete actions",
+        "successful task has no empty error group",
+        "failed sync has one retry action and no cancel",
+        "seven sidecar failures render fixed labels in native error group",
+        "failed sync exposes exactly one task action",
+        "retry action stays fully visible before scrolling error details",
+        "legacy task without persisted failure ids hides retry",
+        "persisted failed item enables real native retry button",
+        "native retry submits RPC and selects the new finished task",
+        "real retry processes one failed item instead of all 67 models",
+        "retry fails locally before a network request",
+        "finished retry hides cancel action",
+        "disconnected task page exposes recovery action",
+        "fault-state retry reconnects directly to task records"
+      ]
+    }
+  },
+  "verifierSha256": "18a505c5066411f6284e955836d539368afdb4734e0fc6f087e33a94cd80520c",
+  "scope": "immutable payload and supplied local synthetic evidence; no production-capacity or real-library claim"
+}

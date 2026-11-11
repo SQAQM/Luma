@@ -1,0 +1,63 @@
+{
+  "run": "42997558991",
+  "job": "130445333489",
+  "url": "https://github.com/SQAQM/Luma/actions/runs/42997558991",
+  "checkedUtc": "2026-11-11T09:47:24.5576854+00:00",
+  "steps": [
+    {
+      "name": "Set up job",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Run actions/checkout@v4",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Run actions/setup-python@v5",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Run actions/setup-dotnet@v4",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Install native engine dependencies",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Check changed workflows and packaging",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Core checks",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Post Run actions/setup-dotnet@v4",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Post Run actions/setup-python@v5",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Post Run actions/checkout@v4",
+      "result": "success",
+      "active": false
+    },
+    {
+      "name": "Complete job",
+      "result": "success",
+      "active": false
+    }
+  ]
+}

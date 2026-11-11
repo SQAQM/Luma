@@ -1,0 +1,2 @@
+6cdb8756d79212e9af55518bf8a69b8ba9e1c86ada49848a6588859dacd74b8e  Luma-1.3.1-Portable-x64.zip
+c53894b9d7ff049a0038cbeea45801afdc80a27ff70dbe2b98ac40f267bfedac  Luma-1.3.1-Setup-x64.exe
