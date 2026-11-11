@@ -38,6 +38,7 @@ try{
  $start.Arguments='--data-dir "'+$taskData+'" --diagnostics --capture --text-scale '+$TextScale
  if($ThumbnailPressure){$start.Arguments+=' --thumbnail-pressure'}
  $start.EnvironmentVariables['PATH']=$env:SystemRoot+'\System32;'+$env:SystemRoot;$start.EnvironmentVariables['DOTNET_ROOT']=Join-Path $taskOutput 'absent-dotnet';$start.EnvironmentVariables['PYTHONPATH']=Join-Path $taskOutput 'absent-python'
+ $start.EnvironmentVariables['LUMA_ENGINE_UI_TEST']='1'
  $process=[Diagnostics.Process]::Start($start)
  Await {$s=State;return $s.ready -and $s.captureRevision -eq $s.revision} 'ready'
  $hwnd=[IntPtr][long](State).hwnd;$root=[Windows.Automation.AutomationElement]::FromHandle($hwnd)

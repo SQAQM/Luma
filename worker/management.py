@@ -47,6 +47,8 @@ def job(value):
         from backend.model_sync_scope import ISSUE_CODES
         result['feedback'] = sync_feedback(value.get('message'), value.get('status'))
         result['issues']=[{'code':v['code'],'count':v['count']} for v in value.get('issues',[])[:32] if isinstance(v,dict) and v.get('code') in ISSUE_CODES and type(v.get('count')) is int and 0<v['count']<=2**63-1]
+        count=value.get('retryable_count',0)
+        result['retryable_count']=count if type(count) is int and 0<=count<=2**63-1 else 0
     return result
 
 def op(value):
@@ -223,6 +225,9 @@ def prepare(service, action, a):
     if action in ('credential.set','credential.connect'):
         fields(a,('token','remember'),('token','remember'));token=text(a['token'],512);remember=boolean(a['remember'])
         return lambda:service.connect_civitai(token,remember) if action=='credential.connect' else service.configure_civitai(token,remember)
+    if action=='models.retrySync':
+        fields(a,('jobId',),('jobId',));ident=op(a['jobId'])
+        return lambda:job(service.retry_model_sync(ident))
     if action in ('models.add','models.remove','models.scan','models.sync','models.lookup'):
         if action=='models.add':
             fields(a,('path',),('path',));path=text(a['path'])

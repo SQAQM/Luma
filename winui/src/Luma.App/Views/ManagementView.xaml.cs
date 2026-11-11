@@ -105,7 +105,7 @@ public sealed partial class ManagementView:UserControl,IDisposable
   }finally{_rebuildingForm=false;}
  }
  private void Notify(){Records.IsEnabled=!_formLoading&&_state is{Writing:false,Uncertain:false};UpdateModelPager();ModelControlScroll.IsEnabled=!_formLoading&&_modelAdd?.Busy!=true&&_state is{Writing:false,Uncertain:false};FormScroll.IsEnabled=_page=="Settings"||(!_formLoading&&_state is{Writing:false,Uncertain:false});_settingsGate.IsEnabled=!_formLoading&&(_api is null||_state is{Writing:false,Uncertain:false});foreach(var pair in _enabledWhen.Where(pair=>!_writes.Contains(pair.Key)))pair.Key.IsEnabled=!_formLoading&&pair.Value();foreach(var b in _writes)b.IsEnabled=!_formLoading&&_state is{Writing:false,Uncertain:false}&&(!_enabledWhen.TryGetValue(b,out var when)||when());Changed?.Invoke();}
- private void StateChanged(){if(_disposed)return;Status.Text=ModelOperationFeedback();foreach(var b in _writes)b.IsEnabled=_state is{Writing:false,Uncertain:false}&&(!_enabledWhen.TryGetValue(b,out var when)||when());Resolve.Visibility=_state?.Uncertain==true?Visibility.Visible:Visibility.Collapsed;Resolve.IsEnabled=_state?.OperationId.Length==32;Notify();}
+ private void StateChanged(){if(_disposed)return;Status.Text=_page=="Jobs"&&_state is{Writing:false,Uncertain:false} state&&!(state.Outcome=="failed"&&state.LastAction is "job.cancel" or "models.retrySync")?"":ModelOperationFeedback();foreach(var b in _writes)b.IsEnabled=_state is{Writing:false,Uncertain:false}&&(!_enabledWhen.TryGetValue(b,out var when)||when());Resolve.Visibility=_state?.Uncertain==true?Visibility.Visible:Visibility.Collapsed;Resolve.IsEnabled=_state?.OperationId.Length==32;Notify();}
  private bool _resolvingOperation;
  private async void ResolveClicked(object sender,RoutedEventArgs e)
  {
@@ -158,7 +158,7 @@ public sealed partial class ManagementView:UserControl,IDisposable
   {
    bool modelDetails=_page=="Models"&&_modelInspector&&_sub.Length==0;var modelSelection=_page=="Models"?Records.SelectedItems.OfType<ManagementRow>().Select(row=>N(row.Value,"id")).ToHashSet():[];Actions.Visibility=Visibility.Visible;string? selected=(_page!="Models"||_modelInspector)&&Selected is{} old&&old.TryGetProperty("id",out var oldId)?oldId.ToString():null;Actions.Children.Clear();_modelButtons.Clear();ModelControls.Children.Clear();ClearForm();_writes.Clear();
    Actions.Children.Add(Button("刷新","ManageRefresh",RefreshFromStart));
-   ScopeText.Text=_page=="Settings"?"":_page=="Tags"?$"已选 {_selection.Length} 张":_page=="Models"?$"{_modelTotal} 个模型 · 第 {_history.Count+1} 页":"";
+   ScopeText.Text=_page=="Settings"?"":_page=="Tags"?$"已选 {_selection.Length} 张":_page=="Models"?$"{_modelTotal} 个模型 · 第 {_history.Count+1} 页":$"{_jobs.Length} 个任务";
    JsonElement[] values=_page=="Settings"?[]:_page=="Tags"?_definitions:_page=="Models"?_models:_jobs;
    Records.SelectionMode=_page=="Models"?ListViewSelectionMode.Extended:ListViewSelectionMode.Single;
    Records.ItemTemplate=(DataTemplate)Resources[_page=="Models"?"ModelTemplate":"RecordTemplate"];
@@ -178,7 +178,9 @@ public sealed partial class ManagementView:UserControl,IDisposable
   if(Selected is{} current&&(_page!="Models"||_modelInspector))RenderSelection(current);if(_page=="Models")_=VerifyModelUi();
  }
  private async Task PollJobs(){if(_api is null||!_loads.TryPoll())return;long gen=_generation;try{var result=await Read("jobs");if(gen!=_generation||!_visible||_page!="Jobs")return;var rows=Rows(result);if(rows.Select(j=>j.GetRawText()).SequenceEqual(_jobs.Select(j=>j.GetRawText())))return;string selected=Selected is{} current?S(current,"id"):"";_jobs=rows;_setting=true;try{Records.ItemsSource=_jobs.Select(j=>new ManagementRow(j,JobText(j),14*_scale)).ToArray();Records.SelectedIndex=Array.FindIndex(_jobs,j=>S(j,"id")==selected);}finally{_setting=false;}UpdateJobDetails();if(_jobs.Any(j=>S(j,"status") is "completed" or "completed_with_errors"))LibraryChanged?.Invoke();Notify();}catch(OperationCanceledException){}catch(Exception){Status.Text="任务状态暂不可用，可刷新重试。";Notify();}finally{_loads.Complete();if(_loads.RefreshPending&&_visible&&!_disposed)_=RefreshPage();}}
- private static string JobText(JsonElement j)=>(S(j,"kind") switch{"import"=>"图片索引","file_preview"=>"准备文件预览","organize"=>"分类移动","undo"=>"撤销移动","remove_root"=>"移除目录索引","duplicate_scan"=>"查找完全重复","duplicate_cleanup"=>"重复隔离","duplicate_undo"=>"隔离还原","duplicate_purge"=>"永久清空","duplicate_recovery"=>"重复恢复检查","file_recovery"=>"移动恢复检查","metadata_refresh"=>"重读生成信息","install_model"=>"下载识别模型","classify_contents"=>"本机内容识别","reclassify_models"=>"缓存模型重判","model_scan"=>"模型属性索引","model_sync"=>"模型资料同步","model_links"=>"更新关联","civitai_image_lookup"=>"图片模型哈希查询",_=>"后台任务"})+" · "+(S(j,"status") switch{"queued"=>"等待中","running"=>"运行中","completed"=>"已完成","completed_with_errors"=>"完成，部分错误","cancelled"=>"已取消","interrupted"=>"已中断","failed"=>"失败",_=>"状态未知"})+$"\n{N(j,"processed")} / {N(j,"total")} · 错误 {N(j,"errors")}";
+ private static string JobTitle(JsonElement j)=>S(j,"kind") switch{"import"=>"图片索引","file_preview"=>"准备文件预览","organize"=>"分类移动","undo"=>"撤销移动","remove_root"=>"移除目录索引","duplicate_scan"=>"查找完全重复","duplicate_cleanup"=>"重复隔离","duplicate_undo"=>"隔离还原","duplicate_purge"=>"永久清空","duplicate_recovery"=>"重复恢复检查","file_recovery"=>"移动恢复检查","metadata_refresh"=>"重读生成信息","install_model"=>"下载识别模型","classify_contents"=>"本机内容识别","reclassify_models"=>"缓存模型重判","model_scan"=>"模型属性索引","model_sync"=>"模型资料同步","model_links"=>"更新关联","civitai_image_lookup"=>"图片模型哈希查询",_=>"后台任务"};
+ private static string JobState(JsonElement j)=>S(j,"status") switch{"queued"=>"等待中","running"=>"运行中","completed"=>"已完成","completed_with_errors"=>"部分失败","cancelled"=>"已取消","interrupted"=>"已中断","failed"=>"失败",_=>"状态未知"};
+ private static string JobText(JsonElement j)=>JobTitle(j)+"\n"+JobState(j)+$" · {N(j,"processed")} / {N(j,"total")}";
  private void RecordChanged(object sender,SelectionChangedEventArgs e){if(_setting)return;if(_page=="Models"){if(_modelInspector&&_sub.Length==0&&Records.SelectedItems.Count==1&&Selected is{} model){Invalidate();RenderSelection(model);}else if(_modelInspector)_=CloseModelInspector();else Notify();return;}if(Selected is{} value){Invalidate();RenderSelection(value);}}
  private void RenderSelection(JsonElement value){if(_page=="Tags"){_newTag=false;_tagId=N(value,"id");TagForm(value);}else if(_page=="Models"){_modelInspector=true;ModelsForm(value);}else JobsForm(value);StateChanged();}
  private void TagForm(JsonElement? item)
@@ -228,15 +230,40 @@ public sealed partial class ManagementView:UserControl,IDisposable
   if(page.TryGetProperty("next_cursor",out var next)&&next.ValueKind==JsonValueKind.String){string token=next.GetString()!;_linkedHost.Children.Add(Button("下一页关联图片","ManageLinkedNext",async()=>{long actionGen=_generation;var result=await Read("modelImages",new{modelId,match,cursor=token});if(actionGen==_generation&&_visible)await LinkedImages(modelId,match,result,token,actionGen);}));}
   await Task.CompletedTask;
  }
- private readonly ManagementJobSelection _jobSelection=new();private TextBlock? _jobStatus;
- private void UpdateJobDetails(){_jobSelection.Update(_jobs);if(_jobStatus is not null)_jobStatus.Text=_jobSelection.Value is{} job?JobText(job)+(CivitaiFeedback.Issues(job) is{Length:>0} issues?"\n\n"+issues:""):"";StateChanged();}
- internal Func<UIElement>? ConnectionContent;private StackPanel? _connectionHost;
- internal void RefreshConnection(){if(_visible&&_page=="Jobs"&&_connectionHost is not null){_connectionHost.Children.Clear();if(ConnectionContent is{} create)_connectionHost.Children.Add(create());}}
+ private readonly ManagementJobSelection _jobSelection=new();private TextBlock? _jobStatus,_jobHeading,_jobIssues;private ProgressBar? _jobProgress;private StackPanel? _jobErrors;private Button? _cancelJob,_retryJob;
+ private void UpdateJobDetails()
+ {
+  _jobSelection.Update(_jobs);var job=_jobSelection.Value;
+  if(_jobHeading is not null)_jobHeading.Text=job is{} title?JobTitle(title):"暂无任务";
+  if(_jobStatus is not null)_jobStatus.Text=job is{} status?JobState(status)+$" · {N(status,"processed")} / {N(status,"total")}":"";
+  if(_jobProgress is not null){long total=job is{} t?N(t,"total"):0;_jobProgress.Visibility=total>0?Visibility.Visible:Visibility.Collapsed;_jobProgress.Maximum=Math.Max(1,total);_jobProgress.Value=job is{} p?Math.Clamp(N(p,"processed"),0,Math.Max(1,total)):0;}
+  string issues=job is{} errors?CivitaiFeedback.Issues(errors):"";if(issues.Length==0&&job is{} failed&&N(failed,"errors")>0)issues=$"失败：{N(failed,"errors")} 个";
+  if(_jobIssues is not null)_jobIssues.Text=issues;if(_jobErrors is not null)_jobErrors.Visibility=issues.Length>0?Visibility.Visible:Visibility.Collapsed;
+  if(_cancelJob is not null)_cancelJob.Visibility=_jobSelection.CanCancel?Visibility.Visible:Visibility.Collapsed;
+  if(_retryJob is not null)_retryJob.Visibility=_jobSelection.CanRetryFailed?Visibility.Visible:Visibility.Collapsed;
+  StateChanged();
+ }
+ internal Func<UIElement?>? ConnectionContent;private StackPanel? _connectionHost;
+ internal void RefreshConnection(){if(_visible&&_page=="Jobs"&&_connectionHost is not null){_connectionHost.Children.Clear();if(ConnectionContent?.Invoke() is{} content)_connectionHost.Children.Add(content);_connectionHost.Visibility=_connectionHost.Children.Count>0?Visibility.Visible:Visibility.Collapsed;}}
  private void JobsForm(JsonElement? job)
  {
   ClearForm();_connectionHost=new StackPanel{Spacing=8};Fields.Children.Add(_connectionHost);RefreshConnection();
-  _jobSelection.Select(job is{} j?S(j,"id"):"");_jobStatus=Text("",true);AutomationProperties.SetAutomationId(_jobStatus,"ManageJobStatus");Fields.Children.Add(_jobStatus);
-  Buttons(Button("取消操作","ManageCancelJob",()=>_jobSelection.Value is{} selected?Write("job.cancel",new{jobId=S(selected,"id")},false):Task.CompletedTask,true,()=>_jobSelection.CanCancel));Fields.Children.Add(Text(""));UpdateJobDetails();
+  _jobSelection.Select(job is{} j?S(j,"id"):"");
+  var summary=new StackPanel{Spacing=8};_jobHeading=Text("",true);AutomationProperties.SetAutomationId(_jobHeading,"ManageJobTitle");summary.Children.Add(_jobHeading);
+  _jobStatus=Text("");AutomationProperties.SetAutomationId(_jobStatus,"ManageJobStatus");summary.Children.Add(_jobStatus);
+  _jobProgress=new ProgressBar{Minimum=0,Maximum=1,MinWidth=0,HorizontalAlignment=HorizontalAlignment.Stretch,Margin=new(0,4,0,0)};AutomationProperties.SetAutomationId(_jobProgress,"ManageJobProgress");summary.Children.Add(_jobProgress);Fields.Children.Add(summary);
+  _jobErrors=new StackPanel{Spacing=8,Margin=new(0,12,0,0)};var errorHeading=Text("错误");errorHeading.FontWeight=Microsoft.UI.Text.FontWeights.SemiBold;_jobErrors.Children.Add(errorHeading);
+  _jobIssues=Text("");_jobIssues.IsTextSelectionEnabled=true;AutomationProperties.SetAutomationId(_jobIssues,"ManageJobIssues");_jobErrors.Children.Add(_jobIssues);
+  _cancelJob=Button("取消任务","ManageCancelJob",()=>_jobSelection.Value is{} selected?Write("job.cancel",new{jobId=S(selected,"id")},false):Task.CompletedTask,true,()=>_jobSelection.CanCancel);
+  _retryJob=Button("重试失败","ManageRetryJob",RetryFailedJob,true,()=>_jobSelection.CanRetryFailed);Buttons(_cancelJob,_retryJob);Fields.Children.Add(_jobErrors);UpdateJobDetails();
+ }
+ private async Task RetryFailedJob()
+ {
+  if(!_jobSelection.CanRetryFailed||_jobSelection.Value is not{} job)return;
+  long generation=_generation;
+  if(!await Write("models.retrySync",new{jobId=S(job,"id")},false)||generation!=_generation||!_visible||_page!="Jobs")return;
+  string id=_state is{} state?S(state.Result,"id"):"";await RefreshPage();
+  if(generation==_generation&&_visible&&_page=="Jobs"&&id.Length>0)Records.SelectedItem=Records.Items.OfType<ManagementRow>().FirstOrDefault(row=>S(row.Value,"id")==id);
  }
  private void Layout(){if(_page=="Settings")_settingsFields.Width=Math.Max(0,Math.Min(420*_scale,Body.ActualWidth-Body.ColumnSpacing));ModelPager.Visibility=_page=="Models"?Visibility.Visible:Visibility.Collapsed;if(_page=="Models"){LayoutModels();return;}ModelCards.Visibility=ModelEmpty.Visibility=Visibility.Collapsed;FormScroll.Visibility=Visibility.Visible;Grid.SetRow(FormScrollEdge,_page!="Settings"&&ActualWidth<420?1:0);Grid.SetColumn(FormScrollEdge,_page!="Settings"&&ActualWidth<420?0:1);Grid.SetColumnSpan(FormScrollEdge,_page!="Settings"&&ActualWidth<420?2:1);Records.Visibility=_page=="Settings"?Visibility.Collapsed:Visibility.Visible;if(_page=="Settings"){ListColumn.Width=new(0);ListRow.Height=new(1,GridUnitType.Star);FormRow.Height=new(0);Grid.SetRow(FormScroll,0);Grid.SetColumn(FormScroll,1);Grid.SetColumnSpan(FormScroll,1);return;}bool compact=ActualWidth<420;ListColumn.Width=compact?new(1,GridUnitType.Star):new(Math.Clamp(ActualWidth*.36,180,_page=="Models"?340:230));ListRow.Height=compact?new(80):new(1,GridUnitType.Star);FormRow.Height=compact?new(1,GridUnitType.Star):new(0);Grid.SetRow(FormScroll,compact?1:0);Grid.SetColumn(FormScroll,compact?0:1);Grid.SetColumnSpan(Records,compact?2:1);Grid.SetColumnSpan(FormScroll,compact?2:1);}
  public void Dispose(){if(_disposed)return;_disposed=true;Detach();_reads.Dispose();}

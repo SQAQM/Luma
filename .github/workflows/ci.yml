@@ -22,7 +22,7 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: '1'
           PYTHONUTF8: '1'
-        run: python -m unittest backend.test_model_interop backend.test_model_sidecar_lock backend.test_model_local_info backend.test_model_workflow scripts.test_delivery_packaging -v
+        run: python -m unittest backend.test_model_interop backend.test_model_sidecar_lock backend.test_sidecar_writes backend.test_model_retry backend.test_model_local_info backend.test_model_workflow scripts.test_delivery_packaging -v
       - name: Core checks
         working-directory: winui
         run: dotnet run --project tests/Luma.Core.Tests/Luma.Core.Tests.csproj -c Release

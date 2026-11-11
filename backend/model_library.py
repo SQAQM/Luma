@@ -465,7 +465,7 @@ class ModelLibrary:
                             with VerifiedFile(cover) as image:
                                 if image.info.st_size<=8*1024*1024:pixels=image.file.read(8*1024*1024+1);image.verify()
                         try:model_sidecars.write(row['path'],record,digest,pixels,cancelled)
-                        except OSError:raise CivitaiError('sidecar_write') from None
+                        except OSError as error:raise CivitaiError(model_sidecars.error_code(error)) from None
                         held.verify()
                     if profile_error is not None: raise profile_error
                     if cover_error is not None: raise cover_error
@@ -475,7 +475,7 @@ class ModelLibrary:
                     if isinstance(error,CivitaiError) and error.code=='cancelled': raise Cancelled() from None
                     code=error.code if isinstance(error,CivitaiError) else ''
                     issue=code if code in model_sync_scope.ISSUE_CODES else 'source_changed' if isinstance(error,_SourceChanged) else 'file_missing' if isinstance(error,FileNotFoundError) else 'file_error' if isinstance(error,(OSError,ValueError)) else 'sync_error'
-                    model_sync_scope.record_issue(self,job_id,issue)
+                    model_sync_scope.record_issue(self,job_id,issue,file_id)
                     stop_requests=code in ('unauthorized','credentials','rate_limited')
                     error_message=str(CivitaiError(code)) if code else '部分文件同步失败；请重新索引或检查网络后重试'
                     # Fixed status; preserve any last valid snapshot and cover.

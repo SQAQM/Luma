@@ -1,15 +1,26 @@
 """Same-directory Civitai/rgthree/WebUI metadata and a shared PNG preview."""
-import hashlib,json,os,uuid
+import hashlib,json,os,uuid,stat
 import time
 from contextlib import contextmanager,ExitStack
 from pathlib import Path
 from .duplicates import VerifiedFile,_fingerprint
-from .organizer import check_directory_chain,signature,Cancelled
+from .organizer import check_directory_chain,signature,Cancelled,reparse_point
 
 MAX_JSON=1024*1024
 
 class SidecarError(OSError):
-    pass
+    def __init__(self,code='sidecar_write'):
+        self.code=code if code in ('sidecar_format','sidecar_size','sidecar_conflict','sidecar_permission','sidecar_busy','sidecar_space') else 'sidecar_write'
+        super().__init__(self.code)
+
+
+def error_code(error):
+    if isinstance(error,SidecarError):return error.code
+    win=getattr(error,'winerror',None)
+    if win in (32,33):return 'sidecar_busy'
+    if win in (5,19) or getattr(error,'errno',None) in (1,13,30):return 'sidecar_permission'
+    if win in (39,112) or getattr(error,'errno',None)==28:return 'sidecar_space'
+    return 'sidecar_write'
 
 def _hash(value):return hashlib.sha256(json.dumps(value,sort_keys=True,ensure_ascii=False,separators=(',',':')).encode('utf-8')).hexdigest()
 
@@ -117,17 +128,26 @@ def _json(path,value,filename,cancelled):
     if cancelled():raise Cancelled()
     with ExitStack() as stack:
         stack.enter_context(_pinned_parent(path.parent))
-        old={};stamp=None;stream=None;original=b''
+        old={};stamp=None;stream=None;original=b'';readonly=False
         if path.exists():
-            if os.name=='nt':
-                stream=stack.enter_context(_exclusive_json(path));stamp=os.fstat(stream.fileno())
+            info=path.lstat()
+            if not stat.S_ISREG(info.st_mode) or reparse_point(path,info) or info.st_nlink!=1:raise SidecarError('sidecar_conflict')
+            readonly=os.name=='nt' and bool(info.st_file_attributes&1)
+            if os.name=='nt' and not readonly:
+                for attempt in range(20):
+                    if cancelled():raise Cancelled()
+                    try:stream=stack.enter_context(_exclusive_json(path));break
+                    except OSError as error:
+                        if getattr(error,'winerror',None) not in (32,33) or attempt==19:raise
+                        time.sleep(.025)
+                stamp=os.fstat(stream.fileno())
                 if stamp.st_size>MAX_JSON:raise SidecarError('sidecar_size')
                 original=stream.read(MAX_JSON+1)
             else:
-                with VerifiedFile(path) as source:
+                with VerifiedFile(path,parent_writes=True) as source:
                     if source.info.st_size>MAX_JSON:raise SidecarError('sidecar_size')
                     original=source.file.read(MAX_JSON+1);stamp=source.info;source.verify()
-            try:old=json.loads(original.decode('utf-8-sig'))
+            try:old=json.loads(original.decode('utf-8-sig')) if original.decode('utf-8-sig').strip() else {}
             except (ValueError,UnicodeError):raise SidecarError('sidecar_format') from None
             if not isinstance(old,dict):raise SidecarError('sidecar_format')
         owner=old.get('_luma',{})
@@ -138,6 +158,7 @@ def _json(path,value,filename,cancelled):
         raw=json.dumps(value,ensure_ascii=False,indent=2).encode('utf-8')
         if len(raw)>MAX_JSON:raise SidecarError('sidecar_size')
         if raw==original:return
+        if readonly:raise SidecarError('sidecar_permission')
         temporary=path.with_name('.luma-model-'+uuid.uuid4().hex+'.tmp')
         try:
             _durable(temporary,raw)
@@ -163,9 +184,11 @@ def write(model_path,record,digest,cover=None,cancelled=lambda:False):
     if base.startswith('SDXL') or base in ('Pony','Illustrious'):web['sd version']='SDXL'
     elif base.startswith('SD 1'):web['sd version']='SD1'
     elif base.startswith('SD 2'):web['sd version']='SD2'
+    failures=[]
     for target,value in ((path.with_name(path.stem+'.civitai.info'),info),(path.with_name(path.stem+'.json'),web),(path.with_name(path.name+'.rgthree-info.json'),rg)):
         if cancelled():raise Cancelled()
-        _json(target,value,path.name,cancelled)
+        try:_json(target,value,path.name,cancelled)
+        except OSError as error:failures.append(error_code(error))
     target=path.with_name(path.stem+'.png')
     if cover is not None and not target.exists():
         if not isinstance(cover,bytes) or len(cover)>8*1024*1024 or not cover.startswith(b'\x89PNG\r\n\x1a\n'):raise SidecarError('sidecar_cover')
@@ -173,4 +196,6 @@ def write(model_path,record,digest,cover=None,cancelled=lambda:False):
         try:
             with temporary.open('xb') as file:file.write(cover);file.flush();os.fsync(file.fileno())
             _publish(temporary,target,False,cancelled,lambda:check_directory_chain(path.parent))
+        except OSError as error:failures.append(error_code(error))
         finally:temporary.unlink(missing_ok=True)
+    if failures:raise SidecarError(failures[0])

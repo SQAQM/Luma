@@ -1,0 +1,7 @@
+{
+  "result": "passed_source_review_with_fix",
+  "finding": "A non-regular sidecar target raised ValueError and stopped other exports",
+  "fix": "Validate target type as sidecar_conflict before opening, continue remaining formats; regression reproduced red then green",
+  "syntheticOnly": true,
+  "scope": "Backend sidecar export and persisted failed-model retry; no user model directory was opened"
+}

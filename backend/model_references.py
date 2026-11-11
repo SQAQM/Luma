@@ -17,6 +17,7 @@ def initialize(db):
     CREATE TABLE IF NOT EXISTS luma_model_local_info(file_id INTEGER PRIMARY KEY REFERENCES luma_model_files(id) ON DELETE CASCADE,record TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS luma_model_sync_selection(scope_id TEXT NOT NULL,file_id INTEGER NOT NULL,PRIMARY KEY(scope_id,file_id));
     CREATE TABLE IF NOT EXISTS luma_model_sync_issues(job_id TEXT NOT NULL,code TEXT NOT NULL,count INTEGER NOT NULL,PRIMARY KEY(job_id,code));
+    CREATE TABLE IF NOT EXISTS luma_model_sync_failures(job_id TEXT NOT NULL,file_id INTEGER NOT NULL REFERENCES luma_model_files(id) ON DELETE CASCADE,code TEXT NOT NULL,PRIMARY KEY(job_id,file_id));
     CREATE TABLE IF NOT EXISTS luma_model_query_state(id INTEGER PRIMARY KEY CHECK(id=1),revision INTEGER NOT NULL);
     INSERT OR IGNORE INTO luma_model_query_state(id,revision) VALUES(1,1);
     CREATE TABLE IF NOT EXISTS luma_model_version_files(version_id INTEGER REFERENCES luma_model_versions(version_id) ON DELETE CASCADE,sha256 TEXT NOT NULL,PRIMARY KEY(version_id,sha256));

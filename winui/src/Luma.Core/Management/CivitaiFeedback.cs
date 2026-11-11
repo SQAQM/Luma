@@ -21,6 +21,7 @@ public static class CivitaiFeedback
   if(action=="credential.set")return Flag(result,"remembered")?"密钥已保存":"密钥本次有效";
   if(action=="credential.clear")return "Civitai 密钥已清除。";
   if(action=="models.sync")return "正在更新资料";
+  if(action=="models.retrySync")return "正在重试失败项";
   return "已完成";
  }
  public static string CoverStatus(JsonElement model)
@@ -53,7 +54,9 @@ public static class CivitaiFeedback
   if(job.TryGetProperty("issues",out var issues)&&issues.ValueKind==JsonValueKind.Array)foreach(var item in issues.EnumerateArray().Take(32)){
    string label=Text(item,"code") switch{
     "not_found"=>"当前文件哈希未匹配","unauthorized"=>"密钥无效","forbidden"=>"访问受限","rate_limited"=>"请求频率受限",
-    "sidecar_write"=>"模型目录资料保存失败","cover_not_found"=>"封面资源不存在","profile_not_found"=>"模型介绍暂不可用","version_not_found"=>"版本资料暂不可用",
+    "sidecar_busy"=>"文件正在使用","sidecar_permission"=>"目录没有写入权限","sidecar_format"=>"已有资料格式异常",
+    "sidecar_size"=>"资料文件过大","sidecar_conflict"=>"同名资料冲突","sidecar_space"=>"磁盘空间不足","sidecar_write"=>"资料保存失败",
+    "cover_not_found"=>"封面资源不存在","profile_not_found"=>"模型介绍暂不可用","version_not_found"=>"版本资料暂不可用",
     "network"=>"网络连接失败","unavailable"=>"Civitai 暂时不可用","credentials"=>"密钥读取失败","source_changed"=>"模型文件已变化",
     "file_missing"=>"模型文件不存在","file_error"=>"本地文件操作失败","sync_error"=>"同步失败","invalid_cover"=>"封面读取失败","hash_mismatch"=>"模型哈希不匹配",
     "response_too_large"=>"资料过大","invalid_response"=>"资料格式错误","redirect"=>"接口发生重定向","invalid_hash"=>"模型哈希无效","invalid_id"=>"模型编号无效",_=>""};

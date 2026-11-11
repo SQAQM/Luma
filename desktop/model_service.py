@@ -106,6 +106,20 @@ class ModelService:
             try:return self._submit_model_job('model_sync',{'scope_id':token,'download_covers':download_covers},total)
             except BaseException:model_sync_scope.discard(self.model_library,token);raise
 
+    def retry_model_sync(self,job_id):
+        from .service import INDEX_TASKS
+        from backend import model_sync_scope
+        with self._operation(),self._submission_lock:
+            self._ensure_ready();self._ensure_no_active(INDEX_TASKS)
+            if not isinstance(job_id,str) or len(job_id)!=32 or any(c not in '0123456789abcdef' for c in job_id):raise ValueError('任务无效')
+            previous=self.manager.get(job_id)
+            if previous is None or previous['kind']!='model_sync' or previous['status'] in ('queued','running'):raise ValueError('任务不能重试')
+            token,total=model_sync_scope.prepare_retry(self.model_library,job_id)
+            try:
+                if not total:raise ValueError('没有失败项目')
+                return self._submit_model_job('model_sync',{'scope_id':token,'download_covers':previous['payload'].get('download_covers',False)},total)
+            except BaseException:model_sync_scope.discard(self.model_library,token);raise
+
     def _cached_model_scope(self, ids=None):
         with self.store.connect() as db:
             high = db.execute('SELECT COALESCE(MAX(id),0) FROM images').fetchone()[0]

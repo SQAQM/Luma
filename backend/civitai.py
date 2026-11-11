@@ -44,6 +44,12 @@ _MESSAGES = {
     "credentials": "无法安全读取 Civitai 密钥，请重新设置。",
     "cancelled": "Civitai 操作已取消。",
     "sidecar_write": "模型目录资料保存失败。",
+    "sidecar_busy": "模型资料文件正在使用。",
+    "sidecar_permission": "模型目录没有写入权限。",
+    "sidecar_format": "已有模型资料格式异常。",
+    "sidecar_size": "模型资料文件过大。",
+    "sidecar_conflict": "同名模型资料冲突。",
+    "sidecar_space": "模型目录磁盘空间不足。",
     "cover_not_found": "Civitai 封面资源不存在。",
     "profile_not_found": "Civitai 模型介绍暂不可用。",
     "version_not_found": "Civitai 版本资料暂不可用。",
@@ -290,7 +296,7 @@ class CivitaiClient:
                 raise CivitaiError("redirect")
             self._cancel(cancelled)
             return self._read(target, maximum, cancelled, cover=True, _redirects=_redirects + 1, _deadline=deadline)
-        headers = {"User-Agent": "Luma/1.3.0 Civitai metadata client", "Accept-Encoding": "identity",
+        headers = {"User-Agent": "Luma/1.3.1 Civitai metadata client", "Accept-Encoding": "identity",
                    "Accept": "image/png,image/jpeg,image/webp" if cover else "application/json"}
         if token:
             headers["Authorization"] = "Bearer " + token

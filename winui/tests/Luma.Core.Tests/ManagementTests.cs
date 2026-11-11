@@ -11,6 +11,13 @@ static class ManagementTests
   var loads=new ManagementReadScope();Check(loads.TryPoll());long old=loads.Generation;loads.Invalidate();Check(!loads.TryRefresh());loads.Complete();Check(loads.RefreshPending&&loads.Generation!=old);Check(loads.TryRefresh());Check(!loads.RefreshPending);loads.Invalidate();Check(!loads.TryRefresh());loads.Complete();Check(loads.TryRefresh());loads.Complete();Check(!loads.RefreshPending&&!loads.Busy);
   Check(ThumbnailBudget.Accepts(1200,800,1200));Check(!ThumbnailBudget.Accepts(1201,800,1200));Check(!ThumbnailBudget.Accepts(640,480,320));Check(!ThumbnailBudget.Accepts(0,480,1200));
   var jobs=new ManagementJobSelection();jobs.Select("synthetic-job");foreach(string status in new[]{"running","completed","failed","cancelled"}){jobs.Update(new[]{JsonSerializer.SerializeToElement(new{id="synthetic-job",status,processed=5,total=5})});Check(jobs.CanCancel==(status=="running"));Check(jobs.Value?.GetProperty("status").GetString()==status);}jobs.Update([]);Check(!jobs.CanCancel&&jobs.Value is null);
+  foreach(var (kind,status,retryable,canRetry) in new[]{("model_sync","completed_with_errors",2,true),("model_sync","failed",1,true),("model_sync","cancelled",1,true),("model_sync","interrupted",1,true),("model_sync","running",2,false),("model_sync","queued",2,false),("model_sync","completed",0,false),("model_scan","failed",2,false)})
+  {
+   jobs.Update([JsonSerializer.SerializeToElement(new{id="synthetic-job",kind,status,processed=5,total=5,errors=2,retryable_count=retryable})]);
+   if(jobs.CanRetryFailed!=canRetry)throw new Exception($"management retry availability {kind}/{status}/{retryable}");n++;
+  }
+  jobs.Update([JsonSerializer.SerializeToElement(new{id="synthetic-job",kind="model_sync",status="completed_with_errors",errors=2})]);Check(!jobs.CanRetryFailed);
+  jobs.Update([]);Check(!jobs.CanRetryFailed);
   var fake=new DelayedManagement();var state=new ManagementState(fake);
   var first=state.LoadAsync("tags");state.ChangeScope();var second=state.LoadAsync("models");
   fake.Reads[1].SetResult(JsonSerializer.SerializeToElement(new{marker=2}));await second;

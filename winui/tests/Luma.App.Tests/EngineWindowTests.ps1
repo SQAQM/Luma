@@ -21,6 +21,7 @@ function Await([scriptblock]$predicate,[string]$name){$end=[DateTime]::UtcNow.Ad
 try{
  $start=[Diagnostics.ProcessStartInfo]::new($taskExe);$start.UseShellExecute=$false;$start.WorkingDirectory=Split-Path -Parent $taskExe;$start.WindowStyle='Hidden'
  $start.Arguments='--data-dir "'+$taskData+'" --diagnostics --capture --text-scale '+$TextScale
+ $start.EnvironmentVariables['LUMA_ENGINE_UI_TEST']='1'
  $start.EnvironmentVariables['PATH']=$env:SystemRoot+'\System32;'+$env:SystemRoot;$start.EnvironmentVariables['DOTNET_ROOT']=Join-Path $taskOutput 'absent-dotnet';$start.EnvironmentVariables['PYTHONPATH']=Join-Path $taskOutput 'absent-python'
  $process=[Diagnostics.Process]::Start($start)
  Await {$s=State;return $s.ready -and $s.captureRevision -eq $s.revision} 'ready'

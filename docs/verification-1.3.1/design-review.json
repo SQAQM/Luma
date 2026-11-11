@@ -1,0 +1,6 @@
+{
+  "result": "passed_blind_design_review",
+  "scope": "Four synthetic 100% and 150% task screenshots, errors/completed/retry states",
+  "findings": "No blocking clipping or overlap. Status, progress, error reasons and retry action readable.",
+  "privateContentRead": false
+}

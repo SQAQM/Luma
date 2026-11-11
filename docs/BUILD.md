@@ -16,7 +16,7 @@ py -3.11 -m venv .venv-build
 ./.venv-build/Scripts/python.exe -m pip install -r requirements-engine-build.txt
 ./scripts/Build-Engine.ps1
 ./scripts/Build-WinUI.ps1
-./scripts/Build-Delivery.ps1 -BundleDirectory release/Luma-native-1.3.0 -OutputDirectory release/Luma-1.3.0
+./scripts/Build-Delivery.ps1 -BundleDirectory release/Luma-native-1.3.1 -OutputDirectory release/Luma-1.3.1
 ```
 
 Build-WinUI 的 CrtDirectory 与 CrtVersion 参数可指定本机 Microsoft.VC143.CRT 目录和文件版本；构建会核对签名、架构及版本。Build-Delivery 的 Compiler 参数可指定解压后的 makensis.exe。

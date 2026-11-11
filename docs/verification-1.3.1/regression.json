@@ -1,0 +1,10 @@
+{
+  "result": "passed_targeted_regression",
+  "relatedPython": 125,
+  "finalSidecarInteropAndRetry": 35,
+  "core": 312,
+  "civitaiFeedback": 31,
+  "syntheticDataOnly": true,
+  "nativeUiChecksPerTextScale": 29,
+  "scope": "Hidden local directory and files; readonly unchanged exports; empty placeholder filling; malformed metadata and directory conflicts preserve originals and continue other exports; public worker retry uses persisted failed IDs."
+}

@@ -31,6 +31,12 @@ static class CivitaiFeedbackTests
   Check(CivitaiFeedback.SyncResult(JsonSerializer.SerializeToElement(new{status="completed",errors=0,feedback="模型资料同步完成；封面已保存 3 个"}))=="封面 3 个","completed sync displays cover count");
   Check(CivitaiFeedback.SyncResult(JsonSerializer.SerializeToElement(new{status="completed_with_errors",errors=1,feedback="模型资料同步完成；封面已保存 0 个；Civitai 密钥无效或已过期，请重新设置。"}))=="密钥无效","key failure has priority over cover count");
   Check(CivitaiFeedback.SyncResult(JsonSerializer.SerializeToElement(new{status="completed_with_errors",errors=1,feedback="PRIVATE_UNKNOWN_BODY"}))=="部分未完成","arbitrary task bodies are not display text");
+  foreach(var (code,label) in new[]{("sidecar_busy","文件正在使用"),("sidecar_permission","目录没有写入权限"),("sidecar_format","已有资料格式异常"),("sidecar_size","资料文件过大"),("sidecar_conflict","同名资料冲突"),("sidecar_space","磁盘空间不足"),("sidecar_write","资料保存失败")})
+  {
+   var job=JsonSerializer.SerializeToElement(new{status="completed_with_errors",processed=5,total=5,errors=2,issues=new[]{new{code,count=2}},feedback="PRIVATE_PATH_AND_TOKEN"});
+   Check(CivitaiFeedback.Issues(job)==label+"：2 个",code+" shows fixed actionable reason and affected count");
+   Check(CivitaiFeedback.SyncResult(job)==label+"：2 个",code+" summary keeps the persisted reason without exposing body");
+  }
   return count;
  }
  private sealed class ResultApi(JsonElement value):IManagementApi

@@ -202,7 +202,7 @@ public sealed partial class ShellView : UserControl, IDisposable
     {
         if(_viewer.IsOpen||FileWindowMode||_model.Page==page)return;
         _model.Page = page;
-        if(page is WorkspacePage.Models or WorkspacePage.Settings)_engine?.OpenServices();
+        if(page is WorkspacePage.Models or WorkspacePage.Settings or WorkspacePage.Jobs)_engine?.OpenServices();
         else if(page==WorkspacePage.Gallery&&_engine is{Started:true})_engine.OpenLibrary();
         else if(page==WorkspacePage.Gallery&&_engine?.Connecting==true)_engine.OpenLibrary();
         Render();if(_layout=="Side"&&_navigation.TryGetValue(page,out var target))target.StartBringIntoView(new BringIntoViewOptions{AnimationDesired=false,VerticalAlignmentRatio=.5}); Animate(); Changed?.Invoke();
@@ -238,7 +238,7 @@ public sealed partial class ShellView : UserControl, IDisposable
             WelcomeActions.Children.Clear();WelcomeActions.Visibility=Visibility.Collapsed;LoadingRing.IsActive=false;LoadingRing.Visibility=Visibility.Collapsed;StateIcon.Visibility=Visibility.Visible;
             if(live) { if(_libraryChanged){_libraryChanged=false;LiveGallery.RefreshManagedLibrary();} }
             else if(managedSurface) { }
-            else if(_model.Page==WorkspacePage.Models&&_model.Current.Mode==PreviewState.Sample) RenderModelConnection();
+            else if((_model.Page is WorkspacePage.Models or WorkspacePage.Jobs)&&_model.Current.Mode==PreviewState.Sample) RenderModelConnection();
             else RenderWelcome();
             Feedback.Text=_engine?.Feedback??"选择图片目录开始管理。";
             if(welcome)Feedback.Text=_engine?.Feedback??"打开独立图库后开始管理。";
@@ -267,14 +267,15 @@ public sealed partial class ShellView : UserControl, IDisposable
     }
     private void RenderModelConnection()
     {
-        string workspace="模型管理";ScopeNote.Text=workspace;
+        string workspace=_model.Page==WorkspacePage.Jobs?"任务记录":"模型管理";ScopeNote.Text=workspace;
         bool loading=_engine?.Connecting==true;
         RenderMessage(loading?"正在准备"+workspace:"本地服务未就绪",_engine?.Feedback??"启动本地服务后可直接使用此工作区。",loading?"":"重试连接",()=>_engine?.OpenServices());
         StateAction.Visibility=!loading&&_engine?.CanConnect==true?Visibility.Visible:Visibility.Collapsed;
         LoadingRing.IsActive=loading;LoadingRing.Visibility=loading?Visibility.Visible:Visibility.Collapsed;
     }
-    private UIElement ConnectionContent()
+    private UIElement? ConnectionContent()
     {
+        if(!_diagnostics||Environment.GetEnvironmentVariable("LUMA_ENGINE_UI_TEST")!="1")return null;
         var panel=new StackPanel{Spacing=8};var state=Text(_engine?.State??"未连接");AutomationProperties.SetAutomationId(state,"EngineState");panel.Children.Add(state);
         var actions=new TagChipPanel();
         if(_diagnostics){actions.Children.Add(Action("延迟请求","EngineProbe",()=>_engine?.Probe(),_engine?.CanProbe==true));actions.Children.Add(Action("取消请求","EngineCancel",()=>_engine?.Cancel(),_engine?.CanCancel==true));}
