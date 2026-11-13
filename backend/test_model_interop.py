@@ -6,7 +6,7 @@ from backend.test_civitai import Transport,document
 
 class ModelInteropTests(unittest.TestCase):
     setUp=helpers.CivitaiSyncTests.setUp
-    run_sync=helpers.CivitaiSyncTests.run_sync
+    def run_sync(self,*args):return helpers.CivitaiSyncTests.run_sync(self,*args,compatibility=True)
 
     def test_sync_writes_metadata_and_cover_next_to_model(self):
         from backend.test_civitai import Reply
@@ -30,44 +30,44 @@ class ModelInteropTests(unittest.TestCase):
     def test_export_updates_its_fields_and_preserves_later_user_edits(self):
         from backend import model_sidecars
         record={'model_id':17,'version_id':31,'model_name':'First','model_type':'LORA','type':'LORA','base_model':'Anima','description':'First info','trained_words':['one'],'files':[]}
-        model_sidecars.write(self.weight,record,self.digest)
+        model_sidecars.write(self.weight,record,self.digest,compatibility=True)
         target=self.weight.with_suffix('.json');value=json.loads(target.read_text());value['activation text']='custom';target.write_text(json.dumps(value))
         record.update(model_name='Second',description='Second info',trained_words=['two'])
-        model_sidecars.write(self.weight,record,self.digest)
+        model_sidecars.write(self.weight,record,self.digest,compatibility=True)
         value=json.loads(target.read_text());self.assertEqual(value['description'],'Second info');self.assertEqual(value['activation text'],'custom')
         cv=json.loads(self.weight.with_suffix('.civitai.info').read_text());self.assertEqual(cv['model']['name'],'Second')
 
     def test_export_cancellation_leaves_no_temporary_files(self):
         from backend import model_sidecars
         from backend.organizer import Cancelled
-        with self.assertRaises(Cancelled):model_sidecars.write(self.weight,{},self.digest,cancelled=lambda:True)
+        with self.assertRaises(Cancelled):model_sidecars.write(self.weight,{},self.digest,cancelled=lambda:True,compatibility=True)
         self.assertEqual(list(self.models.glob('*.tmp')),[])
 
     def test_user_cleared_fields_stay_cleared_on_refresh(self):
         from backend import model_sidecars
         record={'description':'First','trained_words':['one']}
-        model_sidecars.write(self.weight,record,self.digest)
+        model_sidecars.write(self.weight,record,self.digest,compatibility=True)
         target=self.weight.with_suffix('.json');value=json.loads(target.read_text())
         value.update(description='',**{'activation text':None});target.write_text(json.dumps(value))
-        model_sidecars.write(self.weight,{'description':'Second','trained_words':['two']},self.digest)
+        model_sidecars.write(self.weight,{'description':'Second','trained_words':['two']},self.digest,compatibility=True)
         value=json.loads(target.read_text());self.assertEqual(value['description'],'');self.assertIsNone(value['activation text'])
 
     def test_identical_existing_user_fields_are_not_claimed(self):
         from backend import model_sidecars
         target=self.weight.with_suffix('.json');target.write_text(json.dumps({'description':'First'}))
-        model_sidecars.write(self.weight,{'description':'First'},self.digest)
-        model_sidecars.write(self.weight,{'description':'Second'},self.digest)
+        model_sidecars.write(self.weight,{'description':'First'},self.digest,compatibility=True)
+        model_sidecars.write(self.weight,{'description':'Second'},self.digest,compatibility=True)
         value=json.loads(target.read_text());self.assertEqual(value['description'],'First')
         self.assertNotIn('description',value['_luma']['managed'])
 
     def test_deleted_owned_fields_are_not_recreated_on_repeated_sync(self):
         from backend import model_sidecars
         record={'description':'First','model_name':'Name'}
-        model_sidecars.write(self.weight,record,self.digest)
+        model_sidecars.write(self.weight,record,self.digest,compatibility=True)
         web=self.weight.with_suffix('.json');value=json.loads(web.read_text());del value['description'];web.write_text(json.dumps(value))
         cv=self.weight.with_suffix('.civitai.info');value=json.loads(cv.read_text());del value['model'];cv.write_text(json.dumps(value))
         for _ in range(2):
-            model_sidecars.write(self.weight,{'description':'Second','model_name':'New name'},self.digest)
+            model_sidecars.write(self.weight,{'description':'Second','model_name':'New name'},self.digest,compatibility=True)
             self.assertNotIn('description',json.loads(web.read_text()))
             self.assertNotIn('model',json.loads(cv.read_text()))
 
@@ -132,7 +132,7 @@ class ModelInteropTests(unittest.TestCase):
     def test_exported_renamed_vae_keeps_its_file_role(self):
         from backend import model_sidecars,model_local_info
         record={'model_id':17,'version_id':31,'model_name':'Fixture','model_type':'Checkpoint','type':'VAE','base_model':'SDXL 1.0','files':[{'name':'official-vae.safetensors','type':'VAE','sha256':self.digest}]}
-        model_sidecars.write(self.weight,record,self.digest)
+        model_sidecars.write(self.weight,record,self.digest,compatibility=True)
         self.assertEqual(model_local_info.read(self.weight)['type'],'VAE')
 
     def test_component_type_is_retained_from_civitai(self):

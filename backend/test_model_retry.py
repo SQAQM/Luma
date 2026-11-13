@@ -24,7 +24,7 @@ class RetryModelSyncTests(unittest.TestCase):
             with self.assertRaises(ValueError):self.action('models.retrySync',{'jobId':ident})
     def test_sidecar_reason_is_preserved_in_job_summary(self):
         (self.models/'fixture-000.civitai.info').write_bytes(b'{broken')
-        task=self.sync({'rootId':self.root,'query':'fixture-000'})
+        task=self.settled(self.action('models.sync',{'scope':{'rootId':self.root,'query':'fixture-000'},'downloadCovers':False,'compatibility':True}))
         self.assertEqual(task['issues'],[{'code':'sidecar_format','count':1}])
         self.assertEqual(task.get('retryable_count'),1)
         self.assertTrue((self.models/'fixture-000.json').exists())

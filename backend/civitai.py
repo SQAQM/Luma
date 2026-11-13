@@ -16,7 +16,7 @@ import urllib.parse
 import urllib.request
 import warnings
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 from .credentials import validate_token
 
@@ -75,6 +75,7 @@ def sync_feedback(message, status):
         return message
     match = re.fullmatch(r'(?:模型资料同步完成|正在计算哈希并同步模型资料)'
                          r'(?:；封面已保存 ([0-9]{1,10}) 个)?'
+                         r'(?:；已复用封面 [0-9]{1,10} 个)?'
                          r'(?:；([0-9]{1,10}) 个模型未提供静态封面)?(?:；(.+))?', message)
     if not match:
         return default
@@ -215,21 +216,33 @@ def _hash(value, length):
     return value.lower() if isinstance(value, str) and re.fullmatch(r"[a-fA-F0-9]{%d}" % length, value) else ""
 
 
-def _cover_url(url):
-    if not isinstance(url, str) or len(url) > 2048 or any(ord(c) < 33 or ord(c) > 126 for c in url):
-        return False
+def _normalized_cover_url(url):
+    # Upstream filenames can contain spaces/non-ASCII. Encode the path only;
+    # the exact public hosts, buckets and credential/query restrictions remain.
+    if (not isinstance(url, str) or len(url) > 2048
+            or any(ord(c) < 32 or 127 <= ord(c) < 160 for c in url)):
+        return ''
     try:
         parsed = urllib.parse.urlsplit(url)
         host = parsed.hostname
         public_source = host == "image.civitai.com" or (host == "blobs-b2.civitai.com"
                 and re.fullmatch(r"/file/blobs-managed-public/[A-Za-z0-9_-]{10,200}(?:\.[A-Za-z0-9]{1,8})?", parsed.path) is not None)
-        return (parsed.scheme == "https" and public_source
+        allowed = (parsed.scheme == "https" and public_source
                 and parsed.netloc in (host, host + ":443")
                 and parsed.username is None and parsed.password is None
                 and parsed.port in (None, 443) and parsed.path.startswith("/")
                 and "\\" not in url and not parsed.query and not parsed.fragment)
-    except ValueError:
-        return False
+        if allowed:
+            normalized = urllib.parse.urlunsplit(parsed._replace(
+                path=urllib.parse.quote(parsed.path, safe="/%:@!$&'()*+,;=-._~")))
+            return normalized if len(normalized) <= 2048 else ''
+    except (ValueError, UnicodeError):
+        pass
+    return ''
+
+
+def _cover_url(url):
+    return bool(_normalized_cover_url(url))
 
 
 def _unique_pairs(pairs):
@@ -241,21 +254,33 @@ def _unique_pairs(pairs):
     return result
 
 
-def _preview_images(raw):
+def _preview_images(raw, *, with_status=False):
     """Keep only bounded public preview descriptors, never prompt/meta fields."""
     if raw is None:
-        return []
+        return ([], False) if with_status else []
     if not isinstance(raw, list):
         raise CivitaiError("invalid_response")
-    result = []
+    result, invalid = [], False
     for item in raw[:32]:
         if not isinstance(item, dict):
             continue
         url, kind = item.get('url'), item.get('type')
+        kind = kind.strip().casefold().split('/', 1)[0] if isinstance(kind, str) else ''
         thumbnail = item.get('thumbnail')
-        if kind == 'video' and isinstance(thumbnail, dict) and _cover_url(thumbnail.get('url')):
-            url, kind = thumbnail['url'], 'image'
-        if kind == 'audio' or not _cover_url(url):
+        if kind == 'video' and thumbnail:
+            still = thumbnail.get('url') if isinstance(thumbnail, dict) else thumbnail
+            # A thumbnail must name an actual static image; never relabel an
+            # arbitrary video endpoint as a still based on the field name.
+            normalized = _normalized_cover_url(still)
+            if normalized and re.search(r'\.(?:png|jpe?g|webp|avif)$', urllib.parse.urlsplit(normalized).path, re.I):
+                url, kind = normalized, 'image'
+            else:
+                invalid = True
+        if kind == 'audio':
+            continue
+        url = _normalized_cover_url(url)
+        if not url:
+            invalid |= kind != 'video'
             continue
         level, nsfw = item.get('nsfwLevel'), item.get('nsfw')
         safe = nsfw is False or nsfw == 'None' or (type(level) is int and level == 1)
@@ -264,7 +289,35 @@ def _preview_images(raw):
         if kind in ('image', 'video'):
             image['type'] = kind
         result.append(image)
-    return result
+    return (result, invalid) if with_status else result
+
+
+def normalize_cover(blob):
+    """Decode a bounded static cover and return fresh, metadata-free PNG pixels."""
+    if not isinstance(blob, bytes):
+        raise CivitaiError('invalid_cover')
+    if len(blob) > MAX_COVER_BYTES:
+        raise CivitaiError('response_too_large')
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter('error', Image.DecompressionBombWarning)
+            # Restrict decoder selection too: no video/animated-container work.
+            with Image.open(io.BytesIO(blob), formats=('PNG', 'JPEG', 'WEBP', 'AVIF')) as image:
+                width, height = image.size
+                if (min(width, height) < 1 or max(width, height) > 8192
+                        or width * height > 16000000 or getattr(image, 'n_frames', 1) != 1):
+                    raise ValueError()
+                image.load()  # Header validation alone admits truncated files.
+                with ImageOps.exif_transpose(image) as oriented:
+                    oriented.thumbnail((640, 640), Image.Resampling.LANCZOS)
+                    mode = 'RGBA' if 'A' in oriented.getbands() or 'transparency' in oriented.info else 'RGB'
+                    with oriented.convert(mode) as converted:
+                        with Image.frombytes(mode, converted.size, converted.tobytes()) as clean:
+                            output = io.BytesIO()
+                            clean.save(output, 'PNG')
+                            return output.getvalue()
+    except Exception:
+        raise CivitaiError('invalid_cover') from None
 
 
 class CivitaiClient:
@@ -291,13 +344,13 @@ class CivitaiClient:
         if started >= deadline:
             raise CivitaiError("network")
         def moved(location):
-            target = urllib.parse.urljoin(url, location) if isinstance(location, str) else ""
+            target = _normalized_cover_url(urllib.parse.urljoin(url, location)) if isinstance(location, str) else ""
             if not cover or token or _redirects >= 2 or not _cover_url(target):
                 raise CivitaiError("redirect")
             self._cancel(cancelled)
             return self._read(target, maximum, cancelled, cover=True, _redirects=_redirects + 1, _deadline=deadline)
-        headers = {"User-Agent": "Luma/1.3.1 Civitai metadata client", "Accept-Encoding": "identity",
-                   "Accept": "image/png,image/jpeg,image/webp" if cover else "application/json"}
+        headers = {"User-Agent": "Luma/1.3.2 Civitai metadata client", "Accept-Encoding": "identity",
+                   "Accept": "image/png,image/jpeg,image/webp,image/avif" if cover else "application/json"}
         if token:
             headers["Authorization"] = "Bearer " + token
         request = urllib.request.Request(url, headers=headers, method="GET")
@@ -425,7 +478,7 @@ class CivitaiClient:
         family, variant = model_architecture(base)
         roles = {file["resource_type"] for file in matching}
         matched_type = next(iter(roles)) if len(roles) == 1 else "Unknown"
-        images = _preview_images(value.get('images', []))
+        images, invalid_covers = _preview_images(value.get('images', []), with_status=True)
         trained = value.get("trainedWords", [])
         if not isinstance(trained, list):
             raise CivitaiError("invalid_response")
@@ -439,7 +492,8 @@ class CivitaiClient:
                 "version_description": _plain_text(value.get("description")),
                 "creator": _text(creator.get("username")) if isinstance(creator, dict) else "",
                 "trained_words": trained, "trigger_words": list(trained),
-                "files": files, "images": images, "matched_sha256": matching[0]["sha256"],
+                "files": files, "images": images, "cover_candidates_invalid": invalid_covers,
+                "matched_sha256": matching[0]["sha256"],
                 "matched_hash_kind": "sha256" if len(digest) == 64 else "autov2",
                 "source_url": f"{API_ORIGIN}/models/{model_id}?modelVersionId={version_id}",
                 "updated_at": _text(value.get("updatedAt"), 100)}
@@ -460,7 +514,10 @@ class CivitaiClient:
                     continue
                 if version.get('modelId', model_id) != model_id:
                     continue
-                versions.append({'version_id': version['id'], 'images': _preview_images(version.get('images', [])),'base_model':_text(version.get('baseModel'),200)})
+                images, invalid_covers = _preview_images(version.get('images', []), with_status=True)
+                versions.append({'version_id': version['id'], 'images': images,
+                                 'cover_candidates_invalid': invalid_covers,
+                                 'base_model':_text(version.get('baseModel'),200)})
         self._cancel(cancelled)
         return {"model_id": model_id, "model_name": _text(value.get("name")),
                 "type": _text(value.get("type"), 100), "description": _plain_text(value.get("description")),
@@ -468,7 +525,8 @@ class CivitaiClient:
                 "source_url": f"{API_ORIGIN}/models/{model_id}", 'versions': versions}
 
     def download_cover(self, url, cancelled=lambda: False):
-        if not _cover_url(url):
+        url = _normalized_cover_url(url)
+        if not url:
             raise CivitaiError("invalid_cover")
         parsed = urllib.parse.urlsplit(url)
         parts = parsed.path.split("/")
@@ -476,17 +534,7 @@ class CivitaiClient:
             parts[3] = "width=640,height=640,fit=scale-down,quality=85,anim=false"
             url = urllib.parse.urlunsplit(parsed._replace(path="/".join(parts)))
         blob = self._read(url, MAX_COVER_BYTES, cancelled, cover=True)
-        try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("error", Image.DecompressionBombWarning)
-                with Image.open(io.BytesIO(blob)) as image:
-                    width, height = image.size
-                    if (image.format not in ("PNG", "JPEG", "WEBP") or min(width, height) < 1
-                            or max(width, height) > 8192 or width * height > 16000000
-                            or getattr(image, "n_frames", 1) != 1):
-                        raise ValueError()
-        except Exception:
-            raise CivitaiError("invalid_cover") from None
+        blob = normalize_cover(blob)
         self._cancel(cancelled)
         return blob
 

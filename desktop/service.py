@@ -90,6 +90,8 @@ class LibraryService(ModelService):
             "metadata_refresh":self._metadata_refresh_job,
             "model_scan": self._model_scan_job,
             "model_sync": self._model_sync_job,
+            "model_info_cleanup": self._model_info_cleanup_job,
+            "model_info_restore": self._model_info_restore_job,
             "model_links": self._model_links_job,
             "civitai_image_lookup": self._image_model_lookup_job,
             "duplicate_scan": self.duplicates.scan,

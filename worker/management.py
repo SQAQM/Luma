@@ -14,7 +14,7 @@ from worker.read_catalog import detail, query
 
 _lock = threading.RLock()
 JOB_FIELDS = ('id','kind','status','processed','total','errors','cancel_requested','created_at','updated_at')
-TASKS = ('import','metadata_refresh','install_model','classify_contents','reclassify_models','model_scan','model_sync','model_links','civitai_image_lookup','file_preview','organize','undo','remove_root','duplicate_scan','duplicate_cleanup','duplicate_undo','duplicate_purge','duplicate_recovery','file_recovery')
+TASKS = ('import','metadata_refresh','install_model','classify_contents','reclassify_models','model_scan','model_sync','model_links','civitai_image_lookup','model_info_cleanup','model_info_restore','file_preview','organize','undo','remove_root','duplicate_scan','duplicate_cleanup','duplicate_undo','duplicate_purge','duplicate_recovery','file_recovery')
 
 class ManagementError(ValueError):
     def __init__(self, code='invalid_request'):
@@ -121,6 +121,9 @@ def read(service, section, a, cancelled):
         try:return service.models(f,cursor,60)
         except ModelCursorExpired:raise ManagementError('stale_cursor') from None
         except ValueError:raise ManagementError() from None
+    if section=='modelInfoCleanupPreview':
+        fields(a,('rootId',));root=integer(a['rootId']) if a.get('rootId') is not None else None
+        return service.preview_model_info_cleanup(root)
     if section in ('modelDetail','modelImages','modelCover'):
         fields(a,('modelId','match','cursor') if section=='modelImages' else ('modelId',),('modelId',));ident=integer(a['modelId'])
         if section=='modelDetail':return service.model_detail(ident)
@@ -225,6 +228,10 @@ def prepare(service, action, a):
     if action in ('credential.set','credential.connect'):
         fields(a,('token','remember'),('token','remember'));token=text(a['token'],512);remember=boolean(a['remember'])
         return lambda:service.connect_civitai(token,remember) if action=='credential.connect' else service.configure_civitai(token,remember)
+    if action in ('models.cleanupInfo','models.undoInfoCleanup'):
+        fields(a,('planId','confirmed'),('planId','confirmed'));ident=op(a['planId']);confirmed=boolean(a['confirmed'])
+        if not confirmed:raise ManagementError()
+        return lambda:job(service.submit_model_info_cleanup(ident,confirmed,action=='models.undoInfoCleanup'))
     if action=='models.retrySync':
         fields(a,('jobId',),('jobId',));ident=op(a['jobId'])
         return lambda:job(service.retry_model_sync(ident))
@@ -237,7 +244,7 @@ def prepare(service, action, a):
             fields(a,('rootId',),('rootId',));ident=integer(a['rootId'])
             return lambda:service.remove_model_root(ident) if action=='models.remove' else job(service.scan_model_directory(ident))
         if action=='models.sync' and 'scope' in a:
-            fields(a,('scope','downloadCovers'),('scope',));s=a['scope'];fields(s,('rootId','query','types','families'))
+            fields(a,('scope','downloadCovers','forceRefresh','compatibility'),('scope',));s=a['scope'];fields(s,('rootId','query','types','families'))
             from backend.model_library import model_selections
             filters={'q':text(s.get('query',''),1024,True)}
             if s.get('rootId') is not None:filters['root_id']=integer(s['rootId'])
@@ -246,11 +253,13 @@ def prepare(service, action, a):
                     try:filters[dimension]=model_selections(s[dimension],dimension)
                     except ValueError:raise ManagementError() from None
             covers=boolean(a.get('downloadCovers',False))
-            return lambda:job(service.sync_model_scope(filters,covers))
-        fields(a,('ids','downloadCovers') if action=='models.sync' else ('ids',),('ids',));selected=ids(a['ids'],60)
+            force=boolean(a.get('forceRefresh',False));compatibility=boolean(a.get('compatibility',False))
+            return lambda:job(service.sync_model_scope(filters,covers,force,compatibility))
+        fields(a,('ids','downloadCovers','forceRefresh','compatibility') if action=='models.sync' else ('ids',),('ids',));selected=ids(a['ids'],60)
         if action=='models.lookup' and not service.model_library.image_lookup_hashes(selected):raise ManagementError('model_hash_missing')
         covers=boolean(a.get('downloadCovers',False))
-        return lambda:job(service.sync_models(selected,covers) if action=='models.sync' else service.lookup_image_models(selected))
+        force=boolean(a.get('forceRefresh',False));compatibility=boolean(a.get('compatibility',False))
+        return lambda:job(service.sync_models(selected,covers,force,compatibility) if action=='models.sync' else service.lookup_image_models(selected))
     if action=='registry.save':
         fields(a,('entries',),('entries',));entries=a['entries']
         if not isinstance(entries,list) or len(entries)>1000:raise ManagementError()

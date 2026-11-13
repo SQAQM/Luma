@@ -301,7 +301,7 @@ class ModelLibrary:
         files=record.get('files',[])
         hashes={f.get('sha256','').lower() for f in files[:200] if isinstance(f,dict) and isinstance(f.get('sha256'),str) and _SHA.fullmatch(f['sha256'])} if isinstance(files,list) else set()
         if digest.lower() not in hashes or type(record.get('version_id')) is not int or record['version_id']<1: return False
-        fields=('model_id','version_id','model_name','version_name','type','model_type','base_model','family','model_variant','description','version_description','creator','files','images','matched_sha256','matched_hash_kind','updated_at')
+        fields=('model_id','version_id','model_name','version_name','type','model_type','base_model','family','model_variant','description','version_description','creator','files','images','matched_sha256','matched_hash_kind','updated_at','profile_complete','preview_checked','cover_candidates_invalid')
         safe={key:record[key] for key in fields if key in record}
         words=normalize_trigger_words(record.get('trigger_words',record.get('trained_words',[])))
         safe.update(trigger_words=words,trained_words=list(words),source_url=_source_url(record))
@@ -315,6 +315,17 @@ class ModelLibrary:
             if preserve_profile and type(safe.get('model_id')) is int and safe['model_id']>0 and cached.get('model_id')==safe['model_id']:
                 for key in ('description','creator'):
                     if not safe.get(key) and cached.get(key): safe[key]=cached[key]
+                if 'profile_complete' not in safe and cached.get('profile_complete') is True:
+                    for key in ('model_name','model_type','description','creator','profile_complete'):
+                        if key in cached:safe[key]=cached[key]
+                    if not safe.get('base_model') or str(safe['base_model']).casefold() in ('unknown','未知'):
+                        safe['base_model']=cached.get('base_model','')
+                    from .civitai import with_profile
+                    safe=with_profile(safe,{'type':cached.get('model_type') or cached.get('type','')})
+                    if not safe.get('images'):
+                        for key in ('images','preview_checked','cover_candidates_invalid'):
+                            if key in cached:safe[key]=cached[key]
+            if 'profile_complete' not in safe:safe['profile_complete']=False
             encoded=json.dumps(safe,ensure_ascii=False)
             if len(encoded.encode())>1024*1024: return False
             db.execute('INSERT INTO luma_model_versions(version_id,record,updated_at) VALUES(?,?,?) ON CONFLICT(version_id) DO UPDATE SET record=excluded.record,updated_at=excluded.updated_at',(record['version_id'],encoded,time.time()))
@@ -335,15 +346,27 @@ class ModelLibrary:
         else:
             if not isinstance(ids,list) or not 1<=len(ids)<=60 or any(type(x) is not int or x<1 for x in ids):raise ValueError('请选择1至60个模型文件')
             selected=list(dict.fromkeys(ids));total=len(selected)
-        try:return self._sync_selected(manager,job_id,selected,total,covers)
+        force=payload.get('force_refresh',False);compatibility=payload.get('compatibility',False)
+        if type(force) is not bool or type(compatibility) is not bool:raise ValueError('模型资料选项无效')
+        try:return self._sync_selected(manager,job_id,selected,total,covers,force,compatibility)
         finally:
             if token is not None:model_sync_scope.discard(self,token)
 
-    def _sync_selected(self,manager,job_id,selected,total,covers):
+    def _cached_sync_record(self,row,digest):
+        if not row['version_id']:return None
+        with self.store.connect() as db:
+            stored=db.execute('SELECT v.record FROM luma_model_versions v JOIN luma_model_verified_hashes h ON h.version_id=v.version_id WHERE v.version_id=? AND h.sha256=?',(row['version_id'],digest)).fetchone()
+        if not stored:return None
+        record=json.loads(stored[0]);files=record.get('files',[])
+        if record.get('profile_complete') is False or type(record.get('model_id')) is not int or not record.get('model_name') or not any(isinstance(f,dict) and f.get('sha256')==digest for f in files):return None
+        if 'profile_complete' not in record and row['status'] not in ('synced','sync_error_sidecar_write','sync_error_sidecar_format','sync_error_sidecar_permission','sync_error_sidecar_busy','sync_error_sidecar_conflict','sync_error_sidecar_size','sync_error_cover_not_found','sync_error_invalid_cover'):return None
+        return {**record,'matched_sha256':digest,'type':_resource_type(record,digest)}
+
+    def _sync_selected(self,manager,job_id,selected,total,covers,force_refresh=False,compatibility=False):
         from . import model_sync_scope
         if self.client is None: raise ValueError('Civitai 连接不可用')
         cancelled=lambda:manager.cancelled(job_id); processed=errors=0; error_message=''
-        covers_saved=covers_missing=0
+        covers_saved=covers_missing=covers_reused=0
         versions={}; profiles={}; stop_requests=False
         with self.lock:
             for file_id in selected:
@@ -365,18 +388,22 @@ class ModelLibrary:
                         # A completed local hash is useful even if the public
                         # service is offline; it still describes held bytes.
                         _verify_source(file)
-                        with self.store.connect() as db: db.execute('UPDATE luma_model_files SET sha256=? WHERE id=?',(digest,file_id))
-                        if digest not in versions:
-                            if len(versions)>=16:versions.pop(next(iter(versions)))
-                            versions[digest]=self.client.version_by_hash(digest,cancelled=cancelled)
-                        record=versions[digest]
+                        if row['sha256']!=digest:
+                            with self.store.connect() as db: db.execute('UPDATE luma_model_files SET sha256=? WHERE id=?',(digest,file_id))
+                        record=None if force_refresh else self._cached_sync_record(row,digest)
+                        cached=record is not None
+                        if record is None:
+                            if digest not in versions:
+                                if len(versions)>=16:versions.pop(next(iter(versions)))
+                                versions[digest]=self.client.version_by_hash(digest,cancelled=cancelled)
+                            record=versions[digest]
                         if cancelled(): raise Cancelled()
                         _verify_source(file)
                         if not isinstance(record,dict) or record.get('matched_sha256','').lower()!=digest: raise CivitaiError('hash_mismatch')
                         profile_error=None; profile_updated=False
                         # The by-hash endpoint only embeds a small parent model
                         # object. Fetch its separate profile for author/intro.
-                        if callable(getattr(self.client,'model',None)):
+                        if not cached and callable(getattr(self.client,'model',None)):
                             try:
                                 if record['model_id'] not in profiles:
                                     if len(profiles)>=16:profiles.pop(next(iter(profiles)))
@@ -393,6 +420,7 @@ class ModelLibrary:
                                 images=list(record.get('images') or [])
                                 seen={image.get('url') for image in images if isinstance(image,dict)}
                                 for version in matching[:1]:
+                                    record['cover_candidates_invalid']=bool(record.get('cover_candidates_invalid') or version.get('cover_candidates_invalid'))
                                     for image in version.get('images',[]):
                                         if isinstance(image,dict) and image.get('url') not in seen:
                                             images.append(image);seen.add(image.get('url'))
@@ -403,55 +431,65 @@ class ModelLibrary:
                                 profile_error=CivitaiError('profile_not_found') if isinstance(error,CivitaiError) and error.code=='not_found' else error
                         if cancelled(): raise Cancelled()
                         _verify_source(file)
-                        if not self.remember_version(record,preserve_profile=not profile_updated): raise CivitaiError('hash_mismatch')
+                        if not cached:
+                            record={**record,'profile_complete':profile_error is None}
+                            if not self.remember_version(record,preserve_profile=not profile_updated): raise CivitaiError('hash_mismatch')
                         _verify_source(file)
-                        with self.store.connect() as db: db.execute("UPDATE luma_model_files SET sha256=?,version_id=?,status='synced' WHERE id=?",(digest,record['version_id'],file_id))
-                    cover_error=None
+                        if row['status']!='synced' or row['sha256']!=digest or row['version_id']!=record['version_id']:
+                            with self.store.connect() as db: db.execute("UPDATE luma_model_files SET sha256=?,version_id=?,status='synced' WHERE id=?",(digest,record['version_id'],file_id))
+                    cover_error=None;local_cover=None;pixels=None
                     try:
-                        existing_cover=self.cover_path(file_id) if covers else None
-                        if covers and existing_cover:
-                            covers_saved+=1
-                        if covers and not existing_cover:
-                            if not any(i.get('type')!='video' for i in record.get('images',[]) if isinstance(i,dict)) and callable(getattr(self.client,'version_by_id',None)):
-                                try:complete=self.client.version_by_id(record['version_id'],digest,cancelled=cancelled)
-                                except CivitaiError as error:
-                                    if error.code=='not_found':raise CivitaiError('version_not_found') from None
-                                    raise
-                                if complete.get('model_id')!=record['model_id'] or complete.get('version_id')!=record['version_id'] or complete.get('matched_sha256')!=digest:
-                                    raise CivitaiError('hash_mismatch')
-                                record={**record,'images':complete.get('images',[])}
-                            # The checkbox authorizes a public model cover. Prefer a
-                            # safe preview without silently excluding every other
-                            # author-provided image; videos are not still covers.
-                            images=[item for item in (record.get('images') or []) if isinstance(item,dict)
-                                    and item.get('url') and item.get('type')!='video']
-                            images.sort(key=lambda item:bool(item.get('nsfw')))
-                            data=None; last_error=None
-                            for image in images[:4]:
-                                if cancelled(): raise Cancelled()
-                                manager.progress(job_id,processed=processed,total=total,errors=errors,message='正在获取模型封面')
+                        if covers:
+                            local_cover=model_covers.thumbnail(row['path'],self.cache_dir)
+                            cached_path=local_cover or self._cover_for_hash(digest)
+                            if cached_path is not None:
                                 try:
-                                    data=self.client.download_cover(image['url'],cancelled=cancelled)
-                                    break
-                                except CivitaiError as error:
-                                    if error.code=='cancelled': raise Cancelled() from None
-                                    if error.code in ('unauthorized','credentials','rate_limited'): raise
-                                    last_error=CivitaiError('cover_not_found') if error.code=='not_found' else error
-                            if data is None:
-                                if last_error is not None: raise last_error
-                                covers_missing+=1
-                            else:
-                                if cancelled(): raise Cancelled()
-                                if not isinstance(data,bytes) or len(data)>8*1024*1024: raise CivitaiError('invalid_cover')
-                                self.cache_dir.mkdir(parents=True,exist_ok=True)
-                                target=self.cache_dir/(digest+'.cover'); temp=self.cache_dir/(uuid.uuid4().hex+'.tmp')
-                                try:
-                                    temp.write_bytes(data)
-                                    if cancelled(): raise Cancelled()
-                                    os.replace(temp,target)
-                                    covers_saved+=1
-                                finally:
-                                    if temp.exists(): temp.unlink()
+                                    from .civitai import normalize_cover
+                                    with VerifiedFile(cached_path) as image:
+                                        if image.info.st_size>8*1024*1024:raise CivitaiError('invalid_cover')
+                                        pixels=normalize_cover(image.file.read(8*1024*1024+1));image.verify()
+                                    covers_reused+=1
+                                except (OSError,ValueError,CivitaiError):pixels=None;local_cover=None
+                            if pixels is None:
+                                attempted=set();last_error=None;deadline=time.monotonic()+45
+                                for phase in range(2):
+                                    images=[i for i in record.get('images',[]) if isinstance(i,dict) and i.get('url') and i.get('type') not in ('video','audio')]
+                                    images.sort(key=lambda i:bool(i.get('nsfw')))
+                                    for image in images[:32]:
+                                        if image['url'] in attempted:continue
+                                        if cancelled():raise Cancelled()
+                                        if time.monotonic()>deadline:break
+                                        attempted.add(image['url']);manager.progress(job_id,processed=processed,total=total,errors=errors,message='正在获取模型封面')
+                                        try:
+                                            from .civitai import normalize_cover
+                                            pixels=normalize_cover(self.client.download_cover(image['url'],cancelled=cancelled));break
+                                        except CivitaiError as error:
+                                            if error.code=='cancelled':raise Cancelled() from None
+                                            if error.code in ('unauthorized','credentials','rate_limited'):raise
+                                            last_error=CivitaiError('cover_not_found') if error.code=='not_found' else error
+                                    if pixels is not None:break
+                                    # No-photo versions already checked successfully stay offline until explicit refresh.
+                                    if phase or (record.get('preview_checked') and not images) or not callable(getattr(self.client,'version_by_id',None)):break
+                                    try:complete=self.client.version_by_id(record['version_id'],digest,cancelled=cancelled)
+                                    except CivitaiError as error:
+                                        if error.code=='not_found':raise CivitaiError('version_not_found') from None
+                                        raise
+                                    if complete.get('model_id')!=record['model_id'] or complete.get('version_id')!=record['version_id'] or complete.get('matched_sha256')!=digest:raise CivitaiError('hash_mismatch')
+                                    record={**record,'images':complete.get('images',[]),'cover_candidates_invalid':complete.get('cover_candidates_invalid',False),'preview_checked':True}
+                                    self.remember_version(record,preserve_profile=True)
+                                if pixels is None:
+                                    if last_error is not None:raise last_error
+                                    if record.get('cover_candidates_invalid'):raise CivitaiError('invalid_cover')
+                                    covers_missing+=1
+                                else:
+                                    self.cache_dir.mkdir(parents=True,exist_ok=True)
+                                    target=self.cache_dir/(digest+'.cover');temporary=self.cache_dir/(uuid.uuid4().hex+'.tmp')
+                                    try:
+                                        temporary.write_bytes(pixels)
+                                        if cancelled():raise Cancelled()
+                                        os.replace(temporary,target)
+                                        covers_saved+=1
+                                    finally:temporary.unlink(missing_ok=True)
                     except Cancelled:raise
                     except Exception as error:
                         if cancelled():raise Cancelled() from None
@@ -459,12 +497,7 @@ class ModelLibrary:
                     from . import model_sidecars
                     with _directory_guard(Path(row['path']).parent,writing=True),VerifiedFile(row['path'],parent_writes=True) as held:
                         if _identity(held.path,held.info)!=tuple(row[key] for key in ('size','mtime_ns','ctime_ns','device','inode','change_ns')):raise _SourceChanged('模型文件已改变')
-                        cover=self.cover_path(file_id) if covers else None
-                        pixels=None
-                        if cover is not None:
-                            with VerifiedFile(cover) as image:
-                                if image.info.st_size<=8*1024*1024:pixels=image.file.read(8*1024*1024+1);image.verify()
-                        try:model_sidecars.write(row['path'],record,digest,pixels,cancelled)
+                        try:model_sidecars.write(row['path'],record,digest,pixels if local_cover is None else None,cancelled,compatibility=compatibility)
                         except OSError as error:raise CivitaiError(model_sidecars.error_code(error)) from None
                         held.verify()
                     if profile_error is not None: raise profile_error
@@ -486,6 +519,7 @@ class ModelLibrary:
                 message='模型资料同步完成' if processed==total or stop_requests else '正在计算哈希并同步模型资料'
                 if covers:
                     message+=f'；封面已保存 {covers_saved} 个'
+                    if covers_reused:message+=f'；已复用封面 {covers_reused} 个'
                     if covers_missing: message+=f'；{covers_missing} 个模型未提供静态封面'
                 manager.progress(job_id,processed=processed,total=total,errors=errors,message=message+('；'+error_message if error_message else ''))
                 if stop_requests: break

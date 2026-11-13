@@ -171,7 +171,7 @@ def _json(path,value,filename,cancelled):
                 _publish(temporary,path,stamp is not None,cancelled,verify)
         finally:temporary.unlink(missing_ok=True)
 
-def write(model_path,record,digest,cover=None,cancelled=lambda:False):
+def write(model_path,record,digest,cover=None,cancelled=lambda:False,*,compatibility=False):
     path=Path(model_path);check_directory_chain(path.parent)
     files=[{'name':f.get('name',''),'type':f.get('type') or 'Model','hashes':{'SHA256':f.get('sha256',''),'AutoV2':f.get('autov2','')}} for f in record.get('files',[]) if isinstance(f,dict)]
     words=record.get('trigger_words',record.get('trained_words',[]))
@@ -185,7 +185,9 @@ def write(model_path,record,digest,cover=None,cancelled=lambda:False):
     elif base.startswith('SD 1'):web['sd version']='SD1'
     elif base.startswith('SD 2'):web['sd version']='SD2'
     failures=[]
-    for target,value in ((path.with_name(path.stem+'.civitai.info'),info),(path.with_name(path.stem+'.json'),web),(path.with_name(path.name+'.rgthree-info.json'),rg)):
+    outputs=[(path.with_name(path.stem+'.civitai.info'),info)]
+    if compatibility:outputs.extend(((path.with_name(path.stem+'.json'),web),(path.with_name(path.name+'.rgthree-info.json'),rg)))
+    for target,value in outputs:
         if cancelled():raise Cancelled()
         try:_json(target,value,path.name,cancelled)
         except OSError as error:failures.append(error_code(error))

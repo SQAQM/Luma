@@ -1,0 +1,6 @@
+{
+  "result": "passed_blind_design_review",
+  "scope": "Completion and metadata tidy popup screenshots at 100% and 150% text scales",
+  "findings": "No blocking clipping; checkbox text and confirm/cancel actions readable and reachable",
+  "syntheticOnly": true
+}

@@ -6,7 +6,7 @@ from backend.credentials import CivitaiCredentials
 from backend.model_library import ModelLibrary
 from backend.organizer import Cancelled
 
-MODEL_TASKS = ("model_scan", "model_sync", "model_links", "civitai_image_lookup")
+MODEL_TASKS = ("model_scan", "model_sync", "model_links", "civitai_image_lookup", "model_info_cleanup", "model_info_restore")
 
 
 class ModelService:
@@ -90,20 +90,20 @@ class ModelService:
             raise ValueError("请明确选择1至60个项目")
         return list(dict.fromkeys(ids))
 
-    def sync_models(self, ids, download_covers=True):
+    def sync_models(self, ids, download_covers=True,force_refresh=False,compatibility=False):
         with self._operation(), self._submission_lock:
             ids = self._selected_models(ids)
-            if type(download_covers) is not bool: raise ValueError("封面下载选项无效")
-            return self._submit_model_job('model_sync', {'ids': ids, 'download_covers': download_covers}, len(ids))
+            if any(type(v) is not bool for v in (download_covers,force_refresh,compatibility)): raise ValueError("模型资料选项无效")
+            return self._submit_model_job('model_sync', {'ids': ids, 'download_covers': download_covers,'force_refresh':force_refresh,'compatibility':compatibility}, len(ids))
 
-    def sync_model_scope(self, filters, download_covers=True):
+    def sync_model_scope(self, filters, download_covers=True,force_refresh=False,compatibility=False):
         from .service import INDEX_TASKS
         from backend import model_sync_scope
         with self._operation(),self._submission_lock:
             self._ensure_ready();self._ensure_no_active(INDEX_TASKS)
-            if type(download_covers) is not bool:raise ValueError('封面下载选项无效')
+            if any(type(v) is not bool for v in (download_covers,force_refresh,compatibility)):raise ValueError('模型资料选项无效')
             token,total=model_sync_scope.prepare(self.model_library,filters)
-            try:return self._submit_model_job('model_sync',{'scope_id':token,'download_covers':download_covers},total)
+            try:return self._submit_model_job('model_sync',{'scope_id':token,'download_covers':download_covers,'force_refresh':force_refresh,'compatibility':compatibility},total)
             except BaseException:model_sync_scope.discard(self.model_library,token);raise
 
     def retry_model_sync(self,job_id):
@@ -117,8 +117,29 @@ class ModelService:
             token,total=model_sync_scope.prepare_retry(self.model_library,job_id)
             try:
                 if not total:raise ValueError('没有失败项目')
-                return self._submit_model_job('model_sync',{'scope_id':token,'download_covers':previous['payload'].get('download_covers',False)},total)
+                return self._submit_model_job('model_sync',{'scope_id':token,'download_covers':previous['payload'].get('download_covers',False),'force_refresh':previous['payload'].get('force_refresh',False),'compatibility':previous['payload'].get('compatibility',False)},total)
             except BaseException:model_sync_scope.discard(self.model_library,token);raise
+
+    def preview_model_info_cleanup(self,root_id=None):
+        from .service import INDEX_TASKS
+        from backend.model_sidecar_cleanup import preview
+        with self._operation(),self._submission_lock:
+            self._ensure_ready();self._ensure_no_active(INDEX_TASKS)
+            return preview(self.model_library,root_id)
+
+    def submit_model_info_cleanup(self,plan_id,confirmed,restoring=False):
+        if confirmed is not True:raise ValueError('请先确认资料清单')
+        if not isinstance(plan_id,str) or len(plan_id)!=32 or any(c not in '0123456789abcdef' for c in plan_id):raise ValueError('资料清单无效')
+        with self._operation(),self._submission_lock:
+            return self._submit_model_job('model_info_restore' if restoring else 'model_info_cleanup',{'plan_id':plan_id,'confirmed':True})
+
+    def _model_info_cleanup_job(self,manager,job_id,payload):
+        from backend.model_sidecar_cleanup import apply
+        return self._run_model_action(lambda m,j,p:apply(self.model_library,m,j,p),manager,job_id,payload)
+
+    def _model_info_restore_job(self,manager,job_id,payload):
+        from backend.model_sidecar_cleanup import undo
+        return self._run_model_action(lambda m,j,p:undo(self.model_library,m,j,p),manager,job_id,payload)
 
     def _cached_model_scope(self, ids=None):
         with self.store.connect() as db:

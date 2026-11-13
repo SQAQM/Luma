@@ -1,0 +1,8 @@
+{
+  "result": "passed_targeted_regression",
+  "pythonRelated": 141,
+  "mediaAgentRegression": 54,
+  "core": 314,
+  "cacheCompletionRedGreenCases": 8,
+  "scope": "Synthetic HTTP/media, persistent cache reuse, local cover reuse, format normalization, candidate/version fallback, explicit compatibility export, exact metadata cleanup and confirmed undo. No real library, model, image or credential used."
+}

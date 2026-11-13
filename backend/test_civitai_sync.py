@@ -41,7 +41,7 @@ class CivitaiSyncTests(unittest.TestCase):
         buffer = io.BytesIO(); Image.new('RGB', (8, 6), (31, 69, 101)).save(buffer, 'PNG')
         self.cover = buffer.getvalue()
 
-    def run_sync(self, images, *cover_replies):
+    def run_sync(self, images, *cover_replies, compatibility=False):
         value = {'id': 31, 'modelId': 17, 'name': 'v1', 'baseModel': 'SDXL 1.0',
                  'model': {'type': 'Checkpoint'}, 'description': '<p>Version notes</p>',
                  'trainedWords': [], 'files': [{'type': 'Model', 'hashes': {'SHA256': self.digest}}],
@@ -50,9 +50,9 @@ class CivitaiSyncTests(unittest.TestCase):
                    'description': '<p>Actual introduction</p>', 'creator': {'username': 'Fixture author'}}
         # An empty hash response is checked once against the exact version API.
         fallback = [document(value)] if not any(i.get('type') != 'video' for i in images) else []
-        self.transport = Transport(document(value), document(profile), *fallback, *cover_replies)
+        self.transport = Transport(document(value), document(profile), *fallback, *cover_replies, *([] if fallback else [document(value)]))
         self.library.client = CivitaiClient(transport=self.transport)
-        self.library.sync(self.progress, 'sync', {'ids': [self.ident], 'download_covers': True})
+        self.library.sync(self.progress, 'sync', {'ids': [self.ident], 'download_covers': True,'compatibility':compatibility})
         self.assertEqual(self.digest, hashlib.sha256(self.weight.read_bytes()).hexdigest())
         return self.library.detail(self.ident)
 

@@ -7,7 +7,7 @@ from backend import model_sidecars
 class SidecarWriteTests(unittest.TestCase):
     setUp=helpers.ModelInteropTests.setUp
     def record(self):return {'model_id':17,'version_id':31,'model_name':'Fixture','description':'Remote intro','type':'Checkpoint','base_model':'Anima','trained_words':[]}
-    def export(self):return model_sidecars.write(self.weight,self.record(),self.digest,self.cover)
+    def export(self):return model_sidecars.write(self.weight,self.record(),self.digest,self.cover,compatibility=True)
     def test_bad_first_sidecar_does_not_block_other_metadata_or_cover(self):
         target=self.weight.with_suffix('.civitai.info');target.write_bytes(b'{broken')
         with self.assertRaises(model_sidecars.SidecarError) as error:self.export()
@@ -53,7 +53,7 @@ class SidecarWriteTests(unittest.TestCase):
                 error=OSError('synthetic busy');error.winerror=32;raise error
             return original(path)
         with patch.object(model_sidecars,'_exclusive_json',side_effect=busy_once):
-            model_sidecars.write(self.weight,{**self.record(),'description':'Updated'},self.digest)
+            model_sidecars.write(self.weight,{**self.record(),'description':'Updated'},self.digest,compatibility=True)
         self.assertGreaterEqual(len(attempts),2)
         self.assertEqual(json.loads(self.weight.with_suffix('.json').read_text())['description'],'Updated')
 

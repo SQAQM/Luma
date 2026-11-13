@@ -165,6 +165,7 @@ public sealed partial class MainWindow : Window
         var deadline=DateTime.UtcNow.AddSeconds(10);
         while(_captureBusy&&DateTime.UtcNow<deadline)await Task.Delay(20);
         if(_captureBusy)throw new InvalidOperationException("Own capture did not settle");
+        _revision++; // Dialog content can change without a workspace revision.
         await CaptureAsync();
         if(_captureError is not null)throw new InvalidOperationException("Own frame capture failed");
     }

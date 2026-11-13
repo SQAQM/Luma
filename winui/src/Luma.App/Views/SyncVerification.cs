@@ -10,7 +10,7 @@ public sealed partial class ShellView
   if(!_diagnostics||Environment.GetEnvironmentVariable("LUMA_SYNC_UI_TEST")!="1")return;
   var checks=new List<string>();void Check(bool value,string name){if(!value)throw new InvalidOperationException(name);checks.Add(name);}
   async Task Until(Func<bool> test){for(int i=0;i<150;i++){if(test())return;await Task.Delay(100);}throw new TimeoutException("Own sync fixture timed out");}
-  async Task Capture(string name){await capture();string file=Directory.EnumerateFiles(directory,"capture-*.png").MaxBy(File.GetLastWriteTimeUtc)!;File.Copy(file,Path.Combine(directory,name+".png"),true);}
+  async Task Capture(string name){await capture();string file=Directory.EnumerateFiles(directory,"capture-*.png").MaxBy(File.GetLastWriteTimeUtc)!;File.Copy(file,Path.Combine(directory,name+".png"),true);int index=0;foreach(string popup in Directory.EnumerateFiles(directory,"popup-*.png").OrderByDescending(File.GetLastWriteTimeUtc).Take(2))File.Copy(popup,Path.Combine(directory,name+"-popup-"+index+++".png"),true);}
   try{
    // Seed only this newly created diagnostic profile, before connecting its engine.
    string fixture=directory+"-fixtures";using var pointer=JsonDocument.Parse(File.ReadAllText(Path.Combine(fixture,"winui-library-v1.json")));
@@ -20,7 +20,7 @@ public sealed partial class ShellView
    foreach(string file in Directory.EnumerateFiles(Path.Combine(fixture,name)))File.Copy(file,Path.Combine(own,Path.GetFileName(file)),false);
    File.Copy(Path.Combine(fixture,"winui-library-v1.json"),Path.Combine(directory,"winui-library-v1.json"),false);
    Navigate(WorkspacePage.Models);await Until(()=>_engine?.Connected==true&&Management.SyncModelsReady);
-   await Management.VerifySyncCount(Check,()=>Capture("scope-count"));
+   await Management.VerifySyncCount(Check,Capture);
    Navigate(WorkspacePage.Jobs);await Until(()=>Management.SyncIssueReady);
    Management.VerifySyncIssues(Check);await Capture("sync-reason");
    if(Environment.GetEnvironmentVariable("LUMA_SYNC_RETRY_UI_TEST")=="1"){
@@ -42,14 +42,20 @@ public sealed partial class ManagementView
 {
  internal bool SyncModelsReady=>_page=="Models"&&!_formLoading&&_modelTotal==67&&_models.Length==60;
  internal bool SyncIssueReady=>_page=="Jobs"&&!_formLoading&&_jobSelection.Value is{} job&&S(job,"kind")=="model_sync";
- internal async Task VerifySyncCount(Action<bool,string> check,Func<Task> capture)
+ internal async Task VerifySyncCount(Action<bool,string> check,Func<string,Task> capture)
  {
   Records.SelectedItems.Clear();var request=CurrentModelSyncRequest();
   check(request.Count==67,"native update includes all 67 models");
   check(JsonSerializer.SerializeToElement(request.Args).TryGetProperty("scope",out _),"native update sends filter scope");
   var first=Records.Items[0];Records.SelectedItems.Add(first);check(CurrentModelSyncRequest().Count==1,"explicit single selection stays single");Records.SelectedItems.Clear();
-  var dialog=Confirmation("更新资料",$"{request.Range} {request.Count} 个模型");var shown=dialog.ShowAsync();
-  try{await Task.Delay(300);check(dialog.Content?.ToString()?.Contains("67")==true,"confirmation displays 67");await capture();}finally{dialog.Hide();await shown;}
+  var (dialog,refresh,compatibility)=ModelInformationDialog(request);var shown=dialog.ShowAsync();
+  try{await Task.Delay(300);check(dialog.Title?.ToString()=="补全资料"&&dialog.Content is StackPanel content&&content.Children.OfType<TextBlock>().Any(t=>t.Text.Contains("67")),"completion confirmation displays 67");
+   check(refresh.IsChecked==false&&compatibility.IsChecked==false,"completion defaults reuse data without compatibility exports");
+   var args=JsonSerializer.SerializeToElement(CurrentModelSyncRequest(true,true).Args);check(args.GetProperty("forceRefresh").GetBoolean()&&args.GetProperty("compatibility").GetBoolean(),"completion options map to explicit RPC flags");
+   check(_modelButtons.Any(b=>Microsoft.UI.Xaml.Automation.AutomationProperties.GetAutomationId(b)=="ManageCleanupModelInfo"),"native model toolbar exposes metadata cleanup");
+   await capture("scope-count");}finally{dialog.Hide();await shown;}
+  await Task.Delay(350);var cleanup=Confirmation("精简资料","");cleanup.Content=ModelInfoCleanupContent(JsonSerializer.SerializeToElement(new{count=2,bytes=512,items=new[]{new{name="fixture.json",path="synthetic/fixture.json"},new{name="fixture.safetensors.rgthree-info.json",path="synthetic/fixture.safetensors.rgthree-info.json"}}}));cleanup.PrimaryButtonText="确认精简";
+  var cleanupShown=cleanup.ShowAsync();try{await Task.Delay(700);var content=(StackPanel)cleanup.Content;check(content.Children.OfType<TextBlock>().Any(t=>t.Text.Contains("2 个")),"cleanup review displays concrete file count");check(content.Children.OfType<ScrollViewer>().Single().Content is StackPanel names&&names.Children.Count==2,"cleanup review lists exact synthetic filenames");await capture("info-cleanup-review");}finally{cleanup.Hide();await cleanupShown;}
  }
  internal void VerifySyncIssues(Action<bool,string> check)
  {

@@ -1,0 +1,9 @@
+{
+  "result": "passed_review_after_fixes",
+  "findingsResolved": [
+    "Partial hash lookup must not erase complete profile, exact base, resource role or cover-check flags",
+    "Failed SQLite commit after a move must preserve durable undo state"
+  ],
+  "focusedRechecks": 4,
+  "crossVolumeCleanupSupported": false
+}

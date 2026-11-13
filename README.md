@@ -2,7 +2,7 @@
 
 Windows 图片与 AI 模型管理软件。C# / XAML、WinUI 3 原生界面。
 
-当前版本：**1.3.1**。
+当前版本：**1.3.2**。
 
 [下载正式版](https://github.com/SQAQM/Luma/releases/latest)
 

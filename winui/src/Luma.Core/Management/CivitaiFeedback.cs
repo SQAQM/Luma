@@ -44,6 +44,8 @@ public static class CivitaiFeedback
   foreach(var pair in new[]{("密钥无效","密钥无效"),("请求过于频繁","请求频率受限"),("无法连接","连接失败"),("拒绝访问","访问受限"),("未找到公开","未找到模型"),("无法验证","资料格式错误")})if(message.Contains(pair.Item1,StringComparison.Ordinal))return pair.Item2;
   if(job.ValueKind==JsonValueKind.Object&&job.TryGetProperty("errors",out var errors)&&errors.TryGetInt32(out var count)&&count>0)return "部分未完成";
   var saved=System.Text.RegularExpressions.Regex.Match(message,@"封面已保存 (\d{1,10}) 个");
+  var reused=System.Text.RegularExpressions.Regex.Match(message,@"已复用封面 (\d{1,10}) 个");
+  if(reused.Success&&(!saved.Success||saved.Groups[1].Value=="0"))return "已复用 "+reused.Groups[1].Value+" 个封面";
   if(saved.Success)return "封面 "+saved.Groups[1].Value+" 个";
   return Text(job,"status") switch{"completed"=>"已完成","completed_with_errors"=>"部分未完成","cancelled"=>"已取消","failed"=>"获取失败",_=>"更新中"};
  }
