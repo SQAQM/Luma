@@ -21,7 +21,7 @@
 - [x] Reproduce photo return and stage keyboard focus problems using synthetic images; restore focus to the correct photo without pulling focus out of unrelated controls.
 - [x] Inspect actual narrow/wide screenshots, popup frames, button focus and text/copy labels; apply only relevant consistency fixes.
 - [x] Run targeted native integration checks at normal and enlarged text sizes; have a fresh reviewer inspect the branch and a context-free design reviewer inspect synthetic frames.
-- [ ] Build/audit installer and portable artifacts, update program files without touching Data, publish reviewed source and release, then remove owned intermediate outputs.
+- [x] Build/audit installer and portable artifacts, update program files without touching Data, publish reviewed source and release, then remove owned intermediate outputs.
 
 ## Review focus
 

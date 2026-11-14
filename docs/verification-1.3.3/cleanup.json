@@ -1,0 +1,13 @@
+{
+  "result": "completed_manifest_owned_cleanup",
+  "version": "1.3.3",
+  "files": 10712,
+  "logicalBytes": 4403844849,
+  "manifestSha256": "cf0ae34262da146042b037c52e33146772f2ffc8a5605019c4aac902d7177636",
+  "currentPackages": [
+    "Luma-1.3.3-Setup-x64.exe",
+    "Luma-1.3.3-Portable-x64.zip"
+  ],
+  "scope": "Only this iteration named build/release/test outputs, generated bin/obj, logged engine work directory, and previously verified1.3.2 packages. Real Data, current program, source, shared toolchain/junction and prior denied targets excluded.",
+  "dataAccessed": false
+}
