@@ -1,0 +1,6 @@
+Luma 1.3.3 · Windows x64
+
+运行 Luma.exe。
+图片与模型使用独立目录，数据保存在程序旁 Data。
+GIF、WebP、APNG 可播放/暂停；TIFF 可翻页。PageUp / PageDown 切换页或帧，左右键切换文件。
+空格控制播放，0 适应窗口，1 原始像素，F11 全屏，Esc 返回。

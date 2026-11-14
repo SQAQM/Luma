@@ -104,6 +104,8 @@ public sealed partial class MainWindow : Window
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_MEDIA_UI_TEST")=="1")_=Shell.VerifyMediaUi(_options.DataDirectory,CaptureVerificationFrame);
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_SYNC_UI_TEST")=="1")_=Shell.VerifySyncUi(_options.DataDirectory,CaptureVerificationFrame);
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_MODEL_PAGING_UI_TEST")=="1")_=Shell.VerifyModelPagingUi(_options.DataDirectory,CaptureVerificationFrame);
+        if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_MODEL_USABILITY_UI_TEST")=="1")_=Shell.VerifyModelUsabilityUi(_options.DataDirectory,CaptureVerificationFrame);
+        if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_VIEWER_USABILITY_UI_TEST")=="1")_=Shell.VerifyViewerUsabilityUi(_options.DataDirectory,CaptureVerificationFrame);
     }
     private async void PickImage()
     {
@@ -208,7 +210,7 @@ public sealed partial class MainWindow : Window
                     {
                         if(!popup.IsOpen||popup.Child is not FrameworkElement child||child.ActualWidth<1||child.ActualHeight<1)continue;
                         var preview=new RenderTargetBitmap();await preview.RenderAsync(child);
-                        if(preview.PixelWidth*preview.PixelHeight>4_000_000)continue;
+                        if(!popup.IsOpen||!child.IsLoaded||preview.PixelWidth<1||preview.PixelHeight<1||preview.PixelWidth*preview.PixelHeight>4_000_000)continue;
                         string popupName=$"popup-{Shell.Page}-r{target}-{index++}.png";
                         var popupFile=await folder.CreateFileAsync(popupName,CreationCollisionOption.ReplaceExisting);
                         using(var popupStream=await popupFile.OpenAsync(FileAccessMode.ReadWrite))
@@ -255,16 +257,33 @@ public sealed partial class MainWindow : Window
         string final = Path.Combine(_options.DataDirectory, "window-state.json");
         PreviewOptions.RejectReparsePoints(final);
         string temporary = Path.Combine(_options.DataDirectory, ".state-" + Guid.NewGuid().ToString("N") + ".tmp");
-        using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-            JsonSerializer.Serialize(stream, state, new JsonSerializerOptions { WriteIndented = true });
-        CommitDiagnostic(temporary, final);
+        try
+        {
+            using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                JsonSerializer.Serialize(stream, state, new JsonSerializerOptions { WriteIndented = true });
+            CommitDiagnostic(temporary, final);
+        }
+        catch (IOException)
+        {
+            // Diagnostic observers must never interrupt a catalog operation.
+            try { File.Delete(temporary); } catch (IOException) { }
+        }
     }
 
     private static void CommitDiagnostic(string temporary, string final)
     {
         // ReplaceFile supports an existing observer with FILE_SHARE_DELETE;
         // overwrite MoveFileEx returned ACCESS_DENIED in the native regression.
-        if (File.Exists(final)) File.Replace(temporary, final, null);
+        if (File.Exists(final))
+        {
+            try { File.Replace(temporary, final, null); }
+            catch (IOException error) when (error.HResult == unchecked((int)0x80070497) && File.Exists(temporary))
+            {
+                // Some replace-delete observers reject ReplaceFile while allowing
+                // atomic rename. Both files here are disposable diagnostic output.
+                File.Move(temporary, final, true);
+            }
+        }
         else File.Move(temporary, final);
     }
 

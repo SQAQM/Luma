@@ -56,13 +56,16 @@ public sealed partial class FilesView:UserControl,IDisposable
   _poll.Tick+=async(_,_)=>{if(_visible&&!_loading&&_previewJobId is not null)await RefreshReview();};
   SetupScroll.ViewChanged+=(_,e)=>{if(!e.IsIntermediate)Notify();};
   SizeChanged+=(_,_)=>LayoutColumns();
+  Body.SizeChanged+=(_,_)=>LayoutColumns();
  }
  private void LayoutColumns()
  {
-  bool compact=ActualWidth<620;
+  bool compact=ActualWidth<520;
   SetupColumn.Width=compact?new(1,GridUnitType.Star):new(Math.Clamp(ActualWidth*.38,260,320));
   SetupRow.Height=compact?GridLength.Auto:new(1,GridUnitType.Star);ResultsRow.Height=compact?new(1,GridUnitType.Star):new(0);
-  Grid.SetColumnSpan(SetupPane,compact?2:1);SetupPane.MaxHeight=compact?Math.Clamp(ActualHeight*.5,180,300):double.PositiveInfinity;
+  double available=Body.ActualHeight>0?Body.ActualHeight:ActualHeight;
+  double setupLimit=Math.Min(300,Math.Min(available*.5,Math.Max(0,available-(_mode=="rules"?120:100)*_scale)));
+  Grid.SetColumnSpan(SetupPane,compact?2:1);SetupPane.MaxHeight=compact?setupLimit:double.PositiveInfinity;
   Grid.SetColumn(PreviewPane,compact?0:1);Grid.SetRow(PreviewPane,compact?1:0);Grid.SetColumnSpan(PreviewPane,compact?2:1);
  }
  public void Configure(double scale,bool diagnostics)

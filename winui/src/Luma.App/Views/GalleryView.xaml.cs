@@ -41,7 +41,23 @@ public sealed partial class GalleryView:UserControl,IDisposable
     }
     private void ImagesKeyDown(object sender,KeyRoutedEventArgs e){if(_active&&e.Key==VirtualKey.Enter&&!IsInteractiveChild(e.OriginalSource as DependencyObject)&&!IsInteractiveChild(FocusManager.GetFocusedElement(XamlRoot) as DependencyObject)){OpenViewer();e.Handled=true;}}
     private bool ImagesHaveFocus(){if(XamlRoot is null)return false;var node=FocusManager.GetFocusedElement(XamlRoot) as DependencyObject;while(node is not null){if(ReferenceEquals(node,ActiveImages))return true;node=VisualTreeHelper.GetParent(node);}return false;}
-    internal void ReturnFromViewer(GalleryItem? item){SetActive(true);if(item is not null&&_model?.Items.FirstOrDefault(i=>i.Id==item.Id&&i.Identity==item.Identity) is{} original){ActiveImages.SelectedItem=_tiles.FirstOrDefault(t=>t.Item.Id==original.Id);_=_model.SelectAsync(original);}}
+    internal void ReturnFromViewer(GalleryItem? item)
+    {
+        SetActive(true);
+        if(item is null||_model is not{} model||model.Items.FirstOrDefault(i=>i.Id==item.Id&&i.Identity==item.Identity) is not{} original||_tiles.FirstOrDefault(t=>t.Item.Id==original.Id&&t.Item.Identity==original.Identity) is not{} tile)return;
+        var images=ActiveImages;long generation=model.Generation;
+        images.SelectedItem=tile;_ = model.SelectAsync(original);
+        // Stay within the already loaded page. The current viewer image may have
+        // moved beyond the old viewport, so realize its container before focus.
+        images.ScrollIntoView(tile,ScrollIntoViewAlignment.Default);
+        var returnFocus=FocusManager.GetFocusedElement(XamlRoot);
+        DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low,()=>
+        {
+            if(_disposed||!_active||!ReferenceEquals(_model,model)||!ReferenceEquals(ActiveImages,images)||model.Generation!=generation||model.Current?.Id!=original.Id||model.Current?.Identity!=original.Identity||!ReferenceEquals(images.SelectedItem,tile)||!ReferenceEquals(FocusManager.GetFocusedElement(XamlRoot),returnFocus))return;
+            images.UpdateLayout();
+            if(images.ContainerFromItem(tile) is Control container&&container.IsLoaded&&container.Visibility==Visibility.Visible)container.Focus(FocusState.Keyboard);
+        });
+    }
     internal void FilterContent(long tag){_tag=tag;ChangeScope();}
     internal long[] SelectedIds=>_model?.SelectedIds.Select(id=>(long)id).Take(120).ToArray()??[];
     public object Snapshot=>new{density=_densityFactor<1?"compact":"comfortable",columns=Images.ItemsPanelRoot is ItemsWrapGrid grid&&grid.ItemWidth>0?Math.Max(1,(int)(ImagesPanel.ActualWidth/grid.ItemWidth)):0,tileWidth=Images.ItemsPanelRoot is ItemsWrapGrid sizes&&double.IsFinite(sizes.ItemWidth)?sizes.ItemWidth:0,tileHeight=Images.ItemsPanelRoot is ItemsWrapGrid heights&&double.IsFinite(heights.ItemHeight)?heights.ItemHeight:0,annotationWriting=_annotationWriting,active=_active,feedback=Feedback.Text,managementWriting=_management?.Writing??false,managementUncertain=_management?.Uncertain??false,managementOutcome=_management?.Outcome,viewMode=_listMode?"list":"grid",modelFilter=_model?.ModelFilter,formatFilter=_model?.FormatFilter,artistFilter=_model?.ArtistFilter,promptTagFilter=_model?.PromptTagFilter,connected=_client?.Connected==true,itemCount=_model?.Items.Count??0,total=_model?.Total??0,page=_model?.PageNumber??1,loading=_model?.Loading==true||_catalogReloading,queryLength=_model?.Query.Length??0,selectedCount=_model?.SelectedIds.Count??0,currentId=_model?.Current?.Id,detailLoading=_model?.DetailLoading??false,detailError=_model?.DetailError??"",detailId=_model?.Detail?.Id,promptLength=_model?.Detail?.Prompt.Length??0,negativeLength=_model?.Detail?.NegativePrompt.Length??0,contentTagCount=_model?.Detail?.Tags.Length??0,tagFilter=_tag,ids=_model?.Items.Select(i=>i.Id).ToArray()??[],realizedContainers=_tiles.Count(t=>ActiveImages.ContainerFromItem(t)is not null),thumbnailQueue=_images?.Queued??0,thumbnailActive=_images?.Active??0,thumbnailCompleted=_images?.Completed??0,thumbnailFailed=_images?.Failed??0,thumbnailBusyRetries=_images?.BusyRetries??0,decodedBytes=_images?.DecodedBytes??0,cacheCount=_images?.CacheCount??0,cacheEvicted=_images?.Evicted??0,preferredThumbnailSize=_preferredThumbnailSize,currentFavorite=_model?.Current?.Favorite??false,currentRating=_model?.Current?.Rating??0,inspectorVisible=Inspector.Visibility==Visibility.Visible,lastAction=_shell.LastAction,lastCopyLength=_shell.LastCopyLength,lastCopyHash=_shell.LastCopyHash,error=_model?.Error??""};

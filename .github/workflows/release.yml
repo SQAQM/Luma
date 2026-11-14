@@ -65,7 +65,7 @@ jobs:
           if (-not $crt) { throw 'Microsoft VC143 redistributable not found' }
           $version = (Get-Item -LiteralPath (Join-Path $crt 'vcruntime140.dll')).VersionInfo.FileVersion
           ./scripts/Build-WinUI.ps1 -CrtDirectory $crt -CrtVersion $version
-          ./.venv-build/Scripts/python.exe scripts/check_frozen_runtime.py --engine release/Engine-1.3.2/engine/Luma.Engine.exe --report build/frozen-runtime.json
+          ./.venv-build/Scripts/python.exe scripts/check_frozen_runtime.py --engine release/Engine-1.3.3/engine/Luma.Engine.exe --report build/frozen-runtime.json
           if ($LASTEXITCODE) { throw 'Frozen runtime failed' }
       - name: Package installer and portable
         run: |
@@ -83,17 +83,17 @@ jobs:
           if ((Get-FileHash build/toolchain/nsis.zip -Algorithm SHA256).Hash.ToLowerInvariant() -ne $pin.sha256) { throw 'NSIS checksum mismatch' }
           Expand-Archive -LiteralPath build/toolchain/nsis.zip -DestinationPath build/toolchain/nsis
           $compiler = (Get-ChildItem -LiteralPath build/toolchain/nsis -Recurse -File -Filter makensis.exe | Select-Object -First 1).FullName
-          ./scripts/Build-Delivery.ps1 -BundleDirectory release/Luma-native-1.3.2 -OutputDirectory release/Luma-1.3.2 -Compiler $compiler
-          ./.venv-build/Scripts/python.exe scripts/verify_native_delivery.py --bundle release/Luma-native-1.3.2 --delivery release/Luma-1.3.2 --evidence build/frozen-runtime.json --report build/delivery-verification.json
+          ./scripts/Build-Delivery.ps1 -BundleDirectory release/Luma-native-1.3.3 -OutputDirectory release/Luma-1.3.3 -Compiler $compiler
+          ./.venv-build/Scripts/python.exe scripts/verify_native_delivery.py --bundle release/Luma-native-1.3.3 --delivery release/Luma-1.3.3 --evidence build/frozen-runtime.json --report build/delivery-verification.json
           if ($LASTEXITCODE) { throw 'Delivery verification failed' }
-          Get-ChildItem -LiteralPath release/Luma-1.3.2 -File | Where-Object Extension -In '.exe','.zip' | ForEach-Object { ((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_.Name) } | Set-Content release/Luma-1.3.2/SHA256SUMS.txt
+          Get-ChildItem -LiteralPath release/Luma-1.3.3 -File | Where-Object Extension -In '.exe','.zip' | ForEach-Object { ((Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_.Name) } | Set-Content release/Luma-1.3.3/SHA256SUMS.txt
       - name: Publish stable release
         run: |
           $tag = $env:RELEASE_TAG
           gh release view $tag *> $null
           if ($LASTEXITCODE) { gh release create $tag --verify-tag --title "Luma $($tag.Substring(1))" --notes-file docs/RELEASE_NOTES.md --draft }
           if ($LASTEXITCODE) { throw 'Release creation failed' }
-          gh release upload $tag release/Luma-1.3.2/Luma-1.3.2-Setup-x64.exe release/Luma-1.3.2/Luma-1.3.2-Portable-x64.zip release/Luma-1.3.2/SHA256SUMS.txt release/Luma-1.3.2/delivery-manifest.json --clobber
+          gh release upload $tag release/Luma-1.3.3/Luma-1.3.3-Setup-x64.exe release/Luma-1.3.3/Luma-1.3.3-Portable-x64.zip release/Luma-1.3.3/SHA256SUMS.txt release/Luma-1.3.3/delivery-manifest.json --clobber
           if ($LASTEXITCODE) { throw 'Release upload failed' }
           gh release edit $tag --draft=false --prerelease=false --latest
           if ($LASTEXITCODE) { throw 'Release publication failed' }

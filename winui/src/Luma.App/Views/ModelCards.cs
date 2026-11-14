@@ -10,7 +10,7 @@ namespace Luma.Preview.Views;
 public sealed partial class ManagementView
 {
  private readonly SortedSet<string> _modelTypes=new(StringComparer.Ordinal),_modelFamilies=new(StringComparer.Ordinal);
- private JsonElement _modelFacets;private bool _modelInspector;private string? _modelFilterFocus;
+ private JsonElement _modelFacets;private bool _modelInspector;
  private CancellationTokenSource _coverReads=new();private long _coverEpoch;private int _coverActive,_coverCompleted,_coverFailed;
  private readonly Queue<ManagementRow> _coverQueue=new();private readonly HashSet<ManagementRow> _coverRequested=[],_coverVisible=[];
  private static string ModelDimensions(JsonElement value){var parts=new[]{S(value,"type"),S(value,"family")}.Where(part=>part is not ("" or "Unknown")).Distinct().ToArray();return parts.Length==0?"未分类":string.Join(" · ",parts);}
@@ -24,15 +24,22 @@ public sealed partial class ManagementView
  {
   void Row(string title,string key,SortedSet<string> selected)
   {
-   var line=new TagChipPanel();var caption=Text(title);caption.FontSize=12*_scale;caption.VerticalAlignment=VerticalAlignment.Center;caption.MinWidth=36;line.Children.Add(caption);
+   string rowId="ManageFilters"+key;
+   var line=ModelControls.Children.OfType<TagChipPanel>().FirstOrDefault(row=>AutomationProperties.GetAutomationId(row)==rowId);
+   if(line is null){line=new TagChipPanel();AutomationProperties.SetAutomationId(line,rowId);var caption=Text(title);caption.FontSize=12*_scale;caption.VerticalAlignment=VerticalAlignment.Center;caption.MinWidth=36;line.Children.Add(caption);ModelControls.Children.Add(line);}
+   string[] values=ModelFacetValues(key,selected).ToArray();var wanted=values.Select(value=>"ManageFilter"+key+value).Append("ManageFilter"+key+"All").ToHashSet();
+   foreach(var obsolete in line.Children.OfType<ToggleButton>().Where(chip=>!wanted.Contains(AutomationProperties.GetAutomationId(chip))).ToArray())line.Children.Remove(obsolete);
+   int position=1;
    void Chip(string value,string label,bool all=false)
    {
-    var chip=new ToggleButton{Content=label,FontSize=12*_scale,Style=(Style)Resources["ModelFilterChip"],IsChecked=all?selected.Count==0:selected.Contains(value)};
-    AutomationProperties.SetAutomationId(chip,"ManageFilter"+key+value);AutomationProperties.SetName(chip,title+"："+label);ToolTipService.SetToolTip(chip,all?"清除此行筛选":"可多选，同一行匹配任一选项");
-    chip.Click+=async(_,_)=>{if(!all&&chip.IsChecked==true&&selected.Count>=32){chip.IsChecked=false;Status.Text="同一类最多同时选择32项。";Notify();return;}_modelFilterFocus="ManageFilter"+key+value;if(all)selected.Clear();else if(chip.IsChecked==true)selected.Add(value);else selected.Remove(value);_modelInspector=false;Invalidate();_cursor=null;_history.Clear();await RefreshPage();};line.Children.Add(chip);
-    if(_modelFilterFocus=="ManageFilter"+key+value){_modelFilterFocus=null;long gen=_generation;DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low,()=>{if(gen==_generation&&_visible&&_page=="Models"&&chip.XamlRoot is not null)chip.Focus(FocusState.Programmatic);});}
+    string id="ManageFilter"+key+value;var chip=line.Children.OfType<ToggleButton>().FirstOrDefault(item=>AutomationProperties.GetAutomationId(item)==id);
+    if(chip is null){
+     chip=new ToggleButton{Content=label,FontSize=12*_scale,Style=(Style)Resources["ModelFilterChip"]};AutomationProperties.SetAutomationId(chip,id);AutomationProperties.SetName(chip,title+"："+label);ToolTipService.SetToolTip(chip,all?"清除此行筛选":"可多选，同一行匹配任一选项");
+     chip.Click+=async(_,_)=>{if(!all&&chip.IsChecked==true&&selected.Count>=32){chip.IsChecked=false;Status.Text="同一类最多同时选择32项。";Notify();return;}if(all)selected.Clear();else if(chip.IsChecked==true)selected.Add(value);else selected.Remove(value);_modelInspector=false;Invalidate();_cursor=null;_history.Clear();await RefreshPage();};line.Children.Insert(position,chip);
+    }
+    chip.IsChecked=all?selected.Count==0:selected.Contains(value);position++;
    }
-   Chip("All","全部",true);foreach(string value in ModelFacetValues(key,selected))Chip(value,ModelDimensionLabel(value));ModelControls.Children.Add(line);
+   Chip("All","全部",true);foreach(string value in values)Chip(value,ModelDimensionLabel(value));
   }
   Row("类型","types",_modelTypes);Row("模型系","families",_modelFamilies);
  }
@@ -91,7 +98,12 @@ public sealed partial class ManagementView
  private void LayoutModels()
  {
   bool compact=ActualWidth<680;bool details=_modelInspector&&(Selected is not null||_sub.Length>0);
-  if(_rootChoice is not null){_rootChoice.MinWidth=compact?112:140;_rootChoice.Width=compact?112:160;}
+  if(_rootChoice is not null){
+   var label=new TextBlock{Text="全部目录",FontSize=_rootChoice.FontSize,FontFamily=_rootChoice.FontFamily};label.Measure(new(double.PositiveInfinity,double.PositiveInfinity));double minimum=label.DesiredSize.Width+52;
+   label.Text=_rootChoice.SelectedItem?.ToString()??"全部目录";label.Measure(new(double.PositiveInfinity,double.PositiveInfinity));
+   double available=Math.Max(0,(ModelControlScroll.ActualWidth>0?ModelControlScroll.ActualWidth:ActualWidth)-16);
+   double width=Math.Min(available,Math.Clamp(Math.Max(minimum,label.DesiredSize.Width+52),compact?112:160,compact?260:320));_rootChoice.MinWidth=width;_rootChoice.Width=width;
+  }
   if(_modelSearch is not null)_modelSearch.Width=compact?148:160;
   var template=(DataTemplate)Resources[compact?"CompactModelTemplate":"ModelTemplate"];if(!ReferenceEquals(ModelCards.ItemTemplate,template))ModelCards.ItemTemplate=template;
   if(_modelProgressRow is not null)_modelProgressRow.Visibility=Visibility.Visible;

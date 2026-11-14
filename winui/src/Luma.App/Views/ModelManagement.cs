@@ -100,15 +100,19 @@ public sealed partial class ManagementView
  }
  private void BuildModelControls()
  {
-  Actions.Children.Clear();Actions.Visibility=Visibility.Collapsed;ModelControlScroll.Visibility=Visibility.Visible;ModelControls.Children.Clear();ModelPager.Children.Clear();ModelPager.Visibility=Visibility.Visible;_modelButtons.Clear();
+  Actions.Children.Clear();Actions.Visibility=Visibility.Collapsed;ModelControlScroll.Visibility=Visibility.Visible;ModelPager.Visibility=Visibility.Visible;
+  // Query results replace the cards, not the editor the user is still typing in.
+  // Retaining the native control also retains caret, selection and IME state.
+  if(_modelSearch?.Parent is TagChipPanel existing&&ModelControls.Children.Contains(existing)){UpdateModelRootChoice();BuildModelFilters();UpdateModelProgress();return;}
+  ModelControls.Children.Clear();ModelPager.Children.Clear();foreach(var button in _modelButtons){_writes.Remove(button);_enabledWhen.Remove(button);}_modelButtons.Clear();
   Button Tool(string title,string id,Func<Task> action,bool write=false,Func<bool>? when=null){var b=Button(title,id,action,write,when);_modelButtons.Add(b);return b;}
   Button Icon(string title,string id,string glyph,Func<Task> action,bool write=false,Func<bool>? when=null){var b=Tool(title,id,action,write,when);b.Style=(Style)Application.Current.Resources["LumaViewerIcon"];b.Content=new FontIcon{Glyph=glyph,FontSize=15};AutomationProperties.SetName(b,title);return b;}
-  var folders=new TagChipPanel();bool compact=ActualWidth<680;_rootChoice=new ComboBox{MinWidth=compact?112:140,Width=compact?112:160,FontSize=14*_scale};foreach(var root in _roots)_rootChoice.Items.Add(S(root,"name")+$" · {N(root,"count")} 个");_rootChoice.Items.Add("全部目录");AutomationProperties.SetAutomationId(_rootChoice,"ManageModelRoots");AutomationProperties.SetName(_rootChoice,"模型目录");_rootChoice.SelectedIndex=_rootId is null?_roots.Length:Array.FindIndex(_roots,r=>N(r,"id")==_rootId);ToolTipService.SetToolTip(_rootChoice,_rootId is long chosen?S(_roots.FirstOrDefault(r=>N(r,"id")==chosen),"path"):"全部模型目录");folders.Children.Add(_rootChoice);
-  _rootChoice.SelectionChanged+=(_,_)=>{if(_rootChoice.SelectedIndex<0)return;long? root=_rootChoice.SelectedIndex<_roots.Length?N(_roots[_rootChoice.SelectedIndex],"id"):null;if(root==_rootId)return;_modelInspector=false;Invalidate();_rootId=root;_cursor=null;_history.Clear();Records.IsEnabled=false;long gen=_generation;DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low,()=>{if(gen==_generation&&_visible&&_page=="Models")_=RefreshPage();});};
+  var folders=new TagChipPanel();bool compact=ActualWidth<680;_rootChoice=new ComboBox{FontSize=14*_scale};AutomationProperties.SetAutomationId(_rootChoice,"ManageModelRoots");AutomationProperties.SetName(_rootChoice,"模型目录");UpdateModelRootChoice();folders.Children.Add(_rootChoice);
+  _rootChoice.SelectionChanged+=(_,_)=>{if(_setting||_rootChoice.SelectedIndex<0)return;long? root=_rootChoice.SelectedIndex<_roots.Length?N(_roots[_rootChoice.SelectedIndex],"id"):null;if(root==_rootId)return;_modelInspector=false;Invalidate();_rootId=root;_cursor=null;_history.Clear();Records.IsEnabled=false;long gen=_generation;DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low,()=>{if(gen==_generation&&_visible&&_page=="Models")_=RefreshPage();});};
   var search=new TextBox{Text=_query,PlaceholderText="搜索模型",FontSize=14*_scale,MaxLength=1024,Width=compact?148:160};_modelSearch=search;AutomationProperties.SetAutomationId(search,"ManageModelSearch");AutomationProperties.SetName(search,"搜索文件名或模型名称");ToolTipService.SetToolTip(search,_query.Length>0?_query:"搜索文件名或模型名称");folders.Children.Add(search);
   if(_modelSearchTimer is null){_modelSearchTimer=DispatcherQueue.CreateTimer();_modelSearchTimer.Interval=TimeSpan.FromMilliseconds(250);_modelSearchTimer.IsRepeating=false;_modelSearchTimer.Tick+=async(_,_)=>await SearchModels();}
   search.KeyDown+=async(_,e)=>{if(e.Key==Windows.System.VirtualKey.Enter){e.Handled=true;await SearchModels();}};
-  search.TextChanged+=(_,_)=>{if(!_setting&&search.Text.Trim()!=_query){_modelSearchTimer.Stop();_modelSearchTimer.Start();}};
+  search.TextChanged+=(_,_)=>{ToolTipService.SetToolTip(search,search.Text.Length>0?search.Text:"搜索文件名或模型名称");if(!_setting&&search.Text.Trim()!=_query){_modelSearchTimer.Stop();_modelSearchTimer.Start();}};
   folders.Children.Add(Tool("添加目录","ManagePickModels",PickAndAddModelRoot,true,()=>!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
   folders.Children.Add(Tool("补全资料","ManageFetchModelInfo",FetchModelInformation,true,()=>_models.Length>0&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
   folders.Children.Add(Tool("精简资料","ManageCleanupModelInfo",CleanupModelInformation,true,()=>!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
@@ -121,7 +125,22 @@ public sealed partial class ManagementView
   _modelProgress=Text("");_modelProgress.FontSize=12*_scale;_modelProgress.MaxLines=1;_modelProgress.TextTrimming=TextTrimming.CharacterEllipsis;AutomationProperties.SetAutomationId(_modelProgress,"ManageModelProgress");progressRow.Children.Add(_modelProgress);
   _modelStop=Tool("停止","ManageCancelModelTask",()=>{var task=_jobs.FirstOrDefault(j=>ModelJob(j)&&ActiveJob(j));return task.ValueKind==JsonValueKind.Object?Write("job.cancel",new{jobId=S(task,"id")},false):Task.CompletedTask;},true,()=>_jobs.Any(j=>ModelJob(j)&&ActiveJob(j)));Grid.SetColumn(_modelStop,1);progressRow.Children.Add(_modelStop);_modelProgressRow=progressRow;ModelControls.Children.Add(progressRow);UpdateModelProgress();
  }
- private async Task SearchModels(){_modelSearchTimer?.Stop();if(!_visible||_page!="Models"||_modelSearch is null)return;string query=_modelSearch.Text.Trim();if(query==_query)return;_modelInspector=false;Invalidate();_query=query;_cursor=null;_history.Clear();await RefreshPage();}
+ private void UpdateModelRootChoice()
+ {
+  if(_rootChoice is null)return;bool setting=_setting;_setting=true;
+  try{
+   string[] labels=_roots.Select(root=>S(root,"name")+$" · {N(root,"count")} 个").Append("全部目录").ToArray();
+   if(!_rootChoice.Items.OfType<string>().SequenceEqual(labels)){_rootChoice.Items.Clear();foreach(string label in labels)_rootChoice.Items.Add(label);}
+   _rootChoice.SelectedIndex=_rootId is null?_roots.Length:Array.FindIndex(_roots,r=>N(r,"id")==_rootId);
+   ToolTipService.SetToolTip(_rootChoice,_rootId is long chosen?S(_roots.FirstOrDefault(r=>N(r,"id")==chosen),"path"):"全部模型目录");
+  }finally{_setting=setting;}
+ }
+ private bool AdoptModelSearchDraft()
+ {
+  _modelSearchTimer?.Stop();if(_modelSearch is null)return false;string query=_modelSearch.Text.Trim();if(query==_query)return false;
+  _modelInspector=false;_query=query;_cursor=null;_history.Clear();return true;
+ }
+ private async Task SearchModels(){_modelSearchTimer?.Stop();if(!_visible||_page!="Models"||!AdoptModelSearchDraft())return;Invalidate();await RefreshPage();}
  private async Task PickAndAddModelRoot()
  {
   long gen=_generation;try{var picker=new Microsoft.Windows.Storage.Pickers.FolderPicker(Microsoft.UI.Win32Interop.GetWindowIdFromWindow(WindowHandle)){CommitButtonText="添加"};var result=await picker.PickSingleFolderAsync();if(result is null){Status.Text="已取消添加。";Notify();return;}if(gen!=_generation||!_visible||_page!="Models")return;await AddModelRoot(result.Path);}catch(Exception){Status.Text="目录选择器打开失败。";Notify();}
@@ -133,7 +152,7 @@ public sealed partial class ManagementView
   if(flow.RootId is not null){AdoptAddedModelRoot(flow);LibraryChanged?.Invoke();if(gen==_generation&&_visible&&_page=="Models"){Invalidate();await RefreshPage();}}
   Status.Text=state.Uncertain?state.Feedback:flow.RootId is null?(state.Outcome=="completed"?"添加回执缺少有效目录，请刷新核对。":state.Feedback):indexed?"正在添加":"已添加"+state.Feedback;Notify();
  }
- private void AdoptAddedModelRoot(ModelDirectoryAdd flow){if(flow.RootId is not long id)return;_rootId=id;_cursor=null;_history.Clear();_query="";_modelTypes.Clear();_modelFamilies.Clear();_modelInspector=false;}
+ private void AdoptAddedModelRoot(ModelDirectoryAdd flow){if(flow.RootId is not long id)return;_rootId=id;_cursor=null;_history.Clear();_query="";_modelSearchTimer?.Stop();if(_modelSearch is not null)_modelSearch.Text="";_modelTypes.Clear();_modelFamilies.Clear();_modelInspector=false;}
  private async Task RemoveModelRoot()
  {
   long gen=_generation;if(_rootId is not long id)return;var root=_roots.First(r=>N(r,"id")==id);

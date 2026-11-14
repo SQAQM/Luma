@@ -1,0 +1,54 @@
+{
+  "result": "passed_native_usability_verification",
+  "version": "1.3.3",
+  "coreChecks": 314,
+  "pythonRegression": 15,
+  "nativeChecks": 88,
+  "reports": [
+    {
+      "scenario": "model",
+      "textScale": 100,
+      "checks": 8,
+      "result": "passed_model_usability_ui",
+      "report": "model-100.json"
+    },
+    {
+      "scenario": "model",
+      "textScale": 150,
+      "checks": 8,
+      "result": "passed_model_usability_ui",
+      "report": "model-150.json"
+    },
+    {
+      "scenario": "viewer",
+      "textScale": 100,
+      "checks": 16,
+      "result": "passed_viewer_usability_ui",
+      "report": "viewer-100.json"
+    },
+    {
+      "scenario": "viewer",
+      "textScale": 150,
+      "checks": 16,
+      "result": "passed_viewer_usability_ui",
+      "report": "viewer-150.json"
+    },
+    {
+      "scenario": "release",
+      "textScale": 100,
+      "checks": 20,
+      "result": "passed_native_release_ui",
+      "report": "release-100.json"
+    },
+    {
+      "scenario": "release",
+      "textScale": 150,
+      "checks": 20,
+      "result": "passed_native_release_ui",
+      "report": "release-150.json"
+    }
+  ],
+  "sourceReview": "Both P2 review findings addressed: apply model draft after explicit reactivation and preserve newer control focus on deferred gallery return. Compact layout reservation reviewed without blocker.",
+  "fixtures": "Fresh project-local synthetic PNGs and inert model files only; no private Data, image, prompt, weight or credential opened.",
+  "scope": "Model search focus/caret/drafts, explicit reactivation, native grid/list return and same-page visibility, moved-away focus, directory text, settings alignment, dropdown rendering samples, classification responsive geometry. No new arrow/stage-key routing claim; no million-image scale or multi-monitor claim."
+}

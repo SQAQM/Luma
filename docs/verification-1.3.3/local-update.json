@@ -1,0 +1,21 @@
+{
+  "result": "passed_manifest_owned_program_update",
+  "oldVersion": "1.3.2",
+  "newVersion": "1.3.3",
+  "writeProgramFiles": 732,
+  "obsoleteProgramFiles": 0,
+  "dataAccessed": false,
+  "unknownFilesPreserved": true,
+  "setup": {
+    "requestedExecutionLevel": "asInvoker",
+    "name": "Luma-1.3.3-Setup-x64.exe",
+    "bytes": 93439555,
+    "sha256": "c56857b448b1866ba44ed556e2153fe8dd6f1cb4a26427573ff203639ef19d47"
+  },
+  "portable": {
+    "name": "Luma-1.3.3-Portable-x64.zip",
+    "bytes": 131016543,
+    "sha256": "b5dc81839e40417d9fa37b9b5a694747212491171702e4ad0f97e11ab1b70669",
+    "crcAndEntriesVerified": true
+  }
+}
