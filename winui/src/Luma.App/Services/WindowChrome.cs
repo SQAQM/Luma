@@ -15,8 +15,10 @@ internal sealed class WindowChrome
  private readonly Border _tint;
  private readonly Func<string,Brush> _brush;
  private bool _highContrast,_colorFailure;
+ private (Windows.UI.Color? Foreground,Windows.UI.Color? Inactive,Windows.UI.Color? Hover)? _captionColors;
  public bool Supported{get;private set;}
  public bool HighContrast=>_highContrast;
+ internal long CaptionColorWrites{get;private set;}
  public WindowChrome(Window window,TitleBar title,Grid area,Border tint,Func<string,Brush> brush)
  {
   _window=window;_area=area;_tint=tint;_brush=brush;
@@ -34,11 +36,14 @@ internal sealed class WindowChrome
   if(!Supported)return;
   try{
    var caption=_window.AppWindow.TitleBar;
+   var colors=(_highContrast?(Windows.UI.Color?)null:((SolidColorBrush)_brush("LumaText")).Color,_highContrast?(Windows.UI.Color?)null:((SolidColorBrush)_brush("LumaSecondary")).Color,_highContrast?(Windows.UI.Color?)null:((SolidColorBrush)_brush("LumaHover")).Color);
+   if(_captionColors is{} previous&&previous.Equals(colors))return;
    caption.ButtonBackgroundColor=Colors.Transparent;caption.ButtonInactiveBackgroundColor=Colors.Transparent;
-   caption.ButtonForegroundColor=_highContrast?null:((SolidColorBrush)_brush("LumaText")).Color;
-   caption.ButtonInactiveForegroundColor=_highContrast?null:((SolidColorBrush)_brush("LumaSecondary")).Color;
-   caption.ButtonHoverBackgroundColor=_highContrast?null:((SolidColorBrush)_brush("LumaHover")).Color;
-   caption.ButtonHoverForegroundColor=_highContrast?null:((SolidColorBrush)_brush("LumaText")).Color;
+   caption.ButtonForegroundColor=colors.Item1;
+   caption.ButtonInactiveForegroundColor=colors.Item2;
+   caption.ButtonHoverBackgroundColor=colors.Item3;
+   caption.ButtonHoverForegroundColor=colors.Item1;
+   CaptionColorWrites+=6;_captionColors=colors;
   }catch(System.Runtime.InteropServices.COMException){_colorFailure=true;}
  }
 }

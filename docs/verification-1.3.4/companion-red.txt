@@ -1,0 +1,29 @@
+test_reported_layout_reviews_two_extra_metadata_files_and_one_cover (backend.test_model_companion_tidy.ModelCompanionTidyTests.test_reported_layout_reviews_two_extra_metadata_files_and_one_cover) ... FAIL
+test_confirmed_tidy_leaves_one_metadata_and_cover_and_undo_restores_exact_bytes (backend.test_model_companion_tidy.ModelCompanionTidyTests.test_confirmed_tidy_leaves_one_metadata_and_cover_and_undo_restores_exact_bytes) ... FAIL
+
+======================================================================
+FAIL: test_reported_layout_reviews_two_extra_metadata_files_and_one_cover (backend.test_model_companion_tidy.ModelCompanionTidyTests.test_reported_layout_reviews_two_extra_metadata_files_and_one_cover)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\[AI]\图片管理项目\Source\Luma\backend\test_model_companion_tidy.py", line 35, in test_reported_layout_reviews_two_extra_metadata_files_and_one_cover
+    self.assertEqual({i['name'] for i in plan['items']},{p.name for p in extras})
+AssertionError: Items in the second set but not the first:
+'fixture-Krea-Mix.cm-info.json'
+'fixture-Krea-Mix.png'
+'fixture-Krea-Mix.json'
+
+======================================================================
+FAIL: test_confirmed_tidy_leaves_one_metadata_and_cover_and_undo_restores_exact_bytes (backend.test_model_companion_tidy.ModelCompanionTidyTests.test_confirmed_tidy_leaves_one_metadata_and_cover_and_undo_restores_exact_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\[AI]\图片管理项目\Source\Luma\backend\test_model_companion_tidy.py", line 44, in test_confirmed_tidy_leaves_one_metadata_and_cover_and_undo_restores_exact_bytes
+    self.assertEqual(set(self.models.iterdir()),{model,keep,preview})
+AssertionError: Items in the first set but not the second:
+WindowsPath('E:/[AI]/图片管理项目/Source/Luma/build/test-info-cleanup-1eiuv1av/models/fixture-Krea-Mix.png')
+WindowsPath('E:/[AI]/图片管理项目/Source/Luma/build/test-info-cleanup-1eiuv1av/models/fixture-Krea-Mix.cm-info.json')
+WindowsPath('E:/[AI]/图片管理项目/Source/Luma/build/test-info-cleanup-1eiuv1av/models/fixture-Krea-Mix.json')
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.475s
+
+FAILED (failures=2)

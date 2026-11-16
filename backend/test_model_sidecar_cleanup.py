@@ -11,6 +11,7 @@ from unittest.mock import patch
 from backend.store import Store
 from backend.model_library import ModelLibrary
 from backend.model_sidecars import _hash
+from backend.model_registry import model_name
 from backend import model_sidecar_cleanup as cleanup
 
 
@@ -38,7 +39,7 @@ class ModelSidecarCleanupTests(unittest.TestCase):
         path.write_bytes(b'INERT FIXTURE; NEVER READ')
         with self.store.connect() as db:
             cur = db.execute('INSERT INTO luma_model_files(root_id,path,name,normalized_name,size,mtime_ns,ctime_ns,device,inode,change_ns) VALUES(?,?,?,?,?,?,?,?,?,?)',
-                (root or self.root, str(path), name, name, path.stat().st_size, path.stat().st_mtime_ns,path.stat().st_ctime_ns,str(path.stat().st_dev),str(path.stat().st_ino),0))
+                (root or self.root, str(path), name, model_name(name), path.stat().st_size, path.stat().st_mtime_ns,path.stat().st_ctime_ns,str(path.stat().st_dev),str(path.stat().st_ino),0))
             db.execute('INSERT INTO luma_model_memberships(root_id,file_id) VALUES(?,?)', (root or self.root, cur.lastrowid))
         return path
 

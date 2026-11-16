@@ -81,6 +81,25 @@ class ModelWorkflowTests(unittest.TestCase):
         self.assertEqual(self.manager.values['errors'],0)
         self.assertEqual(self.client.downloads,0)
 
+    @unittest.skipUnless(__import__('os').name=='nt','Windows handle moves')
+    def test_tidy_then_repeated_sync_does_not_recreate_extra_information_or_cover(self):
+        import json
+        from backend import model_sidecar_cleanup
+        preview=self.cover('.preview.jpg'); self.sync()
+        canonical=self.weight.with_suffix('.civitai.info')
+        self.weight.with_suffix('.cm-info.json').write_text(json.dumps({'ModelId':17,'VersionId':31,'ModelName':'Fixture'}))
+        self.weight.with_suffix('.json').write_text(json.dumps({'description':'fixture','modelVersionId':31}))
+        self.cover('.png')
+        plan=model_sidecar_cleanup.preview(self.library)
+        self.assertEqual(plan['count'],3)
+        model_sidecar_cleanup.apply(self.library,self.manager,'fixture',{'plan_id':plan['id'],'confirmed':True})
+        self.assertEqual(self.manager.values['errors'],0)
+        with patch.object(self.client,'version_by_hash',side_effect=AssertionError('must reuse verified data')),patch.object(VerifiedFile,'digest',side_effect=AssertionError('must reuse verified hash')):
+            self.sync();self.sync()
+        self.assertEqual(self.manager.values['errors'],0)
+        self.assertEqual(set(self.folder.iterdir()),{self.weight,canonical,preview})
+        self.assertEqual(self.client.downloads,0)
+
     def test_changed_weight_cannot_reuse_old_hash(self):
         self.sync(covers=False)
         self.weight.write_bytes(b'changed model')

@@ -63,13 +63,19 @@ internal sealed class ImageSourceProvider:IDisposable
     public void Visible(GalleryTile tile,bool visible)
     {
         if(_disposed)return;
-        if(!visible){_visible.Remove(tile);_spaceWaiters.Remove(tile);foreach(var waiting in _spaceWaiters.ToArray())if(_visible.Contains(waiting)&&_queued.Add(waiting)){_queue.Enqueue(waiting);_spaceWaiters.Remove(waiting);}Pump();return;}
+        if(!visible){_visible.Remove(tile);RemovePending(tile);_spaceWaiters.Remove(tile);foreach(var waiting in _spaceWaiters.ToArray())if(_visible.Contains(waiting)&&_queued.Add(waiting)){_queue.Enqueue(waiting);_spaceWaiters.Remove(waiting);}Pump();return;}
         _visible.Add(tile);
         if(_cache.TryGetValue(tile,out var image)){tile.Image=image;return;}
         if(_queued.Add(tile)){_queue.Enqueue(tile);tile.Status="正在载入预览";}
         Pump();
     }
     private void Capacity()=>_dispatcher.TryEnqueue(()=>{if(!_disposed)Pump();});
+    private void RemovePending(GalleryTile tile)
+    {
+        if(!_queued.Remove(tile))return;
+        int count=_queue.Count;
+        while(count-->0){var candidate=_queue.Dequeue();if(!ReferenceEquals(candidate,tile))_queue.Enqueue(candidate);}
+    }
     private async void Pump()
     {
         if(_disposed||!_active||_busy||!_client.Connected)return;

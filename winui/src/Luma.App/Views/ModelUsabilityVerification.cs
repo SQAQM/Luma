@@ -34,6 +34,13 @@ public sealed partial class ShellView
    }
    await Management.RefreshForReleaseVerification();
    await Management.VerifyModelUsabilityUi(checks,Capture,_navigation[WorkspacePage.Models]);
+   string first=Path.Combine(models,"fixture-000");
+   await File.WriteAllTextAsync(first+".civitai.info",JsonSerializer.Serialize(new{id=31,modelId=17,modelName="Fixture",model=new{name="Fixture",type="LORA"}}));
+   await File.WriteAllTextAsync(first+".cm-info.json",JsonSerializer.Serialize(new{ModelId=17,VersionId=31,ModelName="Fixture",ModelType="LORA"}));
+   await File.WriteAllTextAsync(first+".json",JsonSerializer.Serialize(new{description="Synthetic model notes",modelVersionId=31}));
+   await SyntheticPng(first+".preview.png",0);await SyntheticPng(first+".png",0);
+   var tidy=await api.ReadAsync("modelInfoCleanupPreview",new{rootId=root},default);
+   await Management.VerifyCompanionTidyUi(checks,Capture,tidy);
    File.WriteAllText(Path.Combine(directory,"model-usability-ui-report.json"),JsonSerializer.Serialize(new{result=checks.All(c=>JsonSerializer.SerializeToElement(c).GetProperty("passed").GetBoolean())?"passed_model_usability_ui":"failed_model_usability_ui",checks,privateDataRead=false,networkUsed=false}));
   }catch(Exception error){File.WriteAllText(Path.Combine(directory,"model-usability-ui-report.json"),JsonSerializer.Serialize(new{result="failed_model_usability_ui",checks,error=error.ToString(),privateDataRead=false,networkUsed=false}));}
  }
@@ -41,6 +48,22 @@ public sealed partial class ShellView
 
 public sealed partial class ManagementView
 {
+ internal async Task VerifyCompanionTidyUi(List<object> checks,Func<string,Task> capture,JsonElement preview)
+ {
+  var (sync,refresh)=ModelInformationDialog(CurrentModelSyncRequest());var shown=sync.ShowAsync();
+  try{await Task.Delay(250);bool one=sync.Content is StackPanel options&&options.Children.OfType<CheckBox>().Count()==1;
+   checks.Add(new{name="native sync has no redundant compatibility export option",passed=one&&!refresh.IsChecked.GetValueOrDefault()});
+   var request=JsonSerializer.SerializeToElement(CurrentModelSyncRequest(true).Args);checks.Add(new{name="native sync does not request extra companion formats",passed=!request.GetProperty("compatibility").GetBoolean()});
+  }finally{sync.Hide();await shown;}
+  await Task.Delay(300);var dialog=Confirmation("整理资料","");dialog.Content=ModelInfoCleanupContent(preview);dialog.PrimaryButtonText="确认整理";shown=dialog.ShowAsync();
+  try{await Task.Delay(400);
+   var content=(StackPanel)dialog.Content;var list=(StackPanel)content.Children.OfType<ScrollViewer>().Single().Content;
+   string[] names=list.Children.OfType<TextBlock>().Select(t=>t.Text).ToArray();
+   bool correct=N(preview,"count")==3&&names.Contains("保留")&&names.Contains("收起")&&names.Contains("fixture-000.civitai.info")&&names.Contains("fixture-000.preview.png")&&names.Contains("fixture-000.cm-info.json")&&names.Contains("fixture-000.json")&&names.Contains("fixture-000.png");
+   checks.Add(new{name="native review separates two surviving files and three redundant companions",passed=correct});
+   var scroll=content.Children.OfType<ScrollViewer>().Single();checks.Add(new{name="five-file review fits fully without hidden rows at configured text scale",passed=scroll.ExtentHeight<=scroll.ViewportHeight+1});await capture("companion-review");
+  }finally{dialog.Hide();await shown;}
+ }
  internal async Task VerifyModelUsabilityUi(List<object> checks,Func<string,Task> capture,Control outside)
  {
   async Task Until(Func<bool> predicate){for(int i=0;i<200;i++){if(predicate())return;await Task.Delay(50);}throw new TimeoutException("Own model interaction timed out");}

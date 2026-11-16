@@ -48,10 +48,10 @@ public sealed partial class ManagementView
   check(request.Count==67,"native update includes all 67 models");
   check(JsonSerializer.SerializeToElement(request.Args).TryGetProperty("scope",out _),"native update sends filter scope");
   var first=Records.Items[0];Records.SelectedItems.Add(first);check(CurrentModelSyncRequest().Count==1,"explicit single selection stays single");Records.SelectedItems.Clear();
-  var (dialog,refresh,compatibility)=ModelInformationDialog(request);var shown=dialog.ShowAsync();
+  var (dialog,refresh)=ModelInformationDialog(request);var shown=dialog.ShowAsync();
   try{await Task.Delay(300);check(dialog.Title?.ToString()=="补全资料"&&dialog.Content is StackPanel content&&content.Children.OfType<TextBlock>().Any(t=>t.Text.Contains("67")),"completion confirmation displays 67");
-   check(refresh.IsChecked==false&&compatibility.IsChecked==false,"completion defaults reuse data without compatibility exports");
-   var args=JsonSerializer.SerializeToElement(CurrentModelSyncRequest(true,true).Args);check(args.GetProperty("forceRefresh").GetBoolean()&&args.GetProperty("compatibility").GetBoolean(),"completion options map to explicit RPC flags");
+   check(refresh.IsChecked==false&&dialog.Content is StackPanel options&&options.Children.OfType<CheckBox>().Count()==1,"completion reuses data and exposes no multiple-file compatibility export");
+   var args=JsonSerializer.SerializeToElement(CurrentModelSyncRequest(true).Args);check(args.GetProperty("forceRefresh").GetBoolean()&&!args.GetProperty("compatibility").GetBoolean(),"completion never requests redundant compatibility files");
    check(_modelButtons.Any(b=>Microsoft.UI.Xaml.Automation.AutomationProperties.GetAutomationId(b)=="ManageCleanupModelInfo"),"native model toolbar exposes metadata cleanup");
    await capture("scope-count");}finally{dialog.Hide();await shown;}
   await Task.Delay(350);var cleanup=Confirmation("精简资料","");cleanup.Content=ModelInfoCleanupContent(JsonSerializer.SerializeToElement(new{count=2,bytes=512,items=new[]{new{name="fixture.json",path="synthetic/fixture.json"},new{name="fixture.safetensors.rgthree-info.json",path="synthetic/fixture.safetensors.rgthree-info.json"}}}));cleanup.PrimaryButtonText="确认精简";

@@ -1,7 +1,7 @@
 param(
  [Parameter(Mandatory=$true)][string]$Executable,
  [Parameter(Mandatory=$true)][string]$OutputDirectory,
- [ValidateSet('Release','Model','Viewer')][string]$Scenario='Model',
+ [ValidateSet('Release','Model','Viewer','WindowPerf','FilmstripPerf','Media')][string]$Scenario='Model',
  [ValidateSet(100,150)][int]$TextScale=100,
  [int]$Width=1000,[int]$Height=650
 )
@@ -16,8 +16,15 @@ $cases=@{
  Release=@('LUMA_RELEASE_UI_TEST','ui-release-report.json','passed_native_release_ui')
  Model=@('LUMA_MODEL_USABILITY_UI_TEST','model-usability-ui-report.json','passed_model_usability_ui')
  Viewer=@('LUMA_VIEWER_USABILITY_UI_TEST','viewer-usability-ui-report.json','passed_viewer_usability_ui')
+ WindowPerf=@('LUMA_WINDOW_PERF_UI_TEST','window-perf-ui-report.json','passed_window_perf_ui')
+ FilmstripPerf=@('LUMA_FILMSTRIP_PERF_UI_TEST','filmstrip-perf-ui-report.json','passed_filmstrip_perf_ui')
+ Media=@('LUMA_MEDIA_UI_TEST','media-ui-report.json','passed_media_ui')
 }
 $case=$cases[$Scenario];$data=Join-Path $output 'native-profile'
+if($Scenario -eq 'Media'){
+ & (Join-Path $workspace '.venv-build/Scripts/python.exe') (Join-Path $PSScriptRoot 'create_media_fixture.py') ($data+'-fixtures')
+ if($LASTEXITCODE -ne 0){throw 'Own media fixture generation failed'}
+}
 $start=[Diagnostics.ProcessStartInfo]::new([IO.Path]::GetFullPath($Executable))
 $start.UseShellExecute=$false;$start.WindowStyle='Hidden'
 $start.Arguments='--data-dir "'+$data+'" --diagnostics --capture --text-scale '+$TextScale

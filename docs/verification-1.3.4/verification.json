@@ -1,0 +1,57 @@
+{
+  "version": "1.3.4",
+  "result": "passed_targeted_performance_and_companion_checks",
+  "pythonRegression": 163,
+  "coreChecks": 391,
+  "companionFocusedRegression": 46,
+  "reports": [
+    {
+      "report": "model-100.json",
+      "checks": 12,
+      "result": "passed_model_usability_ui"
+    },
+    {
+      "report": "model-150.json",
+      "checks": 12,
+      "result": "passed_model_usability_ui"
+    },
+    {
+      "report": "viewer-150.json",
+      "checks": 16,
+      "result": "passed_viewer_usability_ui"
+    },
+    {
+      "report": "filmstrip-150.json",
+      "checks": 21,
+      "result": "passed_filmstrip_perf_ui"
+    },
+    {
+      "report": "window-150.json",
+      "checks": 8,
+      "result": "passed_window_perf_ui"
+    },
+    {
+      "report": "media-100.json",
+      "checks": 45,
+      "result": "passed_media_ui"
+    },
+    {
+      "report": "media-150.json",
+      "checks": 45,
+      "result": "passed_media_ui"
+    }
+  ],
+  "sourceReview": "Performance queue finding and companion keeper/ownership/malformed-input findings fixed, reproduced and re-reviewed; no remaining P1/P2 in scoped review.",
+  "scope": "Synthetic fixtures only. SQL benchmark: 5000 records, 7 paired warm-page samples, cover filesystem probes excluded; cold summary fill remains about 98/107 ms. Native timings use warmed synthetic gradients. No claim of cold-disk, global CPU percentage or million-image validation.",
+  "broaderDiscovery": {
+    "total": 610,
+    "passed": 603,
+    "skipped": 1,
+    "preExistingFailure": 1,
+    "environmentErrors": 5,
+    "notes": "Prior Civitai assertion reproduces with unchanged HEAD model_library. fastapi/launcher unavailable in legacy tests; frozen test env unset in discovery. Not represented as an all-green suite."
+  },
+  "preliminaryProbeLimit": "Earlier 800x600 at 150% text had one list fully-in-viewport assertion fail; 1000x650 final viewer run passes all16. No new claim about that smaller viewport.",
+  "privateDataRead": false,
+  "realModelDirectoryModified": false
+}

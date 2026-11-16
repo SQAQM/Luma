@@ -12,6 +12,6 @@ internal static class ViewerTests
   view.Fit();view.Resize(200,100);Check(Math.Abs(view.Scale-.1)<.001,"fit follows viewport resize");
   var cache=new ByteLru<string,byte[]>(3,10);cache.Put("a",new byte[4],4);cache.Put("b",new byte[4],4);Check(cache.TryGet("a",out _),"cache hit");cache.Put("c",new byte[4],4);Check(!cache.TryGet("b",out _)&&cache.Bytes==8,"LRU byte eviction");
   Check(!cache.Put("oversized",new byte[11],11)&&cache.Count==2,"oversized allocation rejected");cache.Clear();Check(cache.Bytes==0&&cache.Count==0,"close releases cache");
-  string text=string.Concat(Enumerable.Repeat("雪😀 landscape, ",3000));var chunks=TextChunks.Split(text);Check(string.Concat(chunks)==text&&chunks.All(c=>c.Length<=1024),"full prompt chunks preserve every character");Check(chunks.All(c=>!char.IsLowSurrogate(c[0])&&!char.IsHighSurrogate(c[^1])),"virtual text never splits UTF16 pairs");return n;
+  string text=string.Concat(Enumerable.Repeat("雪😀 landscape, ",3000));var chunks=TextChunks.Split(text);Check(string.Concat(chunks)==text&&chunks.All(c=>c.Length<=1024),"full prompt chunks preserve every character");Check(chunks.All(c=>!char.IsLowSurrogate(c[0])&&!char.IsHighSurrogate(c[^1])),"virtual text never splits UTF16 pairs");return n+FilmstripWindowTests.Run();
  }
 }

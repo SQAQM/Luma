@@ -1,0 +1,265 @@
+{
+  "result": "passed_local_native_candidate_only",
+  "version": "1.3.4",
+  "sourceInputs": 280,
+  "engineInputs": 102,
+  "payloadFiles": 732,
+  "engineModules": 746,
+  "setup": {
+    "requestedExecutionLevel": "asInvoker",
+    "name": "Luma-1.3.4-Setup-x64.exe",
+    "bytes": 93456289,
+    "sha256": "1e79b00efbc5a0d9fe206ef3ff11bb746e4a26c333a1ec4d675e25c9b63d30cd"
+  },
+  "portable": {
+    "name": "Luma-1.3.4-Portable-x64.zip",
+    "bytes": 131040967,
+    "sha256": "393a19ee4b8d67d067bedef63d3d2b404bec3d9fc3602362efbcae609a994a3a",
+    "crcAndEntriesVerified": true
+  },
+  "evidence": {
+    "docs/verification-1.3.4/frozen-runtime.json": {
+      "sha256": "763407631e9a98d7618155152ccd75396bc08317d1d8b4bf3b5e7b1344391c1e",
+      "result": "passed_frozen_runtime_selfcheck",
+      "checks": null
+    },
+    "docs/verification-1.3.4/model-100.json": {
+      "sha256": "3a2e9d3f0e113bf8b4de3196580ba19215ff0febb5b7861ae47cafae6af9c492",
+      "result": "passed_model_usability_ui",
+      "checks": [
+        {
+          "name": "typing stays enabled and focused while a result read is pending",
+          "passed": true
+        },
+        {
+          "name": "edits made during an older read survive and query the newest text",
+          "passed": true
+        },
+        {
+          "name": "completed reads do not reclaim focus after the user moves away",
+          "passed": true
+        },
+        {
+          "name": "model filter keyboard focus survives a result refresh",
+          "passed": true
+        },
+        {
+          "name": "same workspace reactivation applies a draft hidden before debounce",
+          "passed": true
+        },
+        {
+          "name": "viewer return applies a draft hidden before debounce",
+          "passed": true
+        },
+        {
+          "name": "changing management pages resets the model search draft",
+          "passed": true
+        },
+        {
+          "name": "all directories label fits the compact toolbar at the configured text scale",
+          "passed": true
+        },
+        {
+          "name": "native sync has no redundant compatibility export option",
+          "passed": true
+        },
+        {
+          "name": "native sync does not request extra companion formats",
+          "passed": true
+        },
+        {
+          "name": "native review separates two surviving files and three redundant companions",
+          "passed": true
+        },
+        {
+          "name": "five-file review fits fully without hidden rows at configured text scale",
+          "passed": true
+        }
+      ]
+    },
+    "docs/verification-1.3.4/model-150.json": {
+      "sha256": "3a2e9d3f0e113bf8b4de3196580ba19215ff0febb5b7861ae47cafae6af9c492",
+      "result": "passed_model_usability_ui",
+      "checks": [
+        {
+          "name": "typing stays enabled and focused while a result read is pending",
+          "passed": true
+        },
+        {
+          "name": "edits made during an older read survive and query the newest text",
+          "passed": true
+        },
+        {
+          "name": "completed reads do not reclaim focus after the user moves away",
+          "passed": true
+        },
+        {
+          "name": "model filter keyboard focus survives a result refresh",
+          "passed": true
+        },
+        {
+          "name": "same workspace reactivation applies a draft hidden before debounce",
+          "passed": true
+        },
+        {
+          "name": "viewer return applies a draft hidden before debounce",
+          "passed": true
+        },
+        {
+          "name": "changing management pages resets the model search draft",
+          "passed": true
+        },
+        {
+          "name": "all directories label fits the compact toolbar at the configured text scale",
+          "passed": true
+        },
+        {
+          "name": "native sync has no redundant compatibility export option",
+          "passed": true
+        },
+        {
+          "name": "native sync does not request extra companion formats",
+          "passed": true
+        },
+        {
+          "name": "native review separates two surviving files and three redundant companions",
+          "passed": true
+        },
+        {
+          "name": "five-file review fits fully without hidden rows at configured text scale",
+          "passed": true
+        }
+      ]
+    },
+    "docs/verification-1.3.4/filmstrip-150.json": {
+      "sha256": "7c5ff0042e52af5a5521ab293fdc13550287e0d37fa64811571b0d87fead3dfa",
+      "result": "passed_filmstrip_perf_ui",
+      "checks": [
+        {
+          "passed": true,
+          "name": "own twelve gradients imported"
+        },
+        {
+          "passed": true,
+          "name": "all nine filmstrip tiles fit the native viewport"
+        },
+        {
+          "passed": true,
+          "name": "initial nine thumbnails decode without failure"
+        },
+        {
+          "passed": true,
+          "name": "next retains the eight overlapping native tile instances"
+        },
+        {
+          "passed": true,
+          "name": "next retains eight decoded image instances"
+        },
+        {
+          "passed": true,
+          "name": "next completes at most one new thumbnail RPC/decode cycle"
+        },
+        {
+          "passed": true,
+          "name": "next selects the current native filmstrip item"
+        },
+        {
+          "passed": true,
+          "name": "next keeps bounded neighbors and existing decoded cache limits"
+        },
+        {
+          "passed": true,
+          "name": "next thumbnail pipeline has no failure"
+        },
+        {
+          "passed": true,
+          "name": "back retains the eight overlapping native tile instances"
+        },
+        {
+          "passed": true,
+          "name": "back retains eight decoded image instances"
+        },
+        {
+          "passed": true,
+          "name": "back completes at most one new thumbnail RPC/decode cycle"
+        },
+        {
+          "passed": true,
+          "name": "back selects the current native filmstrip item"
+        },
+        {
+          "passed": true,
+          "name": "back keeps bounded neighbors and existing decoded cache limits"
+        },
+        {
+          "passed": true,
+          "name": "back thumbnail pipeline has no failure"
+        },
+        {
+          "passed": true,
+          "name": "next/back returns to original image"
+        },
+        {
+          "passed": true,
+          "name": "sort updates filmstrip order"
+        },
+        {
+          "passed": true,
+          "name": "sort keeps unique bounded neighbors"
+        },
+        {
+          "passed": true,
+          "name": "rapid navigation settles on the latest model window"
+        },
+        {
+          "passed": true,
+          "name": "rapid navigation preserves current selection"
+        },
+        {
+          "passed": true,
+          "name": "departed tiles do not accumulate pending requests while decoding is unavailable"
+        }
+      ]
+    },
+    "docs/verification-1.3.4/window-150.json": {
+      "sha256": "a035713de75c99f44442e31a0b61eae8c26fb225021ebc56703f9492095310f0",
+      "result": "passed_window_perf_ui",
+      "checks": [
+        {
+          "passed": true,
+          "name": "unchanged refresh avoids native caption property writes"
+        },
+        {
+          "passed": true,
+          "name": "dark caption colors update"
+        },
+        {
+          "passed": true,
+          "name": "light caption colors update"
+        },
+        {
+          "passed": true,
+          "name": "cached colors do not block fullscreen caption hiding"
+        },
+        {
+          "passed": true,
+          "name": "caption returns after fullscreen"
+        },
+        {
+          "passed": true,
+          "name": "caption colors persist after fullscreen"
+        },
+        {
+          "passed": true,
+          "name": "normal viewer has no diagnostic heartbeat wakeups"
+        },
+        {
+          "passed": true,
+          "name": "explicit diagnostics retain UI heartbeat sampling"
+        }
+      ]
+    }
+  },
+  "verifierSha256": "18a505c5066411f6284e955836d539368afdb4734e0fc6f087e33a94cd80520c",
+  "scope": "immutable payload and supplied local synthetic evidence; no production-capacity or real-library claim"
+}

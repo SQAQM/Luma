@@ -1,0 +1,50 @@
+test_truncated_jpeg_scan_does_not_displace_decodable_png (backend.test_model_companion_tidy.ModelCompanionTidyTests.test_truncated_jpeg_scan_does_not_displace_decodable_png) ... FAIL
+test_registering_a_shared_companion_owner_after_preview_preserves_all_files (backend.test_model_companion_tidy.ModelCompanionTidyTests.test_registering_a_shared_companion_owner_after_preview_preserves_all_files) ... FAIL
+test_foreign_preview_and_double_extension_model_companions_are_not_archived (backend.test_model_companion_tidy.ModelCompanionTidyTests.test_foreign_preview_and_double_extension_model_companions_are_not_archived) ... FAIL
+test_malformed_foreign_field_does_not_abort_other_valid_companions (backend.test_model_companion_tidy.ModelCompanionTidyTests.test_malformed_foreign_field_does_not_abort_other_valid_companions) ... ERROR
+
+======================================================================
+ERROR: test_malformed_foreign_field_does_not_abort_other_valid_companions (backend.test_model_companion_tidy.ModelCompanionTidyTests.test_malformed_foreign_field_does_not_abort_other_valid_companions)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\[AI]\图片管理项目\Source\Luma\backend\test_model_companion_tidy.py", line 97, in test_malformed_foreign_field_does_not_abort_other_valid_companions
+    plan=cleanup.preview(self.library)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\[AI]\图片管理项目\Source\Luma\backend\model_sidecar_cleanup.py", line 207, in preview
+    for snap,keepers in _inventory(model,shared):
+  File "E:\[AI]\图片管理项目\Source\Luma\backend\model_sidecar_cleanup.py", line 178, in _inventory
+    if model_local_info.parse(value,model,format_name) and _same_release(related,canonical):yield snap,[keeper]
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\[AI]\图片管理项目\Source\Luma\backend\model_local_info.py", line 24, in parse
+    value={**value,'modelName':value.get('name',Path(model_path).stem),'modelType':value.get('type',''),'trainedWords':[v.get('word') for v in value.get('trainedWords',[]) if isinstance(v,dict) and isinstance(v.get('word'),str)]}
+                                                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'NoneType' object is not iterable
+
+======================================================================
+FAIL: test_truncated_jpeg_scan_does_not_displace_decodable_png (backend.test_model_companion_tidy.ModelCompanionTidyTests.test_truncated_jpeg_scan_does_not_displace_decodable_png)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\[AI]\图片管理项目\Source\Luma\backend\test_model_companion_tidy.py", line 75, in test_truncated_jpeg_scan_does_not_displace_decodable_png
+    self.assertNotIn(extras[2].name,{i['name'] for i in cleanup.preview(self.library)['items']})
+AssertionError: 'fixture-Krea-Mix.png' unexpectedly found in {'fixture-Krea-Mix.png', 'fixture-Krea-Mix.cm-info.json', 'fixture-Krea-Mix.json'}
+
+======================================================================
+FAIL: test_registering_a_shared_companion_owner_after_preview_preserves_all_files (backend.test_model_companion_tidy.ModelCompanionTidyTests.test_registering_a_shared_companion_owner_after_preview_preserves_all_files)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\[AI]\图片管理项目\Source\Luma\backend\test_model_companion_tidy.py", line 81, in test_registering_a_shared_companion_owner_after_preview_preserves_all_files
+    self.assertEqual(self.manager.values['errors'],3)
+AssertionError: 0 != 3
+
+======================================================================
+FAIL: test_foreign_preview_and_double_extension_model_companions_are_not_archived (backend.test_model_companion_tidy.ModelCompanionTidyTests.test_foreign_preview_and_double_extension_model_companions_are_not_archived)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\[AI]\图片管理项目\Source\Luma\backend\test_model_companion_tidy.py", line 91, in test_foreign_preview_and_double_extension_model_companions_are_not_archived
+    self.assertNotIn(str(preview),paths,'cover shared with original model must survive')
+AssertionError: 'E:\\[AI]\\图片管理项目\\Source\\Luma\\build\\test-info-cleanup-d3jbe09b\\models\\fixture-Krea-Mix.preview.jpg' unexpectedly found in {'E:\\[AI]\\图片管理项目\\Source\\Luma\\build\\test-info-cleanup-d3jbe09b\\models\\fixture-Krea-Mix.json', 'E:\\[AI]\\图片管理项目\\Source\\Luma\\build\\test-info-cleanup-d3jbe09b\\models\\fixture-Krea-Mix.cm-info.json', 'E:\\[AI]\\图片管理项目\\Source\\Luma\\build\\test-info-cleanup-d3jbe09b\\models\\fixture-Krea-Mix.safetensors.civitai.info', 'E:\\[AI]\\图片管理项目\\Source\\Luma\\build\\test-info-cleanup-d3jbe09b\\models\\fixture-Krea-Mix.preview.jpg', 'E:\\[AI]\\图片管理项目\\Source\\Luma\\build\\test-info-cleanup-d3jbe09b\\models\\fixture-Krea-Mix.png'} : cover shared with original model must survive
+
+----------------------------------------------------------------------
+Ran 4 tests in 1.192s
+
+FAILED (failures=3, errors=1)

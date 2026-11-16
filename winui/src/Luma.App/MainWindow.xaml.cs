@@ -106,6 +106,8 @@ public sealed partial class MainWindow : Window
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_MODEL_PAGING_UI_TEST")=="1")_=Shell.VerifyModelPagingUi(_options.DataDirectory,CaptureVerificationFrame);
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_MODEL_USABILITY_UI_TEST")=="1")_=Shell.VerifyModelUsabilityUi(_options.DataDirectory,CaptureVerificationFrame);
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_VIEWER_USABILITY_UI_TEST")=="1")_=Shell.VerifyViewerUsabilityUi(_options.DataDirectory,CaptureVerificationFrame);
+        if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_WINDOW_PERF_UI_TEST")=="1")_=VerifyWindowPerformanceUi();
+        if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_FILMSTRIP_PERF_UI_TEST")=="1")_=Shell.VerifyFilmstripPerformanceUi(_options.DataDirectory,CaptureVerificationFrame);
     }
     private async void PickImage()
     {

@@ -10,6 +10,7 @@ import stat
 import threading
 import time
 import uuid
+from collections import OrderedDict
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -123,6 +124,9 @@ class ModelLibrary:
     def __init__(self,store,organizer_lock=None,client=None,cache_dir=None):
         self.store=store; self.lock=organizer_lock or threading.RLock(); self.client=client
         self.cache_dir=Path(cache_dir or store.directory/'model-covers')
+        self._summary_lock=threading.Lock()
+        self._summary_revision=0
+        self._summary_cache=OrderedDict()
         with store.connect() as db: initialize(db)
 
     def add_root(self,path):
@@ -182,6 +186,31 @@ class ModelLibrary:
             if values:filtered_source+=' AND '+expression+' IN ('+','.join('?' for _ in values)+')';filtered.extend(values)
         return source,args,filtered_source,filtered,types,families
 
+    def _query_summary(self,db,revision,scope,source,args,filtered_source,filtered):
+        with self._summary_lock:
+            if revision>self._summary_revision:
+                self._summary_cache.clear(); self._summary_revision=revision
+            saved=self._summary_cache.get(scope) if revision==self._summary_revision else None
+            if saved is not None:
+                self._summary_cache.move_to_end(scope)
+                return saved
+        # Use the caller's SQLite read snapshot for both aggregates and rows.
+        # Keep SQL outside the lock so older readers cannot block newer ones.
+        facets=[]
+        for expression in ('luma_resource_type(v.record,li.record,f.sha256)','luma_cached_family(COALESCE(v.record,li.record))'):
+            # Facets precede both dimension filters. Unknown remains within the
+            # bounded SQL result even when there are more than 128 types.
+            facets.append(tuple(sorted(r[0] for r in db.execute('SELECT DISTINCT '+expression+' AS facet'+source+" ORDER BY (facet='Unknown') DESC,facet LIMIT 128",args))))
+        total=db.execute('SELECT count(*)'+filtered_source,filtered).fetchone()[0]
+        summary=(total,*facets)
+        with self._summary_lock:
+            # An older concurrent snapshot must not replace the current memo.
+            if revision==self._summary_revision:
+                self._summary_cache[scope]=summary
+                self._summary_cache.move_to_end(scope)
+                while len(self._summary_cache)>32:self._summary_cache.popitem(last=False)
+        return summary
+
     def list_models(self,root_id=None,q='',cursor=None,limit=60,types=_UNSET,families=_UNSET):
         if type(limit) is not int or not 1<=limit<=120: raise ValueError('模型分页数量无效')
         with self.store.connect() as db:
@@ -201,13 +230,10 @@ class ModelLibrary:
                     if data['revision']!=revision:raise ModelCursorExpired('模型分页已过期')
                 except ModelCursorExpired:raise
                 except (ValueError,TypeError,KeyError,UnicodeError): raise ValueError('模型分页已过期，请刷新') from None
-            facets={}
-            for key,expression in (('types','luma_resource_type(v.record,li.record,f.sha256)'),('families','luma_cached_family(COALESCE(v.record,li.record))')):
-                # Scope facets precede both dimension filters. Unknown is first
-                # in SQL so it cannot be lost to the bounded type facet limit.
-                facets[key]=sorted(r[0] for r in db.execute('SELECT DISTINCT '+expression+' AS facet'+source+" ORDER BY (facet='Unknown') DESC,facet LIMIT 128",args))
+            scope=(root_id,q.strip(),tuple(types),tuple(families))
+            total,type_facets,family_facets=self._query_summary(db,revision,scope,source,args,filtered_source,filtered)
+            facets={'types':list(type_facets),'families':list(family_facets)}
             source=filtered_source
-            total=db.execute('SELECT count(*)'+source,filtered).fetchone()[0]
             rows=list(db.execute('SELECT f.id,f.root_id,f.path,f.name,f.size,f.mtime_ns,f.sha256,f.status,f.version_id,v.record,li.record local_record'+source+' AND f.id>? ORDER BY f.id LIMIT ?',[*filtered,anchor,limit+1]))
         more=len(rows)>limit; rows=rows[:limit]
         token=base64.urlsafe_b64encode(json.dumps({'revision':revision,'filter':fingerprint,'id':rows[-1]['id']}).encode()).decode().rstrip('=') if more else None

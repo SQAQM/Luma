@@ -31,7 +31,7 @@ public sealed partial class ViewerView:UserControl,IDisposable
  internal async void Open(EngineClient client,string data,GalleryItem item,Dictionary<string,object?> filters,bool diagnostics){
   if(_disposed)return;Release();_shell=new(diagnostics);_mode="standard";_actualRequested=false;_info=false;_film=false;Feedback.Text="";Filmstrip.Visibility=Visibility.Collapsed;_stalls.Clear();_maxHeartbeat=0;_heartbeatCount=0;_lastMetrics=null;_shownFrame=null;_shownDetail=null;_shownWindow=null;
   IViewerApi api=new ViewerApi(client);if(MetadataFailureOnce){api=new MetadataFailureOnceApi(api);MetadataFailureOnce=false;}_model=new(api);_images=new(client,data);_thumbs=new(client,data);_model.Changed+=Update;_images.Changed+=ImageChanged;_thumbs.Changed+=ThumbChanged;
-  Visibility=Visibility.Visible;_clock.Restart();_heartbeat.Start();_sync=true;Sort.SelectedIndex=Math.Max(0,Array.IndexOf(_sorts,filters.GetValueOrDefault("sort")?.ToString()??"name"));_sync=false;
+  Visibility=Visibility.Visible;if(diagnostics){_clock.Restart();_heartbeat.Start();}_sync=true;Sort.SelectedIndex=Math.Max(0,Array.IndexOf(_sorts,filters.GetValueOrDefault("sort")?.ToString()??"name"));_sync=false;
   LayoutInfo();RestoreControls();var model=_model;await model.OpenAsync(item,filters);if(IsOpen&&ReferenceEquals(_model,model))Focus(FocusState.Programmatic);
  }
  private void ThumbChanged(){if(IsOpen)Changed?.Invoke();}
@@ -43,7 +43,9 @@ public sealed partial class ViewerView:UserControl,IDisposable
   else{Picture.Source=null;FileName.Text="当前范围没有图片";}
   Previous.IsEnabled=_model.PreviousId is not null;Next.IsEnabled=_model.NextId is not null;
   if(!ReferenceEquals(_shownWindow,_model.Window)){
-   _shownWindow=_model.Window;_sync=true;_thumbs?.Reset();_tiles.Clear();foreach(var item in _model.Window)_tiles.Add(new GalleryTile(item){LabelSize=12*_scale});Filmstrip.SelectedItem=_tiles.FirstOrDefault(t=>t.Item.Id==_model.Current?.Id);_sync=false;
+   _shownWindow=_model.Window;_sync=true;
+   try{FilmstripWindow.Reconcile(_tiles,_model.Window,t=>t.Item,item=>new GalleryTile(item){LabelSize=12*_scale},tile=>_thumbs?.Visible(tile,false));Filmstrip.SelectedItem=_tiles.FirstOrDefault(t=>t.Item.Id==_model.Current?.Id);}
+   finally{_sync=false;}
   }
   if(_info&&!ReferenceEquals(_shownDetail,_model.Detail)){
    _shownDetail=_model.Detail;Prompt.ItemsSource=TextChunkRow.Create(_shownDetail?.Prompt??"",_scale);Negative.ItemsSource=TextChunkRow.Create(_shownDetail?.NegativePrompt??"",_scale);CopyPrompt.IsEnabled=(_shownDetail?.Prompt.Length??0)>0;CopyNegative.IsEnabled=(_shownDetail?.NegativePrompt.Length??0)>0;ModelName.Text=_shownDetail is null?"":$"{_shownDetail.Width} × {_shownDetail.Height} · {_shownDetail.Family}\n{_shownDetail.Model}";Tags.Children.Clear();

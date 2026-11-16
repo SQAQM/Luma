@@ -1,0 +1,14 @@
+test_compound_metadata_suffix_also_protects_another_models_plain_json (backend.test_model_companion_tidy.ModelCompanionTidyTests.test_compound_metadata_suffix_also_protects_another_models_plain_json) ... FAIL
+
+======================================================================
+FAIL: test_compound_metadata_suffix_also_protects_another_models_plain_json (backend.test_model_companion_tidy.ModelCompanionTidyTests.test_compound_metadata_suffix_also_protects_another_models_plain_json)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "E:\[AI]\图片管理项目\Source\Luma\backend\test_model_companion_tidy.py", line 109, in test_compound_metadata_suffix_also_protects_another_models_plain_json
+    self.assertFalse(paths.intersection(shared),'compound suffix must not hide a registered plain-JSON owner')
+AssertionError: {'E:\\[AI]\\图片管理项目\\Source\\Luma\\build\\test-info-cleanup-r7gl4wr2\\models\\fixture-Krea-Mix.cm-info.json', 'E:\\[AI]\\图片管理项目\\Source\\Luma\\build\\test-info-cleanup-r7gl4wr2\\models\\fixture-Krea-Mix.rgthree-info.json'} is not false : compound suffix must not hide a registered plain-JSON owner
+
+----------------------------------------------------------------------
+Ran 1 test in 0.352s
+
+FAILED (failures=1)

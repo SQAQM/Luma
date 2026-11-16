@@ -28,37 +28,40 @@ public sealed partial class ManagementView
  {
   var request=CurrentModelSyncRequest();
   if(request.Count==0){Status.Text="没有模型";Notify();return;}
-  long gen=_generation;var (dialog,refresh,compatibility)=ModelInformationDialog(request);
+  long gen=_generation;var (dialog,refresh)=ModelInformationDialog(request);
   if(await dialog.ShowAsync()==ContentDialogResult.Primary&&gen==_generation&&_visible&&_page=="Models")
-   await Write("models.sync",CurrentModelSyncRequest(refresh.IsChecked==true,compatibility.IsChecked==true).Args);
+   await Write("models.sync",CurrentModelSyncRequest(refresh.IsChecked==true).Args);
  }
- private (ContentDialog Dialog,CheckBox Refresh,CheckBox Compatibility) ModelInformationDialog(ModelSyncRequest request)
+ private (ContentDialog Dialog,CheckBox Refresh) ModelInformationDialog(ModelSyncRequest request)
  {
   var content=new StackPanel{Spacing=12,MaxWidth=460};content.Children.Add(Text($"{request.Range} {request.Count} 个模型"));
   CheckBox Option(string label,string id){var box=new CheckBox{Content=new TextBlock{Text=label,TextWrapping=TextWrapping.Wrap,MaxWidth=400},IsChecked=false,FontSize=14*_scale};AutomationProperties.SetAutomationId(box,id);content.Children.Add(box);return box;}
-  var refresh=Option("重新获取已有资料","ManageModelForceRefresh");var compatibility=Option("导出 WebUI / ComfyUI 兼容资料","ManageModelCompatibility");
-  var dialog=Confirmation("补全资料","");dialog.Content=content;AutomationProperties.SetAutomationId(dialog,"ManageModelInfoDialog");return(dialog,refresh,compatibility);
+  var refresh=Option("重新获取已有资料","ManageModelForceRefresh");
+  var dialog=Confirmation("补全资料","");dialog.Content=content;AutomationProperties.SetAutomationId(dialog,"ManageModelInfoDialog");return(dialog,refresh);
  }
  private ModelSyncRequest CurrentModelSyncRequest(bool forceRefresh=false,bool compatibility=false)=>ModelSyncRequest.Create(Records.SelectedItems.OfType<ManagementRow>().Select(r=>N(r.Value,"id")),_rootId,_modelTotal,_query,_modelTypes.ToArray(),_modelFamilies.ToArray(),forceRefresh,compatibility);
  private StackPanel ModelInfoCleanupContent(JsonElement preview,bool restoring=false)
  {
   long count=N(preview,"count");var content=new StackPanel{Spacing=10,MaxWidth=480};
-  content.Children.Add(Text(restoring?$"恢复 {count} 个资料文件 · {ModelSize(N(preview,"bytes"))}":$"可精简 {count} 个旧版资料文件 · {ModelSize(N(preview,"bytes"))}",true));
-  if(!restoring)content.Children.Add(Text("同盘资料 · 可撤销"));
+  var summary=Text(restoring?$"恢复 {count} 个文件 · {ModelSize(N(preview,"bytes"))}":$"整理 {count} 个文件 · {ModelSize(N(preview,"bytes"))}");summary.FontWeight=Microsoft.UI.Text.FontWeights.SemiBold;content.Children.Add(summary);
   if(preview.TryGetProperty("items",out var items)&&items.ValueKind==JsonValueKind.Array&&items.GetArrayLength()>0){
-   var files=new StackPanel{Spacing=6};foreach(var item in items.EnumerateArray()){var name=Text(S(item,"name"));name.TextWrapping=TextWrapping.NoWrap;name.TextTrimming=TextTrimming.CharacterEllipsis;ToolTipService.SetToolTip(name,S(item,"path"));files.Children.Add(name);}
-   content.Children.Add(new ScrollViewer{Content=files,MaxHeight=220,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled,VerticalScrollBarVisibility=ScrollBarVisibility.Auto});
+   var files=new StackPanel{Spacing=4};
+   void Group(string label){var heading=Text(label);heading.FontSize=12*_scale;heading.FontWeight=Microsoft.UI.Text.FontWeights.SemiBold;files.Children.Add(heading);}
+   void FileName(JsonElement item){var name=Text(S(item,"name"));name.TextWrapping=TextWrapping.NoWrap;name.TextTrimming=TextTrimming.CharacterEllipsis;ToolTipService.SetToolTip(name,S(item,"path"));files.Children.Add(name);}
+   if(!restoring&&preview.TryGetProperty("keep_items",out var kept)&&kept.ValueKind==JsonValueKind.Array&&kept.GetArrayLength()>0){Group("保留");foreach(var item in kept.EnumerateArray())FileName(item);Group("收起");}
+   foreach(var item in items.EnumerateArray())FileName(item);
+   content.Children.Add(new ScrollViewer{Content=files,MaxHeight=300,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled,VerticalScrollBarVisibility=ScrollBarVisibility.Auto});
    if(B(preview,"items_truncated"))content.Children.Add(Text("仅展示前 100 个文件。"));
-  }else if(!restoring)content.Children.Add(Text("没有可精简的旧版资料。"));
+  }else if(!restoring)content.Children.Add(Text("无需整理"));
   return content;
  }
  private async Task CleanupModelInformation()
  {
   long gen=_generation;var preview=await Read("modelInfoCleanupPreview",new{rootId=_rootId});if(gen!=_generation||!_visible||_page!="Models")return;
-  var dialog=Confirmation("精简资料","");dialog.Content=ModelInfoCleanupContent(preview);dialog.PrimaryButtonText="确认精简";dialog.IsPrimaryButtonEnabled=N(preview,"count")>0;
+  var dialog=Confirmation("整理资料","");dialog.Content=ModelInfoCleanupContent(preview);dialog.PrimaryButtonText="确认整理";dialog.IsPrimaryButtonEnabled=N(preview,"count")>0;
   AutomationProperties.SetAutomationId(dialog,"ManageModelInfoCleanupDialog");
   JsonElement previous=preview.TryGetProperty("last_plan",out var last)&&last.ValueKind==JsonValueKind.Object?last.Clone():default;
-  if(previous.ValueKind==JsonValueKind.Object&&N(previous,"count")>0)dialog.SecondaryButtonText="撤销上次精简";
+  if(previous.ValueKind==JsonValueKind.Object&&N(previous,"count")>0)dialog.SecondaryButtonText="撤销上次整理";
   var result=await dialog.ShowAsync();if(gen!=_generation||!_visible||_page!="Models")return;
   if(result==ContentDialogResult.Primary)await Write("models.cleanupInfo",new{planId=S(preview,"id"),confirmed=true});
   else if(result==ContentDialogResult.Secondary&&previous.ValueKind==JsonValueKind.Object){
@@ -115,7 +118,7 @@ public sealed partial class ManagementView
   search.TextChanged+=(_,_)=>{ToolTipService.SetToolTip(search,search.Text.Length>0?search.Text:"搜索文件名或模型名称");if(!_setting&&search.Text.Trim()!=_query){_modelSearchTimer.Stop();_modelSearchTimer.Start();}};
   folders.Children.Add(Tool("添加目录","ManagePickModels",PickAndAddModelRoot,true,()=>!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
   folders.Children.Add(Tool("补全资料","ManageFetchModelInfo",FetchModelInformation,true,()=>_models.Length>0&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
-  folders.Children.Add(Tool("精简资料","ManageCleanupModelInfo",CleanupModelInformation,true,()=>!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
+  folders.Children.Add(Tool("整理资料","ManageCleanupModelInfo",CleanupModelInformation,true,()=>!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
   folders.Children.Add(Icon("移除目录","ManageRemoveModelRoot","\uE74D",RemoveModelRoot,true,()=>_rootId is not null&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
   ModelPager.Children.Add(Icon("刷新","ManageRefresh","\uE72C",async()=>{if(_rootId is long id&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j)))await Write("models.scan",new{rootId=id},false);await RefreshFromStart();},true));
   ModelControls.Children.Add(folders);

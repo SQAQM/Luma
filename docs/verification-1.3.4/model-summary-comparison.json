@@ -1,0 +1,59 @@
+{
+  "catalog": {
+    "records": 5000,
+    "record_sha256": "b3c77b91ba30460211ce235446d7e1e7ad91f4b734db5f933a92eacadbe54a49",
+    "weight_files": 0,
+    "created_by": "scripts.benchmark_model_summary",
+    "description": "SQL-only deterministic synthetic records"
+  },
+  "scopes": {
+    "all": {
+      "total": 5000,
+      "before_cold_median_ms": 97.09740000107558,
+      "after_cold_median_ms": 97.82389999600127,
+      "before_warm_median_ms": 97.24789999745553,
+      "after_warm_median_ms": 3.991599995060824,
+      "warm_speedup": 24.36313761844608,
+      "warm_reduction_percent": 95.89543836405181,
+      "before_warm_operations": {
+        "facet_sql": 2,
+        "luma_resource_type_udf": 5004,
+        "luma_cached_family_udf": 5003,
+        "count_sql": 1,
+        "page_sql": 1
+      },
+      "after_warm_operations": {
+        "page_sql": 1
+      }
+    },
+    "combined": {
+      "total": 833,
+      "before_cold_median_ms": 107.5868999978411,
+      "after_cold_median_ms": 106.91379999479977,
+      "before_warm_median_ms": 106.82090000045719,
+      "after_warm_median_ms": 7.882300000346731,
+      "warm_speedup": 13.551996244212766,
+      "warm_reduction_percent": 92.62101330328335,
+      "before_warm_operations": {
+        "facet_sql": 2,
+        "luma_resource_type_udf": 5184,
+        "luma_cached_family_udf": 3844,
+        "count_sql": 1,
+        "page_sql": 1
+      },
+      "after_warm_operations": {
+        "page_sql": 1,
+        "luma_resource_type_udf": 182,
+        "luma_cached_family_udf": 91
+      }
+    }
+  },
+  "limits": {
+    "memo": "32 scopes, latest observed model revision; totals and at most 128 values per facet only",
+    "cold": "cold in-memory summary memo, not OS cold disk",
+    "covers": "cover filesystem probes excluded; SQL, UDF, item JSON, cursors are real",
+    "concurrency": "same-revision simultaneous cold misses may duplicate computation",
+    "disk_bytes": 8241152,
+    "native_ui": "not changed by this backend task"
+  }
+}

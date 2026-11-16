@@ -1,0 +1,342 @@
+{
+  "label": "before",
+  "catalog": {
+    "records": 5000,
+    "record_sha256": "b3c77b91ba30460211ce235446d7e1e7ad91f4b734db5f933a92eacadbe54a49",
+    "weight_files": 0,
+    "created_by": "scripts.benchmark_model_summary",
+    "description": "SQL-only deterministic synthetic records"
+  },
+  "python": "3.11.15",
+  "method": {
+    "cold": "fresh in-memory summary memo; SQLite/OS caches may be warm",
+    "warm": "next cursor page in unchanged scope/revision",
+    "page_size": 60,
+    "excluded": "cover filesystem probes only; mocked available=False and _cover_for_hash=None",
+    "network": false,
+    "user_data": false,
+    "repeats": 7
+  },
+  "scopes": {
+    "all": {
+      "scope": {},
+      "total": 5000,
+      "cold": {
+        "median_ms": 97.09740000107558,
+        "samples": [
+          {
+            "ms": 100.93320000305539,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5004,
+              "luma_cached_family_udf": 5003,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 94.92030000546947,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5004,
+              "luma_cached_family_udf": 5003,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 97.09740000107558,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5004,
+              "luma_cached_family_udf": 5003,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 100.15389999898616,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5004,
+              "luma_cached_family_udf": 5003,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 99.36799999559298,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5004,
+              "luma_cached_family_udf": 5003,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 96.91639999800827,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5004,
+              "luma_cached_family_udf": 5003,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 95.925100002205,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5004,
+              "luma_cached_family_udf": 5003,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          }
+        ]
+      },
+      "warm": {
+        "median_ms": 97.24789999745553,
+        "samples": [
+          {
+            "ms": 97.0618999999715,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5004,
+              "luma_cached_family_udf": 5003,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 97.24789999745553,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5004,
+              "luma_cached_family_udf": 5003,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 96.71399999933783,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5004,
+              "luma_cached_family_udf": 5003,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 102.69170000537997,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5004,
+              "luma_cached_family_udf": 5003,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 98.09729999687988,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5004,
+              "luma_cached_family_udf": 5003,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 97.46150000137277,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5004,
+              "luma_cached_family_udf": 5003,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 96.28559999691788,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5004,
+              "luma_cached_family_udf": 5003,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          }
+        ]
+      }
+    },
+    "combined": {
+      "scope": {
+        "root_id": 1,
+        "q": "Synthetic",
+        "types": [
+          "Checkpoint",
+          "LoRA"
+        ],
+        "families": [
+          "FLUX",
+          "Krea 2"
+        ]
+      },
+      "total": 833,
+      "cold": {
+        "median_ms": 107.5868999978411,
+        "samples": [
+          {
+            "ms": 108.31129999860423,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5183,
+              "luma_cached_family_udf": 3844,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 110.36410000087926,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5183,
+              "luma_cached_family_udf": 3844,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 107.01069999777246,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5183,
+              "luma_cached_family_udf": 3844,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 103.59440000320319,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5183,
+              "luma_cached_family_udf": 3844,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 103.93009999825153,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5183,
+              "luma_cached_family_udf": 3844,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 107.5868999978411,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5183,
+              "luma_cached_family_udf": 3844,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 111.0363000043435,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5183,
+              "luma_cached_family_udf": 3844,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          }
+        ]
+      },
+      "warm": {
+        "median_ms": 106.82090000045719,
+        "samples": [
+          {
+            "ms": 109.53389999485807,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5184,
+              "luma_cached_family_udf": 3844,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 109.32270000193967,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5184,
+              "luma_cached_family_udf": 3844,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 106.36490000615595,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5184,
+              "luma_cached_family_udf": 3844,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 104.63030000391882,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5184,
+              "luma_cached_family_udf": 3844,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 105.80170000321232,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5184,
+              "luma_cached_family_udf": 3844,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 109.69650000333786,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5184,
+              "luma_cached_family_udf": 3844,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          },
+          {
+            "ms": 106.82090000045719,
+            "operations": {
+              "facet_sql": 2,
+              "luma_resource_type_udf": 5184,
+              "luma_cached_family_udf": 3844,
+              "count_sql": 1,
+              "page_sql": 1
+            }
+          }
+        ]
+      }
+    }
+  },
+  "catalog_database_bytes": 8241152
+}
