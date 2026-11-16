@@ -11,8 +11,10 @@
 - [x] Reconcile only the viewer's current bounded thumbnail window; preserve overlapping identities without dropping generation or decode checks.
 - [x] Gate idle sampling by diagnostics and skip unchanged caption colors while retaining theme/contrast/fullscreen behavior.
 - [x] Run targeted backend/Core/native checks and compare warm/cold operation counts and timings; review the changes independently.
-- [ ] Build/audit both delivery formats, preserve real Data during program update, publish reviewed source/release, then remove owned build/test outputs and prior packages.
+- [x] Build/audit both delivery formats, preserve real Data during program update, publish reviewed source/release, then remove owned build/test outputs and prior packages.
 
 Measurements identify their scope: a synthetic model SQL benchmark is not a model-file scan; thumbnail request reductions are not million-image throughput or cold-disk claims.
 
 Follow-up companion consolidation: reproduced the five-file layout; implemented persisted two-keeper / three-extra review, exact undo, same-name owner protection, malformed-input handling and UI export simplification. Native 100/150 text checks and independent source / blind PNG reviews completed.
+
+Delivered 1.3.4: source/tag269d379, public Native release43822644134 and checks43822643808 succeeded; current program updated without reading Data. Manifest cleanup removed9266 owned files /4350267274 logical bytes; only current installer and portable remain at project root.
