@@ -15,7 +15,7 @@
     <TextBox x:Name="SearchBox" MaxLength="2000" PlaceholderText="搜索当前图库" TextChanged="SearchChanged" AutomationProperties.AutomationId="GallerySearch" AutomationProperties.Name="搜索图库"/>
     <ComboBox x:Name="SortBox" Grid.Column="1" SelectionChanged="SortChanged" AutomationProperties.AutomationId="GallerySort" AutomationProperties.Name="图库排序"/>
    </Grid>
-  <ScrollViewer x:Name="ToolbarScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" AutomationProperties.AutomationId="GalleryToolbarScroll"><StackPanel Spacing="8">
+  <ScrollViewer x:Name="ToolbarScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" AutomationProperties.AutomationId="GalleryToolbarScroll">
    <controls:TagChipPanel x:Name="ToolbarActions">
     <ComboBox x:Name="RootsBox" SelectionChanged="RootChanged" AutomationProperties.AutomationId="GalleryRoots" AutomationProperties.Name="图库目录" MaxWidth="240"/>
     <Button x:Name="FilterButton" Content="筛选" MinWidth="104" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryFilters" AutomationProperties.Name="筛选">
@@ -59,11 +59,9 @@
     </Button>
     <Button x:Name="ViewButton" Click="ViewClicked" Style="{StaticResource LumaViewerIcon}" AutomationProperties.AutomationId="GalleryViewMode" AutomationProperties.Name="列表视图" ToolTipService.ToolTip="列表视图"><FontIcon Glyph="&#xE8FD;" FontSize="16"/></Button>
     <Button x:Name="DetailsButton" Click="DetailsClicked" Style="{StaticResource LumaViewerIcon}" AutomationProperties.AutomationId="GalleryDetails" AutomationProperties.Name="图片信息 (Alt+Enter)" ToolTipService.ToolTip="图片信息 (Alt+Enter)"><FontIcon Glyph="&#xE946;" FontSize="16"/></Button>
-    <Button Click="RefreshClicked" Style="{StaticResource LumaViewerIcon}" AutomationProperties.AutomationId="GalleryRefresh" AutomationProperties.Name="刷新" ToolTipService.ToolTip="刷新"><FontIcon Glyph="&#xE72C;" FontSize="16"/></Button>
-    <Button x:Name="CancelButton" Content="取消加载" Click="CancelClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryCancel"/>
+    <Button x:Name="RefreshButton" Click="RefreshOrCancelClicked" Style="{StaticResource LumaViewerIcon}" AutomationProperties.AutomationId="GalleryRefresh" AutomationProperties.Name="刷新" ToolTipService.ToolTip="刷新"><FontIcon x:Name="RefreshIcon" Glyph="&#xE72C;" FontSize="16"/></Button>
    </controls:TagChipPanel>
-   <StackPanel x:Name="ManagementActions" Spacing="6"/>
-  </StackPanel></ScrollViewer>
+  </ScrollViewer>
   <Grid x:Name="Body" Grid.Row="2" ColumnSpacing="16">
    <Grid.ColumnDefinitions><ColumnDefinition x:Name="ImagesColumn" Width="*"/><ColumnDefinition x:Name="InspectorColumn" Width="0"/></Grid.ColumnDefinitions>
    <Grid x:Name="ImagesPanel">
@@ -115,7 +113,7 @@
    <TextBlock x:Name="Feedback" TextWrapping="Wrap" Style="{StaticResource LumaCaption}" AutomationProperties.AutomationId="GalleryFeedback"/>
    <Grid x:Name="Pagination" ColumnSpacing="8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
     <TextBlock x:Name="Count" Style="{StaticResource LumaCaption}" VerticalAlignment="Center" AutomationProperties.AutomationId="GalleryCount"/>
-    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"><Button Content="首页" Click="FirstClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryFirst"/><Button x:Name="Previous" Content="上一页" Click="PreviousClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryPrevious"/><Button x:Name="Next" Content="下一页" Click="NextClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryNext"/></StackPanel>
+    <StackPanel x:Name="PageButtons" Grid.Column="1" Orientation="Horizontal" Spacing="6" Visibility="Collapsed"><Button x:Name="First" Content="首页" Click="FirstClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryFirst"/><Button x:Name="Previous" Content="上一页" Click="PreviousClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryPrevious"/><Button x:Name="Next" Content="下一页" Click="NextClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="GalleryNext"/></StackPanel>
    </Grid>
   </StackPanel>
  </Grid>

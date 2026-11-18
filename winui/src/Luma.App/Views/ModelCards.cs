@@ -160,7 +160,7 @@ public sealed partial class ManagementView
   LayoutModelToolbar();
   ModelControlScroll.Visibility=Visibility.Visible;
   ModelEmpty.Visibility=_models.Length==0&&!details?Visibility.Visible:Visibility.Collapsed;
-  RecordList.Visibility=Visibility.Collapsed;ModelCards.Visibility=compact&&details?Visibility.Collapsed:Visibility.Visible;FormScroll.Visibility=details?Visibility.Visible:Visibility.Collapsed;FormScrollEdge.Visibility=Visibility.Collapsed;
+  RecordList.Visibility=Visibility.Collapsed;ModelCards.Visibility=compact&&details?Visibility.Collapsed:Visibility.Visible;FormScroll.Visibility=details?Visibility.Visible:Visibility.Collapsed;
   ListColumn.Width=details&&!compact?new(_models.Length==1?Math.Min(240,ActualWidth*.32):Math.Max(180,ActualWidth-Math.Clamp(ActualWidth*.4,270,360)-18)):new(1,GridUnitType.Star);
   ListRow.Height=new(1,GridUnitType.Star);FormRow.Height=new(0);Grid.SetColumnSpan(ModelCards,details&&!compact?1:2);Grid.SetRow(FormScroll,0);Grid.SetColumn(FormScroll,compact?0:1);Grid.SetColumnSpan(FormScroll,compact?2:1);
   ModelControlScroll.MaxHeight=Math.Clamp(ActualHeight*.43,100,248);

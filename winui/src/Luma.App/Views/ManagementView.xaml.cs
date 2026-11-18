@@ -32,22 +32,22 @@ public sealed partial class ManagementView:UserControl,IDisposable
  private readonly Microsoft.UI.Dispatching.DispatcherQueueTimer _poll;
  private readonly ContentControl _settingsGate=new(){HorizontalContentAlignment=HorizontalAlignment.Stretch,IsTabStop=false};private readonly StackPanel _settingsFields=new(){Spacing=12,HorizontalAlignment=HorizontalAlignment.Left};private StackPanel Fields=>_page=="Settings"?_settingsFields:Form;private bool _rebuildingForm;
  private readonly List<Button> _writes=[];private readonly Dictionary<Button,Func<bool>> _enabledWhen=[];private JsonElement[] _definitions=[],_roots=[],_models=[],_jobs=[],_registry=[];private long[] _selection=[];
- private JsonElement? _labelState;private JsonElement? Selected=>Records.SelectedItem is ManagementRow row?row.Value:null;
+ private JsonElement? Selected=>Records.SelectedItem is ManagementRow row?row.Value:null;
  private ListViewBase Records=>_page=="Models"?ModelCards:RecordList;
- private TextBox? _name,_description,_match,_note;private NumberBox? _threshold;private CheckBox? _enabled,_remember;private ComboBox? _rootChoice,_kind,_family;private PasswordBox? _token;
+ private TextBox? _match,_note;private CheckBox? _remember;private ComboBox? _rootChoice,_kind,_family;private PasswordBox? _token;
  private string? _next;private readonly Stack<string?> _history=new();private string? _cursor;private string _query="";private long? _rootId;
- private long? _tagId;private bool _newTag;private JsonElement? _credential;private JsonElement? _vision;
+ private JsonElement? _credential;
  private ImageSourceProvider? _linkedProvider;private StackPanel? _linkedHost;
  private long _linkedTotal;private int _linkedCount;
  private bool _suspendedForViewer;private TextBlock? _linkedHeading;private string _associationMode="";
  public event Action<JsonElement>? PreferencesChanged;
  public UIElement? AppearanceContent{get;set;}
- public event Action? OpenSettingsLibraryRequested,StorageRequested;
+ public event Action? OpenSettingsLibraryRequested;
  public nint WindowHandle{get;set;}
  public event Action? Changed;public event Action? LibraryChanged;
  public event Action<GalleryItem,Dictionary<string,object?>>? OpenViewerRequested;
  public object Snapshot=>new{page=_page,subpage=_sub,associationMode=_associationMode,linkedTotal=_linkedTotal,linkedCount=_linkedCount,newTagDraft=_newTag,loading=_loading||_reading>0,writing=_state?.Writing??false,uncertain=_state?.Uncertain??false,feedback=Status.Text,actionError=_actionError,tagCount=_definitions.Length,rootCount=_roots.Length,modelCount=_models.Length,modelTotal=_modelTotal,modelPage=_history.Count+1,modelRootId=_rootId,modelTaskStatus=_modelProgress?.Text??"",modelTypes=_modelTypes.ToArray(),modelFamilies=_modelFamilies.ToArray(),modelInspector=_modelInspector,modelCoverActive=_coverActive,modelCoversLoaded=_coverCompleted,modelCoversFailed=_coverFailed,jobCount=_jobs.Length,activeJobs=_jobs.Count(j=>S(j,"status") is "queued" or "running"),selectionCount=_selection.Length,labelSnapshotReady=_labelState is not null,modelToolbarVisible=ModelControlScroll.Visibility==Visibility.Visible,selectedModelCount=Records.SelectedItems.Count,modelFileAction=_fileActions.LastAction,registryCount=_registry.Length,credentialConfigured=_credential is{} c&&B(c,"configured"),credentialRemembered=_credential is{} r&&B(r,"remembered")};
- public ManagementView(){InitializeComponent();InitializeManagementLayout();var refresh=new Microsoft.UI.Xaml.Input.KeyboardAccelerator{Key=Windows.System.VirtualKey.F5};refresh.Invoked+=async(_,e)=>{if(_visible){e.Handled=true;await RefreshFromStart();}};KeyboardAccelerators.Add(refresh);var pane=new Microsoft.UI.Xaml.Input.KeyboardAccelerator{Key=Windows.System.VirtualKey.F6};pane.Invoked+=(_,e)=>{if(_visible&&_page=="Models"){e.Handled=true;var focus=Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(XamlRoot) as DependencyObject;bool cards=false;while(focus is not null){if(ReferenceEquals(focus,ModelCards)){cards=true;break;}focus=Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(focus);}if(cards)_rootChoice?.Focus(FocusState.Programmatic);else if(ReferenceEquals(Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(XamlRoot),_rootChoice))_modelSearch?.Focus(FocusState.Programmatic);else if(ModelCards.ContainerFromIndex(Math.Max(0,ModelCards.SelectedIndex)) is Control item)item.Focus(FocusState.Programmatic);}};KeyboardAccelerators.Add(pane);_settingsGate.Content=_settingsFields;_poll=DispatcherQueue.CreateTimer();_poll.Interval=TimeSpan.FromMilliseconds(750);_poll.Tick+=async(_,_)=>{if(_visible&&!_loading){if(_page=="Jobs")await PollJobs();else if(_page=="Models")await PollModelJobs();}};FormScroll.ViewChanged+=(_,_)=>{FormScrollEdge.Visibility=FormScroll.VerticalOffset>1?Visibility.Visible:Visibility.Collapsed;};FormScroll.GotFocus+=(_,e)=>{if(!_rebuildingForm&&e.OriginalSource is FrameworkElement element)element.StartBringIntoView(new BringIntoViewOptions{AnimationDesired=false,VerticalAlignmentRatio=.5});};SizeChanged+=(_,_)=>Layout();Body.SizeChanged+=(_,_)=>{if(_page=="Models")LayoutModels();};}
+ public ManagementView(){InitializeComponent();InitializeManagementLayout();var refresh=new Microsoft.UI.Xaml.Input.KeyboardAccelerator{Key=Windows.System.VirtualKey.F5};refresh.Invoked+=async(_,e)=>{if(_visible&&_page is "Jobs" or "Models"){e.Handled=true;await RefreshFromStart();}};KeyboardAccelerators.Add(refresh);var pane=new Microsoft.UI.Xaml.Input.KeyboardAccelerator{Key=Windows.System.VirtualKey.F6};pane.Invoked+=(_,e)=>{if(_visible&&_page=="Models"){e.Handled=true;var focus=Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(XamlRoot) as DependencyObject;bool cards=false;while(focus is not null){if(ReferenceEquals(focus,ModelCards)){cards=true;break;}focus=Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(focus);}if(cards)_rootChoice?.Focus(FocusState.Programmatic);else if(ReferenceEquals(Microsoft.UI.Xaml.Input.FocusManager.GetFocusedElement(XamlRoot),_rootChoice))_modelSearch?.Focus(FocusState.Programmatic);else if(ModelCards.ContainerFromIndex(Math.Max(0,ModelCards.SelectedIndex)) is Control item)item.Focus(FocusState.Programmatic);}};KeyboardAccelerators.Add(pane);_settingsGate.Content=_settingsFields;_poll=DispatcherQueue.CreateTimer();_poll.Interval=TimeSpan.FromMilliseconds(750);_poll.Tick+=async(_,_)=>{if(_visible&&!_loading){if(_page=="Jobs")await PollJobs();else if(_page=="Models")await PollModelJobs();}};FormScroll.GotFocus+=(_,e)=>{if(!_rebuildingForm&&e.OriginalSource is FrameworkElement element)element.StartBringIntoView(new BringIntoViewOptions{AnimationDesired=false,VerticalAlignmentRatio=.5});};SizeChanged+=(_,_)=>Layout();Body.SizeChanged+=(_,_)=>{if(_page=="Models")LayoutModels();};}
  public void Configure(double scale){_scale=scale;Status.FontSize=14*scale;ScopeText.FontSize=ReadIndicator.FontSize=12*scale;Resolve.FontSize=14*scale;}
  public void Bind(EngineClient client,string directory,ManagementState shared)
  {
@@ -61,7 +61,7 @@ public sealed partial class ManagementView:UserControl,IDisposable
   if(!same){_page=page;_sub="";_cursor=_next=null;_history.Clear();_query="";_labelState=null;}
   else if(page=="Models")AdoptModelSearchDraft();
   if(selection is not null){_selection=selection.Take(120).ToArray();_labelState=null;}
-  Invalidate();Actions.Visibility=Visibility.Visible;Actions.Children.Clear();if(page!="Models"||!same)ModelControls.Children.Clear();if(page!="Models")_modelButtons.Clear();ModelControlScroll.Visibility=page=="Models"?Visibility.Visible:Visibility.Collapsed;ClearForm();Records.ItemsSource=null;if(page=="Models"){BuildModelControls();Layout();}else Actions.Children.Add(Button("刷新","ManageRefresh",RefreshFromStart));Status.Text="正在读取资料…";ScopeText.Text=page=="Settings"?"":page=="Tags"?$"已选 {_selection.Length} 张":page=="Models"?"读取中":"读取中";_poll.Stop();if(page=="Jobs")_poll.Start();if(page=="Settings"&&_api is null){SettingsForm();Status.Text=SettingsConnectionFeedback?.Invoke()??"读取中";Layout();Notify();}else _ = RefreshPage();
+  Invalidate();Actions.Visibility=Visibility.Visible;Actions.Children.Clear();if(page!="Models"||!same)ModelControls.Children.Clear();if(page!="Models")_modelButtons.Clear();ModelControlScroll.Visibility=page=="Models"?Visibility.Visible:Visibility.Collapsed;ClearForm();Records.ItemsSource=null;if(page=="Models"){BuildModelControls();Layout();}else if(page=="Jobs")Actions.Children.Add(Button("刷新","ManageRefresh",RefreshFromStart));Status.Text="正在读取资料…";ScopeText.Text="";_poll.Stop();if(page=="Jobs")_poll.Start();if(page=="Settings"&&_api is null){SettingsForm();Status.Text=SettingsConnectionFeedback?.Invoke()??"读取中";Layout();Notify();}else _ = RefreshPage();
  }
  public void Hide(){_modelSearchTimer?.Stop();ResetModelCovers();_linkedProvider?.Pause();if(_token is not null)_token.Password="";_visible=false;Visibility=Visibility.Collapsed;_poll.Stop();Invalidate();}
  internal void SuspendForViewer(){_suspendedForViewer=true;Hide();}
@@ -137,13 +137,13 @@ public sealed partial class ManagementView:UserControl,IDisposable
   long gen=_generation;var api=_api??throw new InvalidOperationException();var token=_reads.Token;_reading++;ReadIndicator.Opacity=1;Notify();
   try{return await api.ReadAsync(section,args??new{},token);}finally{if(gen==_generation){_reading=Math.Max(0,_reading-1);ReadIndicator.Opacity=_reading>0?1:0;Notify();}}
  }
- private Task RefreshFromStart(){Invalidate();if(_page=="Models"){_cursor=_next=null;_history.Clear();}return RefreshPage();}
+ private Task RefreshFromStart(){Invalidate();if(_page=="Tags")_labelState=null;if(_page=="Models"){_cursor=_next=null;_history.Clear();}return RefreshPage();}
  private async Task<bool> RefreshPage()
  {
   if(_api is null||!_visible||_disposed||!_loads.TryRefresh())return false;long gen=_generation;_formLoading=true;_modelPageReset=false;Notify();
   try
   {
-   if(_page=="Tags") {var defs=await Read("tags");var vision=await Read("vision");if(gen!=_generation)return false;_definitions=Rows(defs);_vision=vision;}
+   if(_page=="Tags"&&!await ReadTags(gen))return false;
    if(_page=="Models") {var jobs=await Read("jobs");var roots=await Read("modelRoots");if(gen!=_generation)return false;var available=Rows(roots);if(_rootId.HasValue&&!available.Any(r=>N(r,"id")==_rootId)){_rootId=null;_cursor=_next=null;_history.Clear();}
     var models=await ReadModelPage();var cred=await Read("credential");if(gen!=_generation)return false;_roots=available;_jobs=Rows(jobs);_models=Rows(models.GetProperty("items"));_modelTotal=N(models,"total");_modelFacets=models.TryGetProperty("facets",out var facets)?facets.Clone():default;_next=models.TryGetProperty("next_cursor",out var next)&&next.ValueKind==JsonValueKind.String?next.GetString():null;_credential=cred;UpdateModelPolling();}
    if(_page=="Jobs"){var jobs=await Read("jobs");if(gen!=_generation)return false;var nextJobs=Rows(jobs);if(nextJobs.Any(j=>S(j,"status") is "completed" or "completed_with_errors"))LibraryChanged?.Invoke();_jobs=nextJobs;}
@@ -151,7 +151,7 @@ public sealed partial class ManagementView:UserControl,IDisposable
    if(gen==_generation){Build();if(_page=="Models"&&_modelPageReset)Status.Text="模型列表已更新，已回到第 1 页。";return true;}
   }
   catch(OperationCanceledException){}
-  catch(Exception){if(gen==_generation){Status.Text="资料读取失败，可点击刷新重试。";Notify();}}
+  catch(Exception){if(gen==_generation){Status.Text="资料读取失败";Notify();}}
   finally{_formLoading=false;_loads.Complete();if(_loads.RefreshPending&&_visible&&!_disposed)_=RefreshPage();else Notify();}
   return false;
  }
@@ -160,21 +160,17 @@ public sealed partial class ManagementView:UserControl,IDisposable
   _setting=true;try
   {
    bool modelDetails=_page=="Models"&&_modelInspector&&_sub.Length==0;var modelSelection=_page=="Models"?Records.SelectedItems.OfType<ManagementRow>().Select(row=>N(row.Value,"id")).ToHashSet():[];Actions.Visibility=Visibility.Visible;string? selected=(_page!="Models"||_modelInspector)&&Selected is{} old&&old.TryGetProperty("id",out var oldId)?oldId.ToString():null;Actions.Children.Clear();if(_page!="Models"){_modelButtons.Clear();ModelControls.Children.Clear();}ClearForm();_writes.RemoveAll(button=>!_modelButtons.Contains(button));
-   Actions.Children.Add(Button("刷新","ManageRefresh",RefreshFromStart));
-   ScopeText.Text=_page=="Settings"?"":_page=="Tags"?$"已选 {_selection.Length} 张":_page=="Models"?$"{_modelTotal} 个模型 · 第 {_history.Count+1} 页":$"{_jobs.Length} 个任务";
+   if(_page=="Jobs")Actions.Children.Add(Button("刷新","ManageRefresh",RefreshFromStart));
+   ScopeText.Text=_page is "Settings" or "Tags"?"":_page=="Models"?$"{_modelTotal} 个模型 · 第 {_history.Count+1} 页":$"{_jobs.Length} 个任务";
    JsonElement[] values=_page=="Settings"?[]:_page=="Tags"?_definitions:_page=="Models"?_models:_jobs;
    Records.SelectionMode=_page=="Models"?ListViewSelectionMode.Extended:ListViewSelectionMode.Single;
    Records.ItemTemplate=(DataTemplate)Resources[_page=="Models"?"ModelTemplate":"RecordTemplate"];
    if(_page=="Models")ResetModelCovers();
    Records.ItemsSource=values.Select(v=>new ManagementRow(v,_page=="Tags"?S(v,"name"):_page=="Models"?S(v,"name"):JobText(v),14*_scale){Name=S(v,"model_name").Length>0?S(v,"model_name"):S(v,"name"),Meta=_page=="Models"?ModelDimensions(v):ModelSize(N(v,"size")),State=ModelStatus(v),CoverStatus=CivitaiFeedback.CoverStatus(v)}).ToArray();
-   if(_page=="Tags"){
-    Actions.Children.Add(Button("新增类别","ManageTagNew",()=>{_newTag=true;_tagId=null;TagForm(null);Notify();return Task.CompletedTask;}));
-    Actions.Children.Add(Button("保存类别","ManageTagSave",SaveTag,true));
-    {Actions.Children.Add(Button("读取校正快照","ManageLabelPreview",LabelPreview,false,()=>_selection.Length>0));Actions.Children.Add(Button("确认","ManageConfirmTag",()=>ApplyLabel("include"),true,()=>_selection.Length>0&&_labelState is not null&&_tagId is not null&&_definitions.Any(d=>N(d,"id")==_tagId&&B(d,"enabled"))));Actions.Children.Add(Button("排除","ManageExcludeTag",()=>ApplyLabel("exclude"),true,()=>_selection.Length>0&&_labelState is not null&&_tagId is not null));Actions.Children.Add(Button("恢复自动","ManageAutoTag",()=>ApplyLabel("auto"),true,()=>_selection.Length>0&&_labelState is not null&&_tagId is not null));}
-    TagForm(_definitions.FirstOrDefault());}
+   if(_page=="Tags")BuildTagActions();
    else if(_page=="Models"){BuildModelControls();ModelsForm(null);}
    else if(_page=="Settings")SettingsForm();else JobsForm(null);
-   if(_page=="Models"){foreach(var row in Records.Items.OfType<ManagementRow>())if(modelSelection.Contains(N(row.Value,"id")))Records.SelectedItems.Add(row);}else if(values.Length>0)Records.SelectedIndex=Math.Max(0,Array.FindIndex(values,v=>v.GetProperty("id").ToString()==selected));
+   if(_page=="Models"){foreach(var row in Records.Items.OfType<ManagementRow>())if(modelSelection.Contains(N(row.Value,"id")))Records.SelectedItems.Add(row);}else if(values.Length>0)Records.SelectedIndex=Math.Max(0,Array.FindIndex(values,v=>v.GetProperty("id").ToString()==selected));else if(_page=="Tags")RenderTagForm(null);
    if(_page=="Models"){_modelInspector=modelDetails&&Records.SelectedItems.Count==1;UpdateModelEmpty();ResumeModelCovers();}
    StateChanged();Layout();
   }finally{_setting=false;}
@@ -185,34 +181,7 @@ public sealed partial class ManagementView:UserControl,IDisposable
  private static string JobState(JsonElement j)=>S(j,"status") switch{"queued"=>"等待中","running"=>"运行中","completed"=>"已完成","completed_with_errors"=>"部分失败","cancelled"=>"已取消","interrupted"=>"已中断","failed"=>"失败",_=>"状态未知"};
  private static string JobText(JsonElement j)=>JobTitle(j)+"\n"+JobState(j)+$" · {N(j,"processed")} / {N(j,"total")}";
  private void RecordChanged(object sender,SelectionChangedEventArgs e){if(_setting)return;if(_page=="Models"){if(_modelInspector&&_sub.Length==0&&Records.SelectedItems.Count==1&&Selected is{} model){Invalidate();RenderSelection(model);}else if(_modelInspector)_=CloseModelInspector();else Notify();return;}if(Selected is{} value){Invalidate();RenderSelection(value);}}
- private void RenderSelection(JsonElement value){if(_page=="Tags"){_newTag=false;_tagId=N(value,"id");TagForm(value);}else if(_page=="Models"){_modelInspector=true;ModelsForm(value);}else JobsForm(value);StateChanged();}
- private void TagForm(JsonElement? item)
- {
-  if(item is{} empty&&empty.ValueKind!=JsonValueKind.Object)item=null;
-  ClearForm();_tagId=item is{} v&&v.ValueKind==JsonValueKind.Object?N(v,"id"):null;
-  _name=Input("类别名称","ManageTagName",item is{} t?S(t,"name"):"",100);
-  _description=Input("标签描述","ManageTagDescription",item is{} d?S(d,"description"):"",500,true);
-
-  _threshold=new NumberBox{Value=item is{} f&&f.TryGetProperty("threshold",out var th)?th.GetDouble():.28,Minimum=.2,Maximum=.9,SmallChange=.01,FontSize=14*_scale,Header="相似度阈值（非概率）"};AutomationProperties.SetAutomationId(_threshold,"ManageTagThreshold");Fields.Children.Add(Text("相似度阈值（非概率）"));_threshold.Header=null;Fields.Children.Add(_threshold);
-  _enabled=new CheckBox{Content="启用类别",IsChecked=item is{} x?B(x,"enabled"):true,FontSize=14*_scale};AutomationProperties.SetAutomationId(_enabled,"ManageTagEnabled");Fields.Children.Add(_enabled);
-  Fields.Children.Add(Text($"人工校正 · {_selection.Length} 张图片",true));
-  if(_labelState is{} state){var tag=state.GetProperty("tags").EnumerateArray().FirstOrDefault(r=>N(r,"id")==_tagId);if(tag.ValueKind==JsonValueKind.Object)Fields.Children.Add(Text($"人工确认 {N(tag,"manual_count")} · 排除 {N(tag,"excluded_count")} · 有效 {N(tag,"effective_count")}；未操作类别保持原样。"));}
-  Fields.Children.Add(Text(_vision is{} status?S(status,"message"):"正在读取本机模型状态"));
-  Buttons(Button("下载公开识别模型","ManageInstallVision",()=>ConfirmTask("下载公开识别模型", "内容识别模型","vision.install",new{}),true,()=>_vision is{} status&&!B(status,"ready")&&B(status,"runtime_available")),Button("识别所选图片","ManageClassify",()=>ConfirmTask("本机内容识别",$"{_selection.Length} 张图片","vision.classify",new{ids=_selection}),true,()=>_selection.Length>0&&_vision is{} status&&B(status,"ready")&&_definitions.Any(d=>B(d,"enabled"))),Button("识别整个图库","ManageClassifyAll",()=>ConfirmTask("识别当前图库","全部图片","vision.classify",new{scope="all"}),true,()=>_vision is{} status&&B(status,"ready")&&_definitions.Any(d=>B(d,"enabled"))));
- }
- private async Task SaveTag()
- {
-  if(string.IsNullOrWhiteSpace(_name?.Text)){await Missing("请输入类别名称。");return;}
-  string description=_description?.Text.Trim()??"";
-  if(description.Length<5||description.Any(c=>c>127)||!description.Any(char.IsAsciiLetter)){await Missing("判定描述需要至少5个英文字符；类别名称可以使用中文。");return;}
-  if(_threshold is null||!double.IsFinite(_threshold.Value)||_threshold.Value<.2||_threshold.Value>.9){await Missing("相似度阈值应在0.20至0.90之间。");return;}
-  long gen=_generation;string savedName=_name!.Text.Trim();_labelState=null;
-  var defs=_definitions.Where(d=>N(d,"id")!=_tagId).Select(d=>JsonSerializer.Deserialize<Dictionary<string,object?>>(d.GetRawText())!).ToList();
-  defs.Add(new(){["id"]=_tagId,["name"]=_name!.Text,["description"]=_description!.Text,["threshold"]=_threshold!.Value,["enabled"]=_enabled!.IsChecked==true});
-  if(await Write("tags.save",new{definitions=defs})&&gen==_generation&&_visible&&_page=="Tags"){_newTag=false;_labelState=null;Records.SelectedItem=Records.Items.OfType<ManagementRow>().FirstOrDefault(r=>S(r.Value,"name")==savedName);}
- }
- private async Task LabelPreview(){if(_selection.Length==0){Status.Text="先在图库选择1至120张图片，再点击校正标签。";Notify();return;}long gen=_generation;var value=await Read("labels",new{ids=_selection});if(gen!=_generation)return;_labelState=value;TagForm(Selected);Status.Text="校正范围已读取；未点击的类别保持原样。";StateChanged();Notify();}
- private async Task ApplyLabel(string action){if(_selection.Length==0||_tagId is null||_labelState is null){Status.Text="请先选择类别并读取当前图片的校正快照。";Notify();return;}long gen=_generation;var snapshot=S(_labelState.Value,"snapshot_token");if(await Write("labels.apply",new{ids=_selection,changes=new[]{new{tag_id=_tagId.Value,action}},snapshot},false)&&gen==_generation&&_visible&&_page=="Tags"){_labelState=null;await LabelPreview();}}
+ private void RenderSelection(JsonElement value){if(_page=="Tags"){_newTag=false;RenderTagForm(value);}else if(_page=="Models"){_modelInspector=true;ModelsForm(value);}else JobsForm(value);StateChanged();}
  private async Task ConfirmTask(string title,string description,string action,object args){if(await Confirm(title,description))await Write(action,args);}
  private ContentDialog Confirmation(string title,string description)=>new(){Title=title,Content=description,PrimaryButtonText=title.Replace("预览",""),CloseButtonText="取消",XamlRoot=XamlRoot,RequestedTheme=RequestedTheme};
  private async Task<bool> Confirm(string title,string description){return await Confirmation(title,description).ShowAsync()==ContentDialogResult.Primary;}
@@ -268,6 +237,6 @@ public sealed partial class ManagementView:UserControl,IDisposable
   string id=_state is{} state?S(state.Result,"id"):"";await RefreshPage();
   if(generation==_generation&&_visible&&_page=="Jobs"&&id.Length>0)Records.SelectedItem=Records.Items.OfType<ManagementRow>().FirstOrDefault(row=>S(row.Value,"id")==id);
  }
- private void Layout(){if(_page=="Settings")_settingsFields.Width=Math.Max(0,Math.Min(420*_scale,Body.ActualWidth-Body.ColumnSpacing));ModelPager.Visibility=_page=="Models"?Visibility.Visible:Visibility.Collapsed;if(_page=="Models"){LayoutModels();return;}ModelCards.Visibility=ModelEmpty.Visibility=Visibility.Collapsed;FormScroll.Visibility=Visibility.Visible;Grid.SetRow(FormScrollEdge,_page!="Settings"&&ActualWidth<420?1:0);Grid.SetColumn(FormScrollEdge,_page!="Settings"&&ActualWidth<420?0:1);Grid.SetColumnSpan(FormScrollEdge,_page!="Settings"&&ActualWidth<420?2:1);Records.Visibility=_page=="Settings"?Visibility.Collapsed:Visibility.Visible;if(_page=="Settings"){ListColumn.Width=new(0);ListRow.Height=new(1,GridUnitType.Star);FormRow.Height=new(0);Grid.SetRow(FormScroll,0);Grid.SetColumn(FormScroll,1);Grid.SetColumnSpan(FormScroll,1);return;}bool compact=ActualWidth<420;ListColumn.Width=compact?new(1,GridUnitType.Star):new(Math.Clamp(ActualWidth*.36,180,_page=="Models"?340:230));ListRow.Height=compact?new(80):new(1,GridUnitType.Star);FormRow.Height=compact?new(1,GridUnitType.Star):new(0);Grid.SetRow(FormScroll,compact?1:0);Grid.SetColumn(FormScroll,compact?0:1);Grid.SetColumnSpan(Records,compact?2:1);Grid.SetColumnSpan(FormScroll,compact?2:1);}
+ private void Layout(){if(_page=="Settings")_settingsFields.Width=Math.Max(0,Math.Min(420*_scale,Body.ActualWidth-Body.ColumnSpacing));ModelPager.Visibility=_page=="Models"?Visibility.Visible:Visibility.Collapsed;if(_page=="Models"){LayoutModels();return;}ModelCards.Visibility=ModelEmpty.Visibility=Visibility.Collapsed;FormScroll.Visibility=Visibility.Visible;Records.Visibility=_page=="Settings"?Visibility.Collapsed:Visibility.Visible;if(_page=="Settings"){ListColumn.Width=new(0);ListRow.Height=new(1,GridUnitType.Star);FormRow.Height=new(0);Grid.SetRow(FormScroll,0);Grid.SetColumn(FormScroll,1);Grid.SetColumnSpan(FormScroll,1);return;}bool compact=ActualWidth<420;ListColumn.Width=compact?new(1,GridUnitType.Star):new(Math.Clamp(ActualWidth*.36,180,_page=="Models"?340:230));ListRow.Height=compact?new(80):new(1,GridUnitType.Star);FormRow.Height=compact?new(1,GridUnitType.Star):new(0);Grid.SetRow(FormScroll,compact?1:0);Grid.SetColumn(FormScroll,compact?0:1);Grid.SetColumnSpan(Records,compact?2:1);Grid.SetColumnSpan(FormScroll,compact?2:1);}
  public void Dispose(){if(_disposed)return;_disposed=true;Detach();_reads.Dispose();}
 }

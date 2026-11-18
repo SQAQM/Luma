@@ -17,6 +17,7 @@ public sealed partial class ShellView
   var checks=new List<object>();var frames=new List<object>();
   void Check(bool passed,string name)=>checks.Add(new{passed,name});
   static T? Element<T>(DependencyObject root,string id) where T:FrameworkElement{
+   if(root is UIElement{Visibility:Visibility.Collapsed})return null;
    if(root is T item&&AutomationProperties.GetAutomationId(item)==id)return item;
    for(int i=0;i<VisualTreeHelper.GetChildrenCount(root);i++)if(Element<T>(VisualTreeHelper.GetChild(root,i),id) is{} found)return found;
    return null;
@@ -56,6 +57,8 @@ public sealed partial class ShellView
    var tokenBounds=Bounds(token);var densityBounds=Bounds(density);Check(Math.Abs(tokenBounds.Left-densityBounds.Left)<1,"credential and preference fields share left edge");Check(Math.Abs(tokenBounds.Width-densityBounds.Width)<1,"credential and preference fields share width");
    token.StartBringIntoView(new BringIntoViewOptions{AnimationDesired=false,VerticalAlignmentRatio=.45});await Task.Delay(150);Changed?.Invoke();await capture();
    var registry=await Wait<Button>("ManageRegistry");registry.Focus(FocusState.Programmatic);await Task.Delay(150);var settingsScroll=await Wait<ScrollViewer>("ManageFormScroll");var rb=Bounds(registry);var sb=Bounds(settingsScroll);Check(rb.Top>=sb.Top&&rb.Bottom<=sb.Bottom,"lower settings action scrolls fully into view");
+   Check(Element<Button>(this,"ManageRefresh") is null&&Element<Button>(this,"SettingsStorage") is null,
+    "settings has no duplicate refresh or data navigation");
    string duplicateRoot=Path.Combine(directory+"-fixtures","duplicates");
    Directory.CreateDirectory(duplicateRoot);
    string first=Path.Combine(duplicateRoot,"sample-a.png"),second=Path.Combine(duplicateRoot,"sample-b.png");
@@ -73,6 +76,15 @@ public sealed partial class ShellView
    Check(Workspace.Background is SolidColorBrush body&&RailTint.Background is SolidColorBrush side&&
     ((body.Opacity<=.15&&side.Opacity<=.15)||(body.Opacity==1&&side.Opacity==1))&&Workspace.BorderThickness.Left==0,
     "navigation and workspace share the native material without a separate opaque frame");
+   UpdateLayout();
+   Check(Rail.BorderThickness==new Thickness(0)&&SettingsNavigation.Children.Count==1&&Element<Button>(this,"OpenImage") is null,
+    "sidebar has no divider or extra button next to Settings");
+   Check(_navigation.Values.All(button=>{
+    if(button.Content is not StackPanel label||label.ActualWidth<1)return false;
+    var b=Bounds(button);var c=Bounds(label);
+    return Math.Abs((b.Left+b.Right)-(c.Left+c.Right))<2&&
+     Services.DropdownLayout.Find<Border>(button,"GlassShine") is{Opacity:>0};
+   }),"all sidebar labels are centered in rectangular glass buttons");
    var draft=await Wait<Button>("FilesGenerate");Check(!draft.IsEnabled,"classification waits for a concrete destination and scope");
    await CaptureNamed("workspace-classification");
    await Files.VerifyClassificationUi(Check,directory);await CaptureNamed("workspace-rules");
@@ -83,9 +95,37 @@ public sealed partial class ShellView
    Navigate(WorkspacePage.Gallery);var gallerySearch=await Wait<TextBox>("GallerySearch");var gallerySort=await Wait<ComboBox>("GallerySort");Check(Math.Abs(gallerySearch.ActualHeight-gallerySort.ActualHeight)<1,"gallery search and sorting heights match");
    Check(gallerySearch.ActualHeight>=36,"input height is at least 36");await Task.Delay(150);await CaptureNamed("workspace-gallery");
    await LiveGallery.VerifyFilterPanelUi(Check,()=>CaptureNamed("workspace-filter"));
+   long selectedId=await LiveGallery.VerifyGalleryChromeUi(Check);
+   Navigate(WorkspacePage.Tags);await Wait<ListView>("ManageList");
+   await Management.VerifyTagsUi(Check,()=>CaptureNamed("workspace-tags"),selectedId);
   }catch(Exception error){checks.Add(new{passed=false,name="probe completed",error=error.GetType().Name+": "+error.Message});}
   bool passed=checks.All(c=>JsonSerializer.SerializeToElement(c).GetProperty("passed").GetBoolean());
   await File.WriteAllTextAsync(Path.Combine(directory,"ui-release-report.json"),JsonSerializer.Serialize(new{result=passed?"passed_native_release_ui":"failed_native_release_ui",checks,frames,scope="own fresh diagnostic profile and temporary control fixtures; intrinsic events and actual XAML Rendering samples; no OS click automation or user library"}));
+ }
+}
+
+public sealed partial class GalleryView
+{
+ internal async Task<long> VerifyGalleryChromeUi(Action<bool,string> check)
+ {
+  for(int i=0;i<120&&(_model?.Loading!=false||_tiles.Count==0);i++)await Task.Delay(50);
+  UpdateLayout();
+  check(PageButtons.Visibility==Visibility.Collapsed&&ToolbarActions.Children.Count==5,
+   "gallery uses one tool row and omits the pager for one page");
+  check(AutomationProperties.GetName(RefreshButton)=="刷新"&&RefreshButton.IsEnabled,
+   "idle gallery keeps one refresh slot and no abandoned cancel action");
+  if(_tiles.FirstOrDefault() is not{} tile||ActiveImages.ContainerFromItem(tile) is not ContentControl item)
+   throw new InvalidOperationException("Own synthetic gallery tile was not realized");
+  ShowImageMenu(item,tile,null);
+  try{
+   for(int i=0;i<40&&!_menu.IsOpen;i++)await Task.Delay(50);
+   check(SelectedImageIds().SequenceEqual(new long[]{tile.Item.Id}),"opening image actions preserves the selected image");
+   check(_menu.IsOpen,"selected image context menu opens");
+   check(_menu.Items.OfType<MenuFlyoutItem>().Count(command=>AutomationProperties.GetAutomationId(command) is "GalleryReread" or "GalleryLookupModels")==2,
+    "image metadata commands exist only once in the context menu");
+  }
+  finally{_menu.Hide();}
+  return tile.Item.Id;
  }
 }
 

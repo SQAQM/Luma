@@ -17,10 +17,8 @@
    <SolidColorBrush x:Key="LumaSurface" Color="#FFFFFF" />
    <SolidColorBrush x:Key="LumaSidebar" Color="#DCE2E7" />
    <SolidColorBrush x:Key="LumaWorkspace" Color="#F1F2F4" />
-   <SolidColorBrush x:Key="LumaFrameEdge" Color="#20566676" />
-   <SolidColorBrush x:Key="LumaNavFill" Color="#9CD9E5ED" />
+   <SolidColorBrush x:Key="LumaNavFill" Color="#A3BBD7EA" />
    <SolidColorBrush x:Key="LumaNavInk" Color="#204C72" />
-   <SolidColorBrush x:Key="LumaNavMarker" Color="#4D789C" />
    <SolidColorBrush x:Key="LumaViewerMatte" Color="#E9EDF2" />
    <SolidColorBrush x:Key="LumaViewerShell" Color="#F1F2F4" />
    <SolidColorBrush x:Key="LumaText" Color="#202329" />
@@ -82,10 +80,8 @@
    <SolidColorBrush x:Key="LumaSurface" Color="#202329" />
    <SolidColorBrush x:Key="LumaSidebar" Color="#20262D" />
    <SolidColorBrush x:Key="LumaWorkspace" Color="#191C20" />
-   <SolidColorBrush x:Key="LumaFrameEdge" Color="#4066788A" />
-   <SolidColorBrush x:Key="LumaNavFill" Color="#A63A4B5D" />
+   <SolidColorBrush x:Key="LumaNavFill" Color="#A746637A" />
    <SolidColorBrush x:Key="LumaNavInk" Color="#C2DDF2" />
-   <SolidColorBrush x:Key="LumaNavMarker" Color="#94BADA" />
    <SolidColorBrush x:Key="LumaViewerMatte" Color="#171A1E" />
    <SolidColorBrush x:Key="LumaViewerShell" Color="#191C20" />
    <SolidColorBrush x:Key="LumaText" Color="#F2F4F7" />
@@ -133,10 +129,8 @@
    <SolidColorBrush x:Key="LumaSurface" Color="{ThemeResource SystemColorWindowColor}" />
    <SolidColorBrush x:Key="LumaSidebar" Color="{ThemeResource SystemColorWindowColor}" />
    <SolidColorBrush x:Key="LumaWorkspace" Color="{ThemeResource SystemColorWindowColor}" />
-   <SolidColorBrush x:Key="LumaFrameEdge" Color="{ThemeResource SystemColorWindowTextColor}" />
    <SolidColorBrush x:Key="LumaNavFill" Color="{ThemeResource SystemColorHighlightColor}" />
    <SolidColorBrush x:Key="LumaNavInk" Color="{ThemeResource SystemColorHighlightTextColor}" />
-   <SolidColorBrush x:Key="LumaNavMarker" Color="{ThemeResource SystemColorHighlightTextColor}" />
    <SolidColorBrush x:Key="LumaViewerMatte" Color="{ThemeResource SystemColorWindowColor}" />
    <SolidColorBrush x:Key="LumaViewerShell" Color="{ThemeResource SystemColorWindowColor}" />
    <SolidColorBrush x:Key="LumaText" Color="{ThemeResource SystemColorWindowTextColor}" />

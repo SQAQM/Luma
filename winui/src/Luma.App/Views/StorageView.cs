@@ -19,6 +19,7 @@ public sealed class StorageView:UserControl
     private readonly TextBox _fullPath=new(){Header="完整路径",IsReadOnly=true,AcceptsReturn=true,TextWrapping=TextWrapping.Wrap,MaxHeight=92};
     private readonly TextBox _snapshot=new(){Header="备份目录",MaxLength=1024};
     private readonly List<Button> _buttons=[];
+    private readonly Button _disconnect;
     private string _profile="",_data="";private EngineSession? _engine;
     private SnapshotPlan? _backupPlan;private string? _cacheReview,_cacheReviewHash;
     private CancellationTokenSource? _cancel;private Task? _operation;
@@ -45,7 +46,9 @@ public sealed class StorageView:UserControl
         AutomationProperties.SetAutomationId(_fullPath,"StorageFullPath");AutomationProperties.SetName(_fullPath,"所选文件完整路径");
         Heading("位置");_body.Children.Add(_location);
 
-        Buttons(Add("断开图库","StorageDisconnect",async()=>{if(_engine is not null)await _engine.StopAsync();_status.Text="已断开";}));
+        _disconnect=Add("断开图库","StorageDisconnect",async()=>{if(_engine is not null)await _engine.StopAsync();_status.Text="已断开";});
+        _disconnect.IsEnabled=false;
+        Buttons(_disconnect);
         Heading("备份与还原");
 
         Buttons(Add("预览备份","StorageBackupPreview",async()=>{await Offline();ResetPlans();_backupPlan=await Task.Run(()=>ProfileSnapshots.Preview(_profile,Token));ShowFiles(_backupPlan.Files.Select(f=>f.RelativePath),_backupPlan.Source);_status.Text=$"备份预览：{_backupPlan.Files.Count}份记录，{Size(_backupPlan.Bytes)}";}),
@@ -82,8 +85,9 @@ public sealed class StorageView:UserControl
     {
         _profile=profile;_data=data;_engine=engine;
         _location.Text=data;AutomationProperties.SetAutomationId(_location,"StorageDataLocation");
-        _status.Text="";
+        _status.Text="";RefreshConnectionState();
     }
+    internal void RefreshConnectionState()=>_disconnect.IsEnabled=!Busy&&_engine?.CanStop==true;
     private CancellationToken Token=>_cancel?.Token??CancellationToken.None;
     private Task Offline()
     {
@@ -106,7 +110,6 @@ public sealed class StorageView:UserControl
         if(_engine is not null)_engine.RestartRequired=true;
     }
     private void Heading(string text)=>_body.Children.Add(new TextBlock{Text=text,Style=(Style)Application.Current.Resources["LumaHeading"],FontSize=20});
-    private void Note(string text)=>_body.Children.Add(new TextBlock{Text=text,TextWrapping=TextWrapping.Wrap,Style=(Style)Application.Current.Resources["LumaBody"]});
     private void Buttons(params Button[] buttons){var group=new TagChipPanel();foreach(var button in buttons)group.Children.Add(button);_body.Children.Add(group);}
     private Button Add(string label,string id,Func<Task> action)
     {
@@ -122,7 +125,7 @@ public sealed class StorageView:UserControl
         try{await action();}
         catch(OperationCanceledException){_status.Text="已取消";}
         catch(Exception error){_status.Text=error.Message switch{"storage_no_library"=>"尚未创建图库；先打开独立图库并导入目录，再进行备份。","storage_source_changed"=>"文件或预览已变化，请重新预览；本次不继续清理或切换。","storage_unowned_library"=>"目录格式错误","storage_space_low"=>"目标磁盘空间不足，备份或迁移未开始，原库保留。",_=>error is IOException&& !error.Message.StartsWith("storage_")?error.Message:"操作失败"};}
-        finally{Busy=false;if(_engine is not null)_engine.StorageBusy=false;foreach(var button in _buttons)button.IsEnabled=true;_snapshot.IsEnabled=true;_cancel.Dispose();_cancel=null;Changed?.Invoke();}
+        finally{Busy=false;if(_engine is not null)_engine.StorageBusy=false;foreach(var button in _buttons)button.IsEnabled=true;RefreshConnectionState();_snapshot.IsEnabled=true;_cancel.Dispose();_cancel=null;Changed?.Invoke();}
     }
     private async Task<bool> Confirm(string title,string message)
     {

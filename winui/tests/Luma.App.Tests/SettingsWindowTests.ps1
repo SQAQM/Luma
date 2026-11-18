@@ -34,7 +34,7 @@ try{
  Reach 'ManageApiToken';(Find 'ManageApiToken').GetCurrentPattern([Windows.Automation.ValuePattern]::Pattern).SetValue('synthetic-local-token-0123456789');Click 'ManageSaveCredential';Await {(State).workspace.management.credentialConfigured -and -not (State).workspace.management.writing} 'explicit synthetic session credential'
  Click 'ManageClearCredential';Await {-not (State).workspace.management.credentialConfigured -and -not (State).workspace.management.writing} 'clear synthetic credential'
  Reach 'ManagePreferenceCache';Check ((Find 'ManagePreferenceCache').GetCurrentPattern([Windows.Automation.RangeValuePattern]::Pattern).Current.Value -eq 128) 'settings quota persisted'
- Click 'SettingsStorage';Await {(State).page -eq 'Storage'} 'direct data tools'
+ Click 'NavStorage';Await {(State).page -eq 'Storage'} 'direct data tools'
  Click 'ClosePreview';Check ($process.WaitForExit(30000) -and $process.ExitCode -eq 0) 'safe close'
  @{result='passed';count=$checks;textScale=$TextScale;width=$Width;height=$Height;syntheticOnly=$true;networkUsed=$false;captureScope='own XAML only; not compositor proof'}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $output 'settings-window-report.json')
  Write-Output ('SETTINGS_WINDOW_PASSED '+$checks)

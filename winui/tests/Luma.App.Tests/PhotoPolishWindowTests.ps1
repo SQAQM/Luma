@@ -53,16 +53,16 @@ try {
  if($DumpTool){if((Get-Process -Id $process.Id).Path -ne [IO.Path]::GetFullPath($Executable)){throw 'Debugger must attach only this owned synthetic test executable'};$debugStart=[Diagnostics.ProcessStartInfo]::new([IO.Path]::GetFullPath($DumpTool));$debugStart.UseShellExecute=$false;$debugStart.WindowStyle='Hidden';$debugStart.CreateNoWindow=$true;$debugStart.RedirectStandardOutput=$true;$debugStart.RedirectStandardError=$true;foreach($argument in @('-accepteula','-nobanner','-ma','-e',[string]$process.Id,$out)){$debugStart.ArgumentList.Add($argument)};$monitor=[Diagnostics.Process]::Start($debugStart);$monitorOut=$monitor.StandardOutput.ReadToEndAsync();$monitorErr=$monitor.StandardError.ReadToEndAsync()}
  [PolishNative]::SetWindowPos($hwnd,[IntPtr]::Zero,0,0,$Width,$Height,0x14)|Out-Null
  Click 'GalleryOpen';Await {(Gallery).itemCount -eq 120 -and -not (Gallery).loading} 'synthetic gallery'
- SelectImage 1;Click 'GalleryClear';Await {-not (Gallery).loading -and (Gallery).itemCount -eq 120} 'reset'
- $action=Find 'GalleryEditTags';if($null -eq $action){$scroll=(Find 'GalleryToolbarScroll').GetCurrentPattern([Windows.Automation.ScrollPattern]::Pattern);if($scroll.Current.VerticallyScrollable){$scroll.SetScrollPercent(-1,100);Await {$null -ne (Find 'GalleryEditTags')} 'reset tools in scrolled toolbar'};$action=Find 'GalleryEditTags'};Check ($null -ne $action) 'selection actions remain present after clearing filters; narrow toolbar may scroll'
- if($Baseline){throw 'Expected baseline regression was not reproduced'}
- Check (-not $action.Current.IsEnabled) 'unselected edit disabled'
+ SelectImage 1;Click 'GalleryFilters'
+ Await {$null -ne (Find 'GalleryClear')} 'clear action in the filter panel'
  Check ((Find 'GalleryClear').Current.Name -eq '清除筛选') 'reset label says actual action'
+ [PolishNative]::SetForegroundWindow($hwnd)|Out-Null;Await {[PolishNative]::GetForegroundWindow() -eq $hwnd} 'own keyboard foreground';Key 0x1B
+ if($Baseline){throw 'Expected baseline regression was not reproduced'}
  Check ($null -eq (Find 'GalleryViewer')) 'redundant viewer button removed'
  Check ($null -eq (Find 'GalleryFolder')) 'duplicate folder button removed'
  Check ($null -ne (Find 'GalleryHeart1')) 'heart under image'
- SelectImage 1;(Find 'GalleryEditTags').SetFocus();Await {-not (Find 'GalleryEditTags').Current.IsOffscreen} 'selected actions reachable in scrolling toolbar';Check $true 'selection tools remain reachable';Click 'GalleryDetails';Click 'GalleryClear';Await {-not (Gallery).loading} 'clear from information'
- Check (-not (Gallery).inspectorVisible) 'clear from information returns to photos without trapping empty inspector'
+ SelectImage 1;Click 'NavTags';Await {(State).workspace.management.selectionCount -eq 1} 'Tags receives the gallery selection';Click 'NavGallery';SelectImage 1;Click 'GalleryDetails';Click 'GalleryDetails'
+ Check (-not (Gallery).inspectorVisible) 'closing information returns to photos'
  SelectImage 1;Click 'GalleryHeart1';Await {(Gallery).currentFavorite -and -not (Gallery).annotationWriting} 'favorite saved'
  [PolishNative]::SetForegroundWindow($hwnd)|Out-Null;Await {[PolishNative]::GetForegroundWindow() -eq $hwnd} 'own keyboard foreground';(Find 'GalleryStar1_4').SetFocus();Key 0x0D
  Await {(Gallery).currentRating -eq 4 -or (Viewer).open} 'keyboard star action'

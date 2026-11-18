@@ -112,16 +112,14 @@ public sealed partial class FilesView
   _execute=Button("确认并执行","FilesExecute",Execute,true);Actions.Children.Add(_execute);
   _next=Button("下一页","FilesNext",NextPage);PageActions.Children.Add(_next);
 
-  var options=Button("记录与路径","FilesReviewOptions",()=>Task.CompletedTask);
+  var options=Button("记录","FilesReviewOptions",()=>Task.CompletedTask);
   var menu=new MenuFlyout();
   var recent=Rows(_stateData.GetProperty("reviews")).Where(r=>MatchesMode(S(r,"kind"))).ToArray();
-  var paths=MenuItem("查看完整路径","FilesTogglePaths",()=>ShowEntryPaths(_selectedEntry));
   var back=MenuItem("返回重复组","FilesReturnResults",ReturnToResults);
   var discard=MenuItem("作废预览","FilesDiscard",Discard,true);
-  menu.Items.Add(paths);menu.Items.Add(back);menu.Items.Add(discard);
+  menu.Items.Add(back);menu.Items.Add(discard);
   var refresh=MenuItem("刷新记录","FilesRefresh",()=>CanRefreshRecords?LoadPage():Task.CompletedTask);
   menu.Items.Add(refresh);
-  menu.Items.Add(MenuItem("打开任务中心","FilesJobs",()=>{JobsRequested?.Invoke();return Task.CompletedTask;}));
   if(recent.Length>0)menu.Items.Add(new MenuFlyoutSeparator());
   for(int i=0;i<recent.Length;i++)
   {
@@ -131,7 +129,6 @@ public sealed partial class FilesView
   }
   menu.Opening+=(_,_)=>
   {
-   paths.Visibility=_selectedEntry is not null?Visibility.Visible:Visibility.Collapsed;
    back.Visibility=ShowingReview?Visibility.Visible:Visibility.Collapsed;
    discard.Visibility=_review.Review is{State:"ready"}?Visibility.Visible:Visibility.Collapsed;
    discard.IsEnabled=CanWrite;

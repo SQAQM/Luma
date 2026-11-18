@@ -11,7 +11,6 @@ public sealed partial class ManagementView
   if(_api is null){var connect=Button("连接本地服务","SettingsOpenLibrary",()=>{OpenSettingsLibraryRequested?.Invoke();return Task.CompletedTask;});connect.IsEnabled=CanSettingsConnect?.Invoke()!=false;Buttons(connect);Fields.Children.Add(Text(SettingsConnectionFeedback?.Invoke()??""));}
   else{PreferencesForm();Buttons(Button("保存图库偏好","ManageSavePreferences",SavePreferences,true));CivitaiForm();}
   Fields.Children.Add(Text("模型",true));Buttons(Button("模型规则","ManageRegistry",RegistryForm));Fields.Children.Add(Text("匹配"));Buttons(Button("重新匹配","ManageReclassify",()=>ConfirmTask("重新匹配","全部图片","models.reclassify",new{scope="all"}),true),Button("更新关联","ManageRebuildLinks",()=>ConfirmTask("更新关联","全部图片","models.rebuild",new{}),true));
-  Fields.Children.Add(Text("数据与空间",true));Buttons(Button("管理备份与缓存","SettingsStorage",()=>{StorageRequested?.Invoke();return Task.CompletedTask;}));
  }
  private void CivitaiForm()
  {

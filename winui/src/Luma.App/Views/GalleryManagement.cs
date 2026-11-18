@@ -9,11 +9,8 @@ namespace Luma.Preview.Views;
 public sealed partial class GalleryView
 {
  internal nint WindowHandle{get;set;}
- public event Action<long[]>? EditTagsRequested;
  private ManagementState? _management;
- private Button? _rereadButton,_editTagsButton,_lookupModelsButton;
  private bool _annotationWriting;
- private TagChipPanel? _selectionActions;
  private long[] SelectedImageIds()=>_model?.SelectedIds.ToArray()??[];
  private Button ManageButton(string label,string id,Func<Task> action)
  {
@@ -22,24 +19,56 @@ public sealed partial class GalleryView
  }
  private void AddManagementControls()
  {
-  var panel=ToolbarActions;_selectionActions=panel;
   var import=ManageButton("添加目录","GalleryImport",async()=>{var picker=new Microsoft.Windows.Storage.Pickers.FolderPicker(Microsoft.UI.Win32Interop.GetWindowIdFromWindow(WindowHandle)){CommitButtonText="添加"};var result=await picker.PickSingleFolderAsync();if(result is not null)await Submit("catalog.import",new{path=result.Path,recursive=true},false);else{Feedback.Text="已取消添加。";Changed?.Invoke();}});import.Style=(Style)Application.Current.Resources["LumaPrimaryButton"];SearchRow.ColumnDefinitions.Add(new ColumnDefinition{Width=GridLength.Auto});Grid.SetColumn(import,2);SearchRow.Children.Add(import);
-  _editTagsButton=ManageButton("校正标签","GalleryEditTags",()=>{EditTagsRequested?.Invoke(SelectedImageIds());return Task.CompletedTask;});panel.Children.Add(_editTagsButton);
-  _rereadButton=ManageButton("重读生成信息","GalleryReread",async()=>{var ids=SelectedImageIds();if(await ConfirmManage("重新读取生成信息",$"{ids.Length} 张图片"))await Submit("metadata.refresh",new{ids},false);});panel.Children.Add(_rereadButton);
-  _lookupModelsButton=ManageButton("从 Civitai 查模型","GalleryLookupModels",async()=>{var ids=SelectedImageIds();if(ids.Length>60){Feedback.Text="每次模型查询最多60张，请缩小选择。";Changed?.Invoke();return;}if(await ConfirmManage("Civitai模型查询",$"{ids.Length} 张图片"))await Submit("models.lookup",new{ids},false);});panel.Children.Add(_lookupModelsButton);
   AllowDrop=true;DragOver+=(_,e)=>{if(e.DataView.Contains(StandardDataFormats.StorageItems))e.AcceptedOperation=DataPackageOperation.Copy;};Drop+=async(_,e)=>{var deferral=e.GetDeferral();try{if(!e.DataView.Contains(StandardDataFormats.StorageItems))return;var items=await e.DataView.GetStorageItemsAsync();if(items.Count==1&&items[0] is Windows.Storage.StorageFolder folder){await Submit("catalog.import",new{path=folder.Path,recursive=true},false);}else{Feedback.Text="请拖入一个目录。";Changed?.Invoke();}}catch(Exception){Feedback.Text="无法接收目录，请使用添加目录。";Changed?.Invoke();}finally{deferral.Complete();}};
  }
+ private void AddImageMenuCommands()
+ {
+  MenuFlyoutItem Item(string label,string id,Func<long[],Task> action)
+  {
+   var item=new MenuFlyoutItem{Text=label};
+   AutomationProperties.SetAutomationId(item,id);
+   item.Click+=async(_,_)=>{
+    var ids=SelectedImageIds();
+    if(!_active||!CanManageImages||ids.Length==0)return;
+    try{await action(ids);}
+    catch(Exception){if(_active){Feedback.Text="操作失败";Changed?.Invoke();}}
+   };
+   return item;
+  }
+  var reread=Item("重读生成信息","GalleryReread",async ids=>{
+   if(await ConfirmManage("重读生成信息",$"{ids.Length} 张图片"))await Submit("metadata.refresh",new{ids},false);
+  });
+  var lookup=Item("从 Civitai 查模型","GalleryLookupModels",async ids=>{
+   if(ids.Length<=60&&await ConfirmManage("从 Civitai 查模型",$"{ids.Length} 张图片"))await Submit("models.lookup",new{ids},false);
+  });
+  _menu.Items.Add(new MenuFlyoutSeparator());
+  _menu.Items.Add(reread);
+  _menu.Items.Add(lookup);
+  _menu.Opening+=(_,_)=>{
+   int count=SelectedImageIds().Length;
+   reread.IsEnabled=CanManageImages&&count>0;
+   lookup.IsEnabled=CanManageImages&&count is >0 and <=60;
+  };
+ }
+ private bool CanManageImages=>_management is{Writing:false,Uncertain:false}&&!_annotationWriting&&!_catalogReloading;
  private void UpdateManagement()
  {
-  bool writable=_management is{Writing:false,Uncertain:false}&&!_annotationWriting&&!_catalogReloading;
-  bool selected=SelectedImageIds().Length>0;bool enabled=writable&&selected;
-  if(_selectionActions is not null)_selectionActions.Visibility=Visibility.Visible;
-  ManagementActions.Visibility=Visibility.Collapsed;
+  bool writable=CanManageImages;
   foreach(var tile in _tiles)tile.CanEdit=writable;
-  foreach(var b in new[]{_rereadButton,_editTagsButton,_lookupModelsButton})if(b is not null){b.IsEnabled=enabled;ToolTipService.SetToolTip(b,selected?b.Content:"先选择图片");}
-  if(_lookupModelsButton is not null)_lookupModelsButton.IsEnabled=enabled&&SelectedImageIds().Length<=60;
-  CancelButton.IsEnabled=_model?.Loading==true||_galleryJob.CanCancel;CancelButton.Content="取消";ToolTipService.SetToolTip(CancelButton,_galleryJob.CanCancel?"取消正在处理的后台操作":"取消图片列表加载");
-  Next.IsEnabled=!_annotationWriting&&!_catalogReloading&&_model?.CanNext==true;Previous.IsEnabled=!_annotationWriting&&!_catalogReloading&&_model?.CanPrevious==true;
+  UpdateNavigationControls();
+ }
+ private void UpdateNavigationControls()
+ {
+  bool canCancel=_model?.Loading==true||_galleryJob.CanCancel;
+  string label=_galleryJob.CanCancel?"取消图像任务":canCancel?"取消加载":"刷新";
+  RefreshIcon.Glyph=canCancel?"\uE711":"\uE72C";
+  AutomationProperties.SetName(RefreshButton,label);
+  ToolTipService.SetToolTip(RefreshButton,label);
+  bool paging=!_annotationWriting&&!_catalogReloading;
+  First.IsEnabled=Previous.IsEnabled=paging&&_model?.CanPrevious==true;
+  Next.IsEnabled=paging&&_model?.CanNext==true;
+  if(_model?.Loading!=true)PageButtons.Visibility=_model?.CanPrevious==true||_model?.CanNext==true?Visibility.Visible:Visibility.Collapsed;
  }
  private async Task<bool> ConfirmManage(string title,string body){var dialog=new ContentDialog{Title=title,Content=body,PrimaryButtonText=title.Replace("预览",""),CloseButtonText="取消",XamlRoot=XamlRoot};return await dialog.ShowAsync()==ContentDialogResult.Primary;}
  private async Task Submit(string action,object args,bool reload=true)

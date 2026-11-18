@@ -49,7 +49,6 @@
    </GridView>
    <StackPanel x:Name="ModelEmpty" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="360" Spacing="10" Visibility="Collapsed"><FontIcon Glyph="&#xE8B7;" FontSize="32" Foreground="{ThemeResource LumaSecondary}"/><TextBlock x:Name="ModelEmptyTitle" Style="{StaticResource LumaHeading}" TextAlignment="Center" TextWrapping="Wrap" AutomationProperties.AutomationId="ManageModelEmpty"/><TextBlock x:Name="ModelEmptyNote" Style="{StaticResource LumaCaption}" TextAlignment="Center" TextWrapping="Wrap"/></StackPanel>
    <ScrollViewer x:Name="FormScroll" Grid.Column="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" AutomationProperties.AutomationId="ManageFormScroll"><StackPanel x:Name="Form" Spacing="12"/></ScrollViewer>
-   <Border x:Name="FormScrollEdge" Grid.Column="1" VerticalAlignment="Top" Height="1" Background="{ThemeResource LumaStroke}" Visibility="Collapsed" IsHitTestVisible="False"/>
   </Grid>
   <StackPanel x:Name="StatusHost" Grid.Row="3" Spacing="6" Margin="0,8,0,0" Visibility="Collapsed"><TextBlock x:Name="Status" TextWrapping="Wrap" Style="{StaticResource LumaBody}" AutomationProperties.AutomationId="ManageStatus"/><Button x:Name="Resolve" Content="核对上次操作状态" Click="ResolveClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="ManageResolve" Visibility="Collapsed"/></StackPanel>
  </Grid>

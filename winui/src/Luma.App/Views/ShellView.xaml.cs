@@ -1,5 +1,4 @@
 using Luma.Preview.ViewModels;
-using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
@@ -33,7 +32,6 @@ public sealed partial class ShellView : UserControl, IDisposable
     public event Action? OpenFileRequested;
     private Luma.Core.Engine.EngineClient? _singlePresented;
     internal bool FileWindowMode{get;set;}
-    private void OpenImageClicked(object sender,RoutedEventArgs e)=>OpenFileRequested?.Invoke();
     private Services.EngineSession? _engine;
     private readonly ViewerView _viewer=new();
     private readonly StorageView _storage=new(){Visibility=Visibility.Collapsed};
@@ -101,7 +99,7 @@ public sealed partial class ShellView : UserControl, IDisposable
     {
         InitializationPhase = "shell_xaml";
         InitializeComponent();
-        RailContent.Children.Remove(Preferences);Management.AppearanceContent=Preferences;Management.SettingsConnectionFeedback=()=>_engine?.Feedback??"外观即时生效。";Management.CanSettingsConnect=()=>_engine?.CanConnect==true;Management.OpenSettingsLibraryRequested+=()=>_engine?.OpenServices();Management.StorageRequested+=()=>Navigate(WorkspacePage.Storage);
+        RailContent.Children.Remove(Preferences);Management.AppearanceContent=Preferences;Management.SettingsConnectionFeedback=()=>_engine?.Feedback??"";Management.CanSettingsConnect=()=>_engine?.CanConnect==true;Management.OpenSettingsLibraryRequested+=()=>_engine?.OpenServices();
         Grid.SetRowSpan(_viewer,2);Grid.SetColumnSpan(_viewer,2);ShellRoot.Children.Add(_viewer);
         _viewer.Changed+=()=>{if(!_disposed)Changed?.Invoke();};
         _viewer.AnnotationChanged+=()=>LiveGallery.MarkAnnotationsDirty();
@@ -116,22 +114,18 @@ public sealed partial class ShellView : UserControl, IDisposable
         Management.PreferencesChanged+=ApplySharedPreferences;
 
         Management.OpenViewerRequested+=(item,filters)=>{if(_engine?.Client is not{} client||_engine.DataDirectory is not{} data)return;Management.SuspendForViewer();LiveGallery.SetActive(false);Rail.Visibility=Visibility.Collapsed;Workspace.Visibility=Visibility.Collapsed;_viewer.Open(client,data,item,filters,_diagnostics);};
-        LiveGallery.EditTagsRequested+=ids=>{Navigate(WorkspacePage.Tags);Management.ShowPage("Tags",ids);};
         InitializationPhase = "shell_navigation";
         foreach (var page in Enum.GetValues<WorkspacePage>())
         {
-            var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+            var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
             label.Children.Add(new FontIcon { Glyph = Icons[(int)page], FontSize = 16 });
             label.Children.Add(new TextBlock { Text = Names[(int)page], VerticalAlignment = VerticalAlignment.Center });
-            var mark = new Border { Width = 2, Height = 16, CornerRadius = new CornerRadius(1), Margin = new Thickness(-9,0,0,0),
-                HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center, Visibility = Visibility.Collapsed, IsHitTestVisible = false };
-            var content = new Grid();
-            content.Children.Add(mark); content.Children.Add(label);
-            var button = new Button { Content = content, Style = (Style)ResourcesOrApp("LumaNav"), Tag = page };
+            var button = new Button { Content = label, Style = (Style)ResourcesOrApp("LumaRailButton"), Tag = page };
             AutomationProperties.SetAutomationId(button, "Nav" + page);
             AutomationProperties.SetName(button, Names[(int)page]);
             button.Click += (_, _) => Navigate(page);
-            _navigation.Add(page, button);if(page==WorkspacePage.Settings){button.MinHeight=36;button.Padding=new Thickness(8,6,4,6);SettingsNavigation.Children.Add(button);}else Navigation.Children.Add(button);
+            _navigation.Add(page, button);
+            (page==WorkspacePage.Settings?SettingsNavigation:Navigation).Children.Add(button);
             var shortcut = new KeyboardAccelerator { Key = (VirtualKey)((int)VirtualKey.Number1 + (int)page), Modifiers = VirtualKeyModifiers.Control };
             shortcut.Invoked += (_, e) => { Navigate(page); e.Handled = true; }; KeyboardAccelerators.Add(shortcut);
         }
@@ -156,7 +150,7 @@ public sealed partial class ShellView : UserControl, IDisposable
     {
         _scale = textScale / 100.0;
         if(layout!="Top")RailColumn.Width=new GridLength(_scale>1?140:126);
-        RailContent.Padding=new Thickness(10,12,10,12);FooterActions.ColumnSpacing=4;
+        RailContent.Padding=new Thickness(10,12,10,12);
         LiveGallery.Configure(_scale,_diagnostics);
         Management.Configure(_scale);Files.Configure(_scale,_diagnostics);Management.SetDiagnostics(_diagnostics);
         _viewer.Configure(_scale);_viewer.SetMediaReducedMotion(Reduced);
@@ -171,11 +165,12 @@ public sealed partial class ShellView : UserControl, IDisposable
             Navigation.Orientation = Orientation.Horizontal;
             // Exploration-only composition: all six destinations remain peers.
             NavigationScroll.Content = null;
-            RailContent.Children.Remove(FooterActions);
+            RailContent.Children.Remove(SettingsNavigation);
+            Grid.SetRow(SettingsNavigation,0);
             SettingsNavigation.Orientation=Orientation.Horizontal;
             var top = new Grid { RowSpacing = 12, Padding = new Thickness(16,8,16,8) };
             top.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); top.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            top.Children.Add(FooterActions); Grid.SetRow(Navigation, 1); top.Children.Add(Navigation); RailHost.Children.Remove(RailContent);RailHost.Children.Add(top);
+            top.Children.Add(SettingsNavigation); Grid.SetRow(Navigation, 1); top.Children.Add(Navigation); RailHost.Children.Remove(RailContent);RailHost.Children.Add(top);
         }
         Render(); UpdateThemeButtons();
     }
@@ -221,13 +216,9 @@ public sealed partial class ShellView : UserControl, IDisposable
             foreach (var pair in _navigation)
             {
                 bool selected = pair.Key == _model.Page;
-                pair.Value.Background = selected ? Brush("LumaNavFill") : new SolidColorBrush(Colors.Transparent);
+                if(selected)pair.Value.Background=Brush("LumaNavFill");
+                else pair.Value.ClearValue(Control.BackgroundProperty);
                 pair.Value.Foreground = selected ? Brush("LumaNavInk") : Brush("LumaText");
-                if(pair.Value.Content is Grid { Children.Count: > 0 } content&&content.Children[0] is Border mark)
-                {
-                    mark.Background=Brush("LumaNavMarker");
-                    mark.Visibility=selected?Visibility.Visible:Visibility.Collapsed;
-                }
                 AutomationProperties.SetItemStatus(pair.Value, selected ? "当前页面" : "");
             }
             bool live = _model.Page==WorkspacePage.Gallery && _model.Current.Mode==PreviewState.Sample && _engine?.Connected==true && _engine.IsGallery;
@@ -235,9 +226,10 @@ public sealed partial class ShellView : UserControl, IDisposable
             if(fileManaged){if(!Files.IsShowing(Page))Files.ShowPage(Page,LiveGallery.SelectedIds);}else Files.Hide();
             bool managed=_model.Page==WorkspacePage.Settings||(_engine?.Connected==true&&_model.Current.Mode==PreviewState.Sample&&_model.Page is WorkspacePage.Models or WorkspacePage.Tags or WorkspacePage.Jobs);
             bool suspendedModelViewer=_viewer.IsOpen&&Management.IsSuspendedForViewer;
-            if(managed){Management.CurrentTheme=_theme;Management.CurrentReducedMotion=ReduceMotionPreference;Management.CurrentSort=LiveGallery.CurrentSort;if(!suspendedModelViewer&&!Management.IsShowing(Page))Management.ShowPage(Page);ScopeNote.Text="本机管理";}else {ScopeNote.Text="本机图片与模型";if(!suspendedModelViewer)Management.Hide();}
+            if(managed){Management.CurrentTheme=_theme;Management.CurrentReducedMotion=ReduceMotionPreference;Management.CurrentSort=LiveGallery.CurrentSort;if(!suspendedModelViewer&&!Management.IsShowing(Page))Management.ShowPage(Page,_model.Page==WorkspacePage.Tags?LiveGallery.SelectedIds:null);ScopeNote.Text="本机管理";}else {ScopeNote.Text="本机图片与模型";if(!suspendedModelViewer)Management.Hide();}
             bool storage=_model.Page==WorkspacePage.Storage;
             _storage.Visibility=storage?Visibility.Visible:Visibility.Collapsed;
+            if(storage)_storage.RefreshConnectionState();
             bool managedSurface=managed||fileManaged||storage;
             bool welcome=!live&&!managedSurface;
             Grid.SetRow(Footer,managedSurface||live?0:2);Feedback.Visibility=managedSurface||live?Visibility.Collapsed:Visibility.Visible;

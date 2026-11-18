@@ -69,7 +69,8 @@ public sealed partial class GalleryView:UserControl,IDisposable
         foreach(var name in _sortNames)SortBox.Items.Add(name);SortBox.SelectedIndex=0;
         foreach(var pair in new[]{("打开原图","open"),("所在位置","select"),("复制路径","copy")})
         {var item=new MenuFlyoutItem{Text=pair.Item1,Tag=pair.Item2};item.Click+=(_,_)=>RunFile((string)item.Tag);_menu.Items.Add(item);}
-        Images.ContextFlyout=_menu;Images.AddHandler(UIElement.RightTappedEvent,new RightTappedEventHandler(ImageRightTapped),true);Rows.ContextFlyout=_menu;Rows.AddHandler(UIElement.RightTappedEvent,new RightTappedEventHandler(ImageRightTapped),true);
+        AddImageMenuCommands();
+        Images.ContextRequested+=ImageContextRequested;Rows.ContextRequested+=ImageContextRequested;
         SizeChanged+=(_,_)=>Layout();
         ImagesPanel.SizeChanged+=(_,_)=>Layout();Images.Loaded+=(_,_)=>Layout();
         ToolbarActions.SizeChanged+=(_,_)=>Layout();
@@ -80,7 +81,7 @@ public sealed partial class GalleryView:UserControl,IDisposable
     {
         _scale=scale;_shell=new(diagnostics);
         DetailName.FontSize=Message.FontSize=14*scale;ModelText.FontSize=Feedback.FontSize=Count.FontSize=12*scale;
-        PromptText.FontSize=NegativeText.FontSize=14*scale;ScaleManagement(ManagementActions);ScaleFilters();
+        PromptText.FontSize=NegativeText.FontSize=14*scale;ScaleManagement(SearchRow);ScaleFilters();
     }
     internal async void Bind(EngineClient client,string data,Luma.Core.Management.ManagementState shared)
     {
@@ -126,8 +127,10 @@ public sealed partial class GalleryView:UserControl,IDisposable
                 if(ThumbnailPressure&&!_pressureStarted&&_shown.Count>0&&_client is not null){_pressureStarted=true;for(int i=0;i<14;i++)_=HoldLane(_client);}
                 _shownGeneration=_model.Generation;UpdateManagement();
             }
-            Previous.IsEnabled=!_annotationWriting&&!_catalogReloading&&_model.CanPrevious;Next.IsEnabled=!_annotationWriting&&!_catalogReloading&&_model.CanNext;CancelButton.IsEnabled=_model.Loading||_galleryJob.CanCancel;
-            Count.Text=$"{_model.Total:N0} 项 · 第 {_model.PageNumber} 页 · 已选 {_model.SelectedIds.Count}";
+            UpdateNavigationControls();
+            string page=PageButtons.Visibility==Visibility.Visible?$" · 第 {_model.PageNumber} 页":"";
+            string selection=_model.SelectedIds.Count>0?$" · 已选 {_model.SelectedIds.Count}":"";
+            Count.Text=$"{_model.Total:N0} 项{page}{selection}";
             ToolTipService.SetToolTip(Count,$"本页 {_model.Items.Count} 项，当前范围共 {_model.Total:N0} 项");
             bool loading=_model.Loading||_catalogReloading;Images.IsEnabled=Rows.IsEnabled=!_catalogReloading;
             Ring.IsActive=loading;Ring.Visibility=loading?Visibility.Visible:Visibility.Collapsed;
@@ -162,7 +165,6 @@ public sealed partial class GalleryView:UserControl,IDisposable
         ToolbarScroll.MaxHeight=Math.Max(toolRow,Math.Floor((budget+8)/(toolRow+8))*(toolRow+8)-8);
         bool wide=ActualWidth>=880;bool inspector=_inspector;
         SearchRow.Visibility=Pagination.Visibility=RootsBox.Visibility=Visibility.Visible;
-        CancelButton.Visibility=Visibility.Visible;
         Inspector.Visibility=inspector?Visibility.Visible:Visibility.Collapsed;
         ImagesPanel.Visibility=wide||!inspector?Visibility.Visible:Visibility.Collapsed;
         InspectorColumn.Width=inspector&&wide?new GridLength(320):new GridLength(0);
@@ -190,16 +192,27 @@ public sealed partial class GalleryView:UserControl,IDisposable
         _model.SetSelection(ActiveImages.SelectedItems.OfType<GalleryTile>().Select(t=>t.Item.Id));
         var tile=e.AddedItems.OfType<GalleryTile>().LastOrDefault()??ActiveImages.SelectedItems.OfType<GalleryTile>().LastOrDefault();_=_model.SelectAsync(tile?.Item);
     }
-    private void ImageRightTapped(object sender,RightTappedRoutedEventArgs e)
+    private void ImageContextRequested(UIElement sender,ContextRequestedEventArgs e)
     {
-        for(var node=e.OriginalSource as DependencyObject;node is not null;node=VisualTreeHelper.GetParent(node))
+        if(!_active||_model is null||!ReferenceEquals(sender,ActiveImages))return;
+        var source=e.OriginalSource as DependencyObject;
+        if(ReferenceEquals(source,sender)&&!e.TryGetPosition(sender,out _))
+            source=FocusManager.GetFocusedElement(XamlRoot) as DependencyObject;
+        for(var node=source;node is not null&&!ReferenceEquals(node,sender);node=VisualTreeHelper.GetParent(node))
         {
-            GalleryTile? tile=node is ContentControl container&&container.Content is GalleryTile content?content:node is FrameworkElement element?element.DataContext as GalleryTile:null;
-            if(tile is null)continue;
-            if(!ActiveImages.SelectedItems.Contains(tile))ActiveImages.SelectedItem=tile;
-            else if(_model?.Current?.Id!=tile.Item.Id)_=_model?.SelectAsync(tile.Item);
+            if(node is not ContentControl container||container.Content is not GalleryTile tile||
+                !ReferenceEquals(ActiveImages.ContainerFromItem(tile),container))continue;
+            e.Handled=true;
+            ShowImageMenu(container,tile,e.TryGetPosition(container,out var position)?position:null);
             break;
         }
+    }
+    private void ShowImageMenu(ContentControl container,GalleryTile tile,Windows.Foundation.Point? position)
+    {
+        if(!ActiveImages.SelectedItems.Contains(tile))ActiveImages.SelectedItem=tile;
+        else if(_model is{} model&&model.Current?.Id!=tile.Item.Id)_=model.SelectAsync(tile.Item);
+        if(position is{} point)_menu.ShowAt(container,point);
+        else _menu.ShowAt(container);
     }
     private void ViewClicked(object sender,RoutedEventArgs e)
     {
@@ -227,8 +240,12 @@ public sealed partial class GalleryView:UserControl,IDisposable
     private void ChangeScope(){if(_model is null||!_active)return;_searchTimer.Stop();_reloadVersion++;_catalogReloading=false;_catalogDirty=false;Feedback.Text="";UpdateFilterSummary();_=_model.ChangeScopeAsync(SearchBox.Text,_sortKeys[Math.Max(0,SortBox.SelectedIndex)],_tag,_rootIds.ElementAtOrDefault(RootsBox.SelectedIndex),_wanted["model"],_wanted["format"],_wanted["artist"],_wanted["prompt"]);}
     private void DetailsClicked(object sender,RoutedEventArgs e){_inspector=!_inspector;Layout();Changed?.Invoke();}
     internal void FocusSearch(){if(!_active)return;_inspector=false;Layout();SearchBox.Focus(FocusState.Keyboard);Changed?.Invoke();}
-    private void RefreshClicked(object sender,RoutedEventArgs e){RefreshManagedLibrary();}
-    private async void CancelClicked(object sender,RoutedEventArgs e){if(_galleryJob.CanCancel)await CancelGalleryJob();else _model?.Cancel();}
+    private async void RefreshOrCancelClicked(object sender,RoutedEventArgs e)
+    {
+        if(_galleryJob.CanCancel)await CancelGalleryJob();
+        else if(_model?.Loading==true)_model.Cancel();
+        else RefreshManagedLibrary();
+    }
     private void FirstClicked(object sender,RoutedEventArgs e){if(_model is not null)_=_model.RefreshAsync();}
     private void NextClicked(object sender,RoutedEventArgs e){if(_model is not null)_=_model.NextAsync();}
     private void PreviousClicked(object sender,RoutedEventArgs e){if(_model is not null)_=_model.PreviousAsync();}
