@@ -13,6 +13,7 @@ public sealed partial class ViewerView
     private readonly HashSet<uint> _pressedPointers = [];
     private MenuFlyout? _contextMenu;
     private bool? _appliedFullscreen;
+    private bool? _appliedOverlayLayout;
     private bool _applyingImmersiveLayout;
     private DispatcherQueueTimer _copyNoticeTimer = null!;
     private bool CanSplitInfo => ActualWidth >= 740;
@@ -131,13 +132,22 @@ public sealed partial class ViewerView
             bool immersive = Fullscreen;
             if (_appliedFullscreen != immersive)
             {
-                ViewerRoot.Background = new SolidColorBrush(immersive ? Microsoft.UI.Colors.Black : Microsoft.UI.Colors.Transparent);
+                ImmersiveBackdrop.Visibility = immersive ? Visibility.Visible : Visibility.Collapsed;
+                StageMatte.Visibility = immersive ? Visibility.Collapsed : Visibility.Visible;
                 Grid.SetColumnSpan(StageContainer, immersive ? 2 : 1);
                 _appliedFullscreen = immersive;
             }
-            // Only an explicit information-panel change allocates stage space.
-            // Idle chrome and the filmstrip are overlays in both viewing modes;
-            // hiding them must never resize/refit the decoded image.
+            bool overlaid = immersive || ActualHeight is > 0 and < 300;
+            if(_appliedOverlayLayout != overlaid)
+            {
+                ViewerHeaderRow.Height = overlaid ? new GridLength(0) : GridLength.Auto;
+                ViewerToolsRow.Height = overlaid ? new GridLength(0) : GridLength.Auto;
+                Grid.SetRow(Header, overlaid ? 1 : 0);
+                Grid.SetRow(BottomChrome, overlaid ? 0 : 1);
+                _appliedOverlayLayout=overlaid;
+            }
+            // Normal windowed controls have their own space. In fullscreen
+            // and very short windows, the stage keeps the whole height.
             bool splitInfo = _info && CanSplitInfo;
             bool showDock = _controlsVisible && (!_info || splitInfo);
             double infoInset = immersive && splitInfo ? InfoColumn.Width.Value : 0;
@@ -148,8 +158,11 @@ public sealed partial class ViewerView
             Grid.SetColumnSpan(DockOptions, inlineDock ? 1 : 2);
             Grid.SetColumnSpan(DockTools, inlineDock ? 1 : 2);
             DockOptions.Orientation = dockWidth >= 330 ? Orientation.Horizontal : Orientation.Vertical;
-            BottomChrome.Margin = new Thickness(12, 0, 12 + infoInset, 12);
-            Info.Margin = new Thickness(0, Math.Max(68, Header.ActualHeight + 20), 12, 12);
+            Header.Margin = overlaid ? new Thickness(12,10,12,0) : new Thickness(10,0,10,4);
+            BottomChrome.Margin = new Thickness(12, 0, 12 + infoInset, overlaid ? 12 : 4);
+            BottomChrome.RowSpacing = overlaid ? 6 : 0;
+            Info.Margin = overlaid ? new Thickness(0,Math.Max(68,Header.ActualHeight+20),12,12)
+                : new Thickness(splitInfo?8:12, 8, 12, 12);
             Header.Visibility = _controlsVisible ? Visibility.Visible : Visibility.Collapsed;
             ToolDock.Visibility = showDock ? Visibility.Visible : Visibility.Collapsed;
             if (!showDock && Sort.IsDropDownOpen) Sort.IsDropDownOpen = false;

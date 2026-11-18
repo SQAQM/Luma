@@ -78,6 +78,13 @@ public sealed partial class ViewerView
    "fit media stays within the image stage");
   check(Math.Abs(pictureBounds.Width-Stage.ActualWidth)<=1||Math.Abs(pictureBounds.Height-Stage.ActualHeight)<=1,
    "fit media fills one stage dimension with the dock visible");
+  if(ActualHeight<300)
+  {
+   double height=Stage.ActualHeight;
+   FilmToggleClicked(FilmToggle,new RoutedEventArgs());UpdateLayout();
+   check(_film&&Filmstrip.Visibility==Visibility.Visible&&height>0&&Math.Abs(Stage.ActualHeight-height)<1,
+    "short window retains its media stage when the filmstrip opens");
+  }
   await capture();SetFullscreen(true);UpdateLayout();
   var fullPager=MediaPager.TransformToVisual(StageContainer).TransformBounds(new(0,0,MediaPager.ActualWidth,MediaPager.ActualHeight));
   check(MediaPager.Visibility==Visibility.Visible&&fullPager.Width>0&&fullPager.Left>=0&&fullPager.Top>=0&&

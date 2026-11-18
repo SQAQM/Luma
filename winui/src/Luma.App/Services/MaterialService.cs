@@ -63,8 +63,9 @@ internal sealed class MaterialService:IDisposable
      fill.Color=plan.UseAcrylic?Windows.UI.Color.FromArgb(dark?(byte)20:(byte)48,255,255,255):dark?Windows.UI.Color.FromArgb(255,40,49,61):Windows.UI.Color.FromArgb(255,247,249,252);
     }
     foreach(string key in new[]{"LumaGlassSpecular","LumaGlassUnderEdge","LumaGlassRim","LumaGlassInnerRim"})if(value.TryGetValue(key,out var glass)&&glass is Brush brush)brush.Opacity=plan.UseAcrylic?1:0;
-    foreach(string key in new[]{"LumaCanvas","LumaSidebar","LumaSurface"})
-     if(value.TryGetValue(key,out var resource)&&resource is SolidColorBrush brush)brush.Opacity=plan.UseAcrylic?(key=="LumaSurface"?.38:0):1;
+    foreach(var (key,opacity) in new[]{("LumaCanvas",0d),("LumaSidebar",.24),("LumaSurface",.38),
+        ("LumaWorkspace",.42),("LumaViewerShell",.35),("LumaViewerMatte",.82)})
+     if(value.TryGetValue(key,out var resource)&&resource is SolidColorBrush brush)brush.Opacity=plan.UseAcrylic?opacity:1;
    }
   _applyTint(plan);
  }

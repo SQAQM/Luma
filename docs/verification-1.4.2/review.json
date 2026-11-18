@@ -1,0 +1,7 @@
+{
+  "result": "passed_native_material_review",
+  "sourceReview": "Corrected the short window case by keeping all viewport height and moving controls into overlays below 300 DIP.",
+  "frameReview": "Windowed image edges remain visible with the filmstrip open. The model grid and primary action are aligned. A uniform backdrop makes the glass look closer to matte than a textured backdrop does.",
+  "tradeoff": "The filmstrip reserves height in windowed mode. Fullscreen restores the whole viewport and auto-hides its glass controls.",
+  "scope": "Blind synthetic frame review and native material/motion diagnostics. The motion probe exercises the actual viewer button template with synthetic controller state."
+}

@@ -131,7 +131,8 @@ public sealed partial class ManagementView
   search.TextChanged+=(_,_)=>{ToolTipService.SetToolTip(search,search.Text.Length>0?search.Text:"搜索文件名或模型名称");if(!_setting&&search.Text.Trim()!=_query){_modelSearchTimer.Stop();_modelSearchTimer.Start();}};
   var actions=new TagChipPanel{HorizontalAlignment=HorizontalAlignment.Left};
   _modelToolbarActions=actions;
-  actions.Children.Add(Tool("添加目录","ManagePickModels",PickAndAddModelRoot,true,()=>!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
+  var addDirectory=Tool("添加目录","ManagePickModels",PickAndAddModelRoot,true,()=>!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j)));
+  addDirectory.Style=(Style)Application.Current.Resources["LumaPrimaryButton"];actions.Children.Add(addDirectory);
   actions.Children.Add(Tool("补全资料","ManageFetchModelInfo",FetchModelInformation,true,()=>_models.Length>0&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
   var tidy=Tool("整理","ManageCleanupModelInfo",CleanupModelInformation,true,()=>!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j)));
   AutomationProperties.SetName(tidy,"整理资料");ToolTipService.SetToolTip(tidy,"整理资料");actions.Children.Add(tidy);

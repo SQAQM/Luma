@@ -1,13 +1,17 @@
 <UserControl x:Class="Luma.Preview.Views.ViewerView" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:controls="using:Luma.Preview.Views.Controls" xmlns:fx="using:Luma.Preview.Services" IsTabStop="True" AutomationProperties.AutomationId="ViewerSurface" AutomationProperties.Name="图片浏览，方向键切图，F11全屏，Esc返回">
- <Grid x:Name="ViewerRoot" Background="Transparent">
-  <Grid x:Name="Body"><Grid.ColumnDefinitions><ColumnDefinition x:Name="StageColumn" Width="*"/><ColumnDefinition x:Name="InfoColumn" Width="0"/></Grid.ColumnDefinitions>
+ <Grid x:Name="ViewerRoot" Background="{ThemeResource LumaViewerShell}">
+  <Grid.RowDefinitions><RowDefinition x:Name="ViewerHeaderRow" Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+  <Border x:Name="ImmersiveBackdrop" Grid.RowSpan="2" Background="Black" Visibility="Collapsed" IsHitTestVisible="False"/>
+  <Grid x:Name="Body" Grid.Row="1"><Grid.ColumnDefinitions><ColumnDefinition x:Name="StageColumn" Width="*"/><ColumnDefinition x:Name="InfoColumn" Width="0"/></Grid.ColumnDefinitions>
    <Grid x:Name="StageContainer">
+   <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition x:Name="ViewerToolsRow" Height="Auto"/></Grid.RowDefinitions>
+   <Border x:Name="StageMatte" Background="{ThemeResource LumaViewerMatte}" IsHitTestVisible="False"/>
    <Grid x:Name="Stage" Background="Transparent" SizeChanged="StageResized" PointerWheelChanged="Wheel" PointerPressed="Pressed" PointerMoved="Moved" PointerReleased="Released" PointerCanceled="Released" PointerCaptureLost="Released" DoubleTapped="StageDoubleTapped" ManipulationMode="Scale,TranslateX,TranslateY" ManipulationDelta="Manipulated" AutomationProperties.AutomationId="ViewerStage" AutomationProperties.Name="图片舞台，滚轮缩放，拖动平移，双击适应或100%">
     <Canvas x:Name="Pixels" IsHitTestVisible="False"><Image x:Name="Picture" Stretch="Fill" RenderTransformOrigin="0.5,0.5"><Image.RenderTransform><CompositeTransform x:Name="Transform"/></Image.RenderTransform></Image></Canvas>
     <Border x:Name="LoadingBadge" Background="#D9151719" Padding="18" HorizontalAlignment="Center" VerticalAlignment="Center" CornerRadius="6"><StackPanel Spacing="10"><ProgressRing x:Name="Progress" Width="26" Height="26" Foreground="White"/><TextBlock x:Name="StageMessage" Foreground="White" TextWrapping="Wrap" MaxWidth="330" HorizontalAlignment="Center"/><Button x:Name="RetryButton" Content="重新加载" Click="RetryClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="ViewerRetry"/></StackPanel></Border>
    </Grid>
 
-    <Grid x:Name="BottomChrome" Margin="12,0,12,12" VerticalAlignment="Bottom" RowSpacing="6">
+    <Grid x:Name="BottomChrome" Grid.Row="1" Margin="12,0,12,6" VerticalAlignment="Bottom" RowSpacing="0">
      <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
      <Border x:Name="ToolDock" Style="{StaticResource LumaGlassDock}" fx:GlassSurfaceEffects.Receiver="{Binding ElementName=Stage}" Grid.Row="1" Padding="4" HorizontalAlignment="Center" VerticalAlignment="Bottom">
       <StackPanel Spacing="2">
@@ -55,7 +59,7 @@
     <StackPanel Orientation="Horizontal" Spacing="2"><Button x:Name="Previous" Click="PreviousClicked" Style="{StaticResource LumaGlassGroupIcon}" AutomationProperties.AutomationId="ViewerPrevious" AutomationProperties.Name="上一张 (←)" ToolTipService.ToolTip="上一张 (←)" ><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE76B;" FontSize="16"/></Button><Button x:Name="Next" Click="NextClicked" Style="{StaticResource LumaGlassGroupIcon}" AutomationProperties.AutomationId="ViewerNext" AutomationProperties.Name="下一张 (→)" ToolTipService.ToolTip="下一张 (→)" ><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE76C;" FontSize="16"/></Button><Button x:Name="PlaybackButton" Click="PlaybackClicked" Style="{StaticResource LumaGlassGroupIcon}" AutomationProperties.AutomationId="ViewerPlayback" AutomationProperties.Name="自动播放 (空格)" ToolTipService.ToolTip="自动播放 (空格)"><FontIcon x:Name="PlaybackIcon" FontFamily="Segoe MDL2 Assets" Glyph="&#xE768;" FontSize="16"/></Button><Button x:Name="FilmToggle" Click="FilmToggleClicked" Style="{StaticResource LumaGlassGroupIcon}" AutomationProperties.AutomationId="ViewerFilmToggle" AutomationProperties.Name="缩略图" ToolTipService.ToolTip="缩略图" ><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE8B9;" FontSize="16"/></Button><Button x:Name="InfoToggle" Click="InfoClicked" Style="{StaticResource LumaGlassGroupIcon}" AutomationProperties.AutomationId="ViewerInfo" AutomationProperties.Name="图片信息 (I)" ToolTipService.ToolTip="图片信息 (I)" ><Grid Width="26" Height="30"><FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE946;" FontSize="16"/><Border x:Name="InfoActiveMark" Background="{ThemeResource LumaAccent}" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="12" Height="2" CornerRadius="1" Visibility="Collapsed"/></Grid></Button></StackPanel>
    </Border>
   </Grid>
-  <Border x:Name="FeedbackSurface" Style="{StaticResource LumaGlassDock}" fx:GlassSurfaceEffects.Receiver="{Binding ElementName=Stage}" Visibility="Collapsed" Padding="12,6" MaxWidth="460" HorizontalAlignment="Center" VerticalAlignment="Bottom" IsHitTestVisible="False" AutomationProperties.LiveSetting="Polite">
+  <Border x:Name="FeedbackSurface" Grid.Row="1" Style="{StaticResource LumaGlassDock}" fx:GlassSurfaceEffects.Receiver="{Binding ElementName=Stage}" Visibility="Collapsed" Padding="12,6" MaxWidth="460" HorizontalAlignment="Center" VerticalAlignment="Bottom" IsHitTestVisible="False" AutomationProperties.LiveSetting="Polite">
    <TextBlock x:Name="Feedback" TextWrapping="Wrap" Style="{StaticResource LumaCaption}" AutomationProperties.AutomationId="ViewerFeedback"/>
   </Border>
  </Grid>

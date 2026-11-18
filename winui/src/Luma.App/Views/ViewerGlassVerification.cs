@@ -98,15 +98,18 @@ public sealed partial class ViewerView
 
   SetFullscreen(false); Focus(FocusState.Programmatic); await Settle();
   Rect normalStage = Bounds(Stage);
-  check(Math.Abs(Stage.ActualHeight - ActualHeight) < .1 && Math.Abs(Stage.ActualWidth - ActualWidth) < .1,
-   "ordinary image stage uses the full viewer without reserved chrome rows");
+  check(Math.Abs(Stage.ActualWidth-ActualWidth)<.1 && normalStage.Height>0 &&
+   Separate(normalStage,Bounds(Header)) && Separate(normalStage,Bounds(ToolDock)),
+   "ordinary stage uses the full width with tools outside the image");
   check(Inside(DockOptions)&&Separate(Bounds(DockOptions),Bounds(DockTools)),"dock command groups stay separate at the current width");
   if(ActualWidth>=652)check(Math.Abs(Bounds(DockOptions).Top-Bounds(DockTools).Top)<8&&ToolDock.ActualHeight<54,"ordinary controls use one slim row");
   VisibleChrome("ordinary"); Sample("ordinary"); await capture("ordinary");
 
   FilmToggleClicked(FilmToggle, new RoutedEventArgs()); await Settle();
   check(_film && Filmstrip.Visibility == Visibility.Visible && Inside(Filmstrip), "film toggle opens the bounded native strip onscreen");
-  check(Same(normalStage, Bounds(Stage)), "film toggle does not resize the image stage");
+  Rect filmStage=Bounds(Stage);
+  check(filmStage.Height<normalStage.Height && Separate(filmStage,Bounds(FilmstripSurface)),
+   "the windowed filmstrip reserves its own space below the image");
   check(Separate(Bounds(ToolDock), Bounds(FilmstripSurface)), "shared dock and filmstrip do not overlap");
   check(_tiles.Count <= 9 && _tiles.Select(t => t.Item.Id).SequenceEqual(_model!.Window.Select(i => i.Id)), "floating filmstrip keeps the existing bounded model order");
   VisibleChrome("filmstrip"); Sample("filmstrip"); await capture("filmstrip");
@@ -127,9 +130,10 @@ public sealed partial class ViewerView
   }
   Sample("information"); await capture("information");
   ToggleInfo(); await Settle();
-  check(Same(normalStage, Bounds(Stage)), "closing information restores the ordinary stage bounds");
+  check(Same(filmStage, Bounds(Stage)), "closing information restores the stage beside the filmstrip");
   FilmToggleClicked(FilmToggle, new RoutedEventArgs()); await Settle();
   check(!_film && Filmstrip.Visibility == Visibility.Collapsed, "film toggle closes the strip");
+  check(Same(normalStage,Bounds(Stage)),"closing the windowed strip returns its space to the image");
 
   // Exercise the real fullscreen idle callback. Keyboard focus in the native
   // ComboBox owns its arrow keys and must keep its surrounding controls visible.
@@ -142,6 +146,8 @@ public sealed partial class ViewerView
   Sort.IsDropDownOpen = false; Focus(FocusState.Programmatic); await Settle();
   FilmToggleClicked(FilmToggle, new RoutedEventArgs()); ToggleInfo(); await Settle();
   Rect fullscreenStage = Bounds(Stage); double zoom = _viewport.Scale, panX = _viewport.X, panY = _viewport.Y; int turns = _viewport.Turns;
+  check(Math.Abs(fullscreenStage.Height-ActualHeight)<.1&&Math.Abs(fullscreenStage.Width-ActualWidth)<.1,
+   "fullscreen restores the entire viewport to the image");
   check(Inside(Info),"fullscreen information stays onscreen");
   if(CanSplitInfo)
   {

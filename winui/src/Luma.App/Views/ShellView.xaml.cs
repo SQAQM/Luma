@@ -120,14 +120,18 @@ public sealed partial class ShellView : UserControl, IDisposable
         InitializationPhase = "shell_navigation";
         foreach (var page in Enum.GetValues<WorkspacePage>())
         {
-            var content = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-            content.Children.Add(new FontIcon { Glyph = Icons[(int)page], FontSize = 17 });
-            content.Children.Add(new TextBlock { Text = Names[(int)page], VerticalAlignment = VerticalAlignment.Center });
+            var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+            label.Children.Add(new FontIcon { Glyph = Icons[(int)page], FontSize = 16 });
+            label.Children.Add(new TextBlock { Text = Names[(int)page], VerticalAlignment = VerticalAlignment.Center });
+            var mark = new Border { Width = 2, Height = 16, CornerRadius = new CornerRadius(1), Margin = new Thickness(-9,0,0,0),
+                HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center, Visibility = Visibility.Collapsed, IsHitTestVisible = false };
+            var content = new Grid();
+            content.Children.Add(mark); content.Children.Add(label);
             var button = new Button { Content = content, Style = (Style)ResourcesOrApp("LumaNav"), Tag = page };
             AutomationProperties.SetAutomationId(button, "Nav" + page);
             AutomationProperties.SetName(button, Names[(int)page]);
             button.Click += (_, _) => Navigate(page);
-            _navigation.Add(page, button);if(page==WorkspacePage.Settings){button.MinHeight=36;button.Padding=new Thickness(8,6,8,6);SettingsNavigation.Children.Add(button);}else Navigation.Children.Add(button);
+            _navigation.Add(page, button);if(page==WorkspacePage.Settings){button.MinHeight=36;button.Padding=new Thickness(8,6,4,6);SettingsNavigation.Children.Add(button);}else Navigation.Children.Add(button);
             var shortcut = new KeyboardAccelerator { Key = (VirtualKey)((int)VirtualKey.Number1 + (int)page), Modifiers = VirtualKeyModifiers.Control };
             shortcut.Invoked += (_, e) => { Navigate(page); e.Handled = true; }; KeyboardAccelerators.Add(shortcut);
         }
@@ -151,7 +155,7 @@ public sealed partial class ShellView : UserControl, IDisposable
     public void Configure(int textScale, string layout)
     {
         _scale = textScale / 100.0;
-        if(layout!="Top")RailColumn.Width=new GridLength(_scale>1?168:148);
+        if(layout!="Top")RailColumn.Width=new GridLength(_scale>1?140:126);
         RailContent.Padding=new Thickness(10,12,10,12);FooterActions.ColumnSpacing=4;
         LiveGallery.Configure(_scale,_diagnostics);
         Management.Configure(_scale);Files.Configure(_scale,_diagnostics);Management.SetDiagnostics(_diagnostics);
@@ -217,8 +221,13 @@ public sealed partial class ShellView : UserControl, IDisposable
             foreach (var pair in _navigation)
             {
                 bool selected = pair.Key == _model.Page;
-                pair.Value.Background = selected ? Brush("LumaSelected") : new SolidColorBrush(Colors.Transparent);
-                pair.Value.Foreground = selected ? Brush("LumaSelectedText") : Brush("LumaText");
+                pair.Value.Background = selected ? Brush("LumaNavFill") : new SolidColorBrush(Colors.Transparent);
+                pair.Value.Foreground = selected ? Brush("LumaNavInk") : Brush("LumaText");
+                if(pair.Value.Content is Grid { Children.Count: > 0 } content&&content.Children[0] is Border mark)
+                {
+                    mark.Background=Brush("LumaNavMarker");
+                    mark.Visibility=selected?Visibility.Visible:Visibility.Collapsed;
+                }
                 AutomationProperties.SetItemStatus(pair.Value, selected ? "当前页面" : "");
             }
             bool live = _model.Page==WorkspacePage.Gallery && _model.Current.Mode==PreviewState.Sample && _engine?.Connected==true && _engine.IsGallery;
@@ -232,7 +241,7 @@ public sealed partial class ShellView : UserControl, IDisposable
             bool managedSurface=managed||fileManaged||storage;
             bool welcome=!live&&!managedSurface;
             Grid.SetRow(Footer,managedSurface||live?0:2);Feedback.Visibility=managedSurface||live?Visibility.Collapsed:Visibility.Visible;
-            ScopeNote.Visibility=live||managedSurface?Visibility.Collapsed:Visibility.Visible;PageTitle.FontSize=(live||managedSurface?20:28)*_scale;Workspace.Padding=live||managedSurface?new Thickness(20,12,20,12):new Thickness(24);
+            ScopeNote.Visibility=live||managedSurface?Visibility.Collapsed:Visibility.Visible;PageTitle.FontSize=(live||managedSurface?24:28)*_scale;Workspace.Padding=live||managedSurface?new Thickness(20,15,20,12):new Thickness(24);
             Workspace.RowSpacing=live||managedSurface?0:16;
             PageBody.Margin=live||managedSurface?new Thickness(0,10,0,0):new Thickness(0);
             LiveGallery.Visibility=live?Visibility.Visible:Visibility.Collapsed;LiveGallery.SetActive(live&&!_viewer.IsOpen);

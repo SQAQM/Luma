@@ -13,19 +13,26 @@
    <SolidColorBrush x:Key="ScrollBarTrackStrokePointerOver" Color="Transparent" />
    <SolidColorBrush x:Key="LumaMaterialTint" Color="#32F3F7FF" />
    <AcrylicBrush x:Key="LumaControlFill" TintColor="#FFFFFF" TintOpacity="0.72" TintLuminosityOpacity="0.9" FallbackColor="#FAFBFD" AlwaysUseFallback="True" />
-   <SolidColorBrush x:Key="LumaCanvas" Color="#F5F7FB" />
+   <SolidColorBrush x:Key="LumaCanvas" Color="#F1F2F4" />
    <SolidColorBrush x:Key="LumaSurface" Color="#FFFFFF" />
-   <SolidColorBrush x:Key="LumaSidebar" Color="#E9EEF6" />
+   <SolidColorBrush x:Key="LumaSidebar" Color="#DCE2E7" />
+   <SolidColorBrush x:Key="LumaWorkspace" Color="#FAFAF9" />
+   <SolidColorBrush x:Key="LumaFrameEdge" Color="#36566676" />
+   <SolidColorBrush x:Key="LumaNavFill" Color="#9CD9E5ED" />
+   <SolidColorBrush x:Key="LumaNavInk" Color="#204C72" />
+   <SolidColorBrush x:Key="LumaNavMarker" Color="#4D789C" />
+   <SolidColorBrush x:Key="LumaViewerMatte" Color="#25282D" />
+   <SolidColorBrush x:Key="LumaViewerShell" Color="#F4F4F3" />
    <SolidColorBrush x:Key="LumaText" Color="#202329" />
    <SolidColorBrush x:Key="LumaSecondary" Color="#626975" />
-   <SolidColorBrush x:Key="LumaStroke" Color="#42758095" />
+   <SolidColorBrush x:Key="LumaStroke" Color="#36566676" />
    <SolidColorBrush x:Key="LumaAccent" Color="#3762DF" />
    <SolidColorBrush x:Key="LumaSelected" Color="#366C9DFF" />
    <SolidColorBrush x:Key="LumaHover" Color="#E2E5EC" />
    <SolidColorBrush x:Key="LumaSelectedText" Color="#2756C3" />
    <LinearGradientBrush x:Key="LumaGlassRim" StartPoint="0,0" EndPoint="0.35,1">
-    <GradientStop Color="#60FFFFFF" Offset="0" />
-    <GradientStop Color="#14566989" Offset="1" />
+    <GradientStop Color="#DAFFFFFF" Offset="0" />
+    <GradientStop Color="#4264788B" Offset="1" />
    </LinearGradientBrush>
    <LinearGradientBrush x:Key="LumaGlassSpecular" StartPoint="0,0" EndPoint="0,1">
     <GradientStop Color="#65FFFFFF" Offset="0" />
@@ -46,9 +53,9 @@
     <GradientStop Color="#00FFFFFF" Offset=".2" />
     <GradientStop Color="#10FFFFFF" Offset="1" />
    </LinearGradientBrush>
-   <AcrylicBrush x:Key="LumaDockFill" TintColor="#F8FBFF" TintOpacity="0.26" TintLuminosityOpacity="0.82" FallbackColor="#F2F5FA" AlwaysUseFallback="True" />
+   <AcrylicBrush x:Key="LumaDockFill" TintColor="#F8FBFF" TintOpacity="0.22" TintLuminosityOpacity="0.77" FallbackColor="#F0F4F8" AlwaysUseFallback="True" />
    <SolidColorBrush x:Key="LumaOnAccent" Color="#FFFFFF" />
-   <SolidColorBrush x:Key="LumaPrimaryFill" Color="#F0305ACF" />
+   <SolidColorBrush x:Key="LumaPrimaryFill" Color="#315D82" />
    <SolidColorBrush x:Key="LumaPrimaryHover" Color="#18000000" />
    <SolidColorBrush x:Key="LumaPrimaryPressed" Color="#28000000" />
   </ResourceDictionary>
@@ -71,9 +78,16 @@
    <SolidColorBrush x:Key="CheckBoxForegroundIndeterminate" Color="#F2F4F7" />
    <SolidColorBrush x:Key="LumaMaterialTint" Color="#35232D3D" />
    <AcrylicBrush x:Key="LumaControlFill" TintColor="#242B36" TintOpacity="0.74" TintLuminosityOpacity="0.72" FallbackColor="#242B34" AlwaysUseFallback="True" />
-   <SolidColorBrush x:Key="LumaCanvas" Color="#151A22" />
+   <SolidColorBrush x:Key="LumaCanvas" Color="#191C20" />
    <SolidColorBrush x:Key="LumaSurface" Color="#202329" />
-   <SolidColorBrush x:Key="LumaSidebar" Color="#1B2430" />
+   <SolidColorBrush x:Key="LumaSidebar" Color="#20262D" />
+   <SolidColorBrush x:Key="LumaWorkspace" Color="#24282D" />
+   <SolidColorBrush x:Key="LumaFrameEdge" Color="#5766788A" />
+   <SolidColorBrush x:Key="LumaNavFill" Color="#A63A4B5D" />
+   <SolidColorBrush x:Key="LumaNavInk" Color="#C2DDF2" />
+   <SolidColorBrush x:Key="LumaNavMarker" Color="#94BADA" />
+   <SolidColorBrush x:Key="LumaViewerMatte" Color="#111316" />
+   <SolidColorBrush x:Key="LumaViewerShell" Color="#23262A" />
    <SolidColorBrush x:Key="LumaText" Color="#F2F4F7" />
    <SolidColorBrush x:Key="LumaSecondary" Color="#AAB1BD" />
    <SolidColorBrush x:Key="LumaStroke" Color="#4A65778C" />
@@ -82,8 +96,8 @@
    <SolidColorBrush x:Key="LumaHover" Color="#30353F" />
    <SolidColorBrush x:Key="LumaSelectedText" Color="#C2D6FF" />
    <LinearGradientBrush x:Key="LumaGlassRim" StartPoint="0,0" EndPoint="0.35,1">
-    <GradientStop Color="#45657B99" Offset="0" />
-    <GradientStop Color="#28131922" Offset="1" />
+    <GradientStop Color="#806B8AAA" Offset="0" />
+    <GradientStop Color="#4010151D" Offset="1" />
    </LinearGradientBrush>
    <LinearGradientBrush x:Key="LumaGlassSpecular" StartPoint="0,0" EndPoint="0,1">
     <GradientStop Color="#24C8DDFF" Offset="0" />
@@ -104,9 +118,9 @@
     <GradientStop Color="#00FFFFFF" Offset=".2" />
     <GradientStop Color="#24FFFFFF" Offset="1" />
    </LinearGradientBrush>
-   <AcrylicBrush x:Key="LumaDockFill" TintColor="#1D2634" TintOpacity="0.42" TintLuminosityOpacity="0.6" FallbackColor="#242B36" AlwaysUseFallback="True" />
+   <AcrylicBrush x:Key="LumaDockFill" TintColor="#1D2634" TintOpacity="0.34" TintLuminosityOpacity="0.55" FallbackColor="#242B36" AlwaysUseFallback="True" />
    <SolidColorBrush x:Key="LumaOnAccent" Color="#FFFFFF" />
-   <SolidColorBrush x:Key="LumaPrimaryFill" Color="#F0305ACF" />
+   <SolidColorBrush x:Key="LumaPrimaryFill" Color="#3B6388" />
    <SolidColorBrush x:Key="LumaPrimaryHover" Color="#18000000" />
    <SolidColorBrush x:Key="LumaPrimaryPressed" Color="#28000000" />
   </ResourceDictionary>
@@ -118,6 +132,13 @@
    <SolidColorBrush x:Key="LumaCanvas" Color="{ThemeResource SystemColorWindowColor}" />
    <SolidColorBrush x:Key="LumaSurface" Color="{ThemeResource SystemColorWindowColor}" />
    <SolidColorBrush x:Key="LumaSidebar" Color="{ThemeResource SystemColorWindowColor}" />
+   <SolidColorBrush x:Key="LumaWorkspace" Color="{ThemeResource SystemColorWindowColor}" />
+   <SolidColorBrush x:Key="LumaFrameEdge" Color="{ThemeResource SystemColorWindowTextColor}" />
+   <SolidColorBrush x:Key="LumaNavFill" Color="{ThemeResource SystemColorHighlightColor}" />
+   <SolidColorBrush x:Key="LumaNavInk" Color="{ThemeResource SystemColorHighlightTextColor}" />
+   <SolidColorBrush x:Key="LumaNavMarker" Color="{ThemeResource SystemColorHighlightTextColor}" />
+   <SolidColorBrush x:Key="LumaViewerMatte" Color="{ThemeResource SystemColorWindowColor}" />
+   <SolidColorBrush x:Key="LumaViewerShell" Color="{ThemeResource SystemColorWindowColor}" />
    <SolidColorBrush x:Key="LumaText" Color="{ThemeResource SystemColorWindowTextColor}" />
    <SolidColorBrush x:Key="LumaSecondary" Color="{ThemeResource SystemColorWindowTextColor}" />
    <SolidColorBrush x:Key="LumaStroke" Color="{ThemeResource SystemColorWindowTextColor}" />

@@ -22,6 +22,7 @@ public static partial class GlassButtonEffects
         var button = new Button
         {
             Name = "LumaGlassMotionProbe", Tag = NativeMotionProbeTag, Content = "反馈测试",
+            Style = (Style)Application.Current.Resources["LumaGlassGroupIcon"],
             Width = 160, Height = 36, IsTabStop = false, Translation = new Vector3(4, 2, 6),
             HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top
         };

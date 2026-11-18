@@ -369,8 +369,8 @@
  <Style x:Key="LumaNav" TargetType="Button" BasedOn="{StaticResource LumaButton}">
   <Setter Property="HorizontalContentAlignment" Value="Left" />
   <Setter Property="HorizontalAlignment" Value="Stretch" />
-  <Setter Property="MinHeight" Value="44" />
-  <Setter Property="Padding" Value="12,7" />
+  <Setter Property="MinHeight" Value="42" />
+  <Setter Property="Padding" Value="14,6" />
   <Setter Property="CornerRadius" Value="8" />
   <Setter Property="BorderThickness" Value="0" />
   <Setter Property="Template" Value="{StaticResource LumaQuietGlassTemplate}" />
