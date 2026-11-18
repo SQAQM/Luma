@@ -70,7 +70,8 @@ try{
  Click 'NavSettings';Await {$null -ne (Find $sliderId)} 'reopened appearance settings'
  Check ((Find $sliderId).GetCurrentPattern($rangePattern).Current.Value -eq $transparency) 'restored transparency visible in slider'
  $reopenedPicker=Find 'BackgroundMaterial'
- $currentMaterial=$reopenedPicker.GetCurrentPattern([Windows.Automation.SelectionPattern]::Pattern).GetCurrentSelection()
+ $selectionPattern=$reopenedPicker.GetCurrentPattern([Windows.Automation.SelectionPattern]::Pattern)
+ $currentMaterial=$selectionPattern.Current.GetSelection()
  Check ($currentMaterial.Count -eq 1 -and $currentMaterial[0].Current.Name -eq '液态玻璃') 'material restored in the picker'
  Check ($process.CloseMainWindow() -and $process.WaitForExit(30000) -and $process.ExitCode -eq 0) 'safe close after restart'
  @{result='passed';count=$checks;syntheticOnly=$true;privateDataAccess=$false;scope='own XAML only; does not prove compositor pixels';state=(State)}|ConvertTo-Json -Depth 15|Set-Content -LiteralPath (Join-Path $output 'material-window-report.json');Write-Output ('MATERIAL_WINDOW_PASSED '+$checks)

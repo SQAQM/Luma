@@ -1,0 +1,21 @@
+{
+  "result": "passed_manifest_owned_program_update",
+  "oldVersion": "1.4.5",
+  "newVersion": "1.4.6",
+  "writeProgramFiles": 734,
+  "obsoleteProgramFiles": 0,
+  "dataAccessed": false,
+  "unknownFilesPreserved": true,
+  "setup": {
+    "requestedExecutionLevel": "asInvoker",
+    "name": "Luma-1.4.6-Setup-x64.exe",
+    "bytes": 93499851,
+    "sha256": "5ece400a26563305a2cf01c89336df4f6ebfdc8fb8e409e418683249dca821fe"
+  },
+  "portable": {
+    "name": "Luma-1.4.6-Portable-x64.zip",
+    "bytes": 131117870,
+    "sha256": "592dca191fda8a4ec624ab4d1eac47d070b4b77c8a58dc2add0bf274caacf1b6",
+    "crcAndEntriesVerified": true
+  }
+}
