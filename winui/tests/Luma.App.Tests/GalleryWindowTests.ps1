@@ -80,6 +80,22 @@ try{
   Await {$combo.GetCurrentPattern([Windows.Automation.ExpandCollapsePattern]::Pattern).Current.ExpandCollapseState -eq [Windows.Automation.ExpandCollapseState]::Collapsed} ("collapsed "+$id)
  }
  function Gallery {return (State).workspace.gallery}
+ function FacetValueId([string]$name){
+  $condition=[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::NameProperty,$name)
+  foreach($handle in [GalleryWindowNative]::OwnWindows($process.Id)){
+   try{
+    $surface=[Windows.Automation.AutomationElement]::FromHandle($handle)
+    foreach($item in $surface.FindAll([Windows.Automation.TreeScope]::Descendants,$condition)){
+     if($item.Current.AutomationId.StartsWith('GalleryFilterValue') -and -not $item.Current.IsOffscreen){return $item.Current.AutomationId}
+    }
+   }catch{}
+  }
+ }
+ function ApplyFacet([int]$kind,[string]$value){
+  Click 'GalleryFilters';Click "GalleryFilterKind$kind"
+  Await {$null -ne (FacetValueId $value)} ('facet '+$value)
+  Click (FacetValueId $value)
+ }
  if($EmptyLibrary){Check ((Gallery).total -eq 0 -and -not (Find 'GalleryNext').Current.IsEnabled) 'empty library without fake rows';Click 'ClosePreview';Check ($process.WaitForExit(20000) -and $process.ExitCode -eq 0) 'empty library safe close';@{result='passed';count=$checks.Count;checks=$checks.ToArray();state=(State)} | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $taskOutput 'gallery-window-report.json');Write-Output ('GALLERY_EMPTY_PASSED '+$checks.Count);return}
  Check ((Gallery).itemCount -eq 120 -and (Gallery).total -eq 131) '120 bounded records from real SQLite'
  Await {(Gallery).thumbnailCompleted -gt 0 -and (State).captureRevision -eq (State).revision} 'actual thumbnail decode'
@@ -87,7 +103,7 @@ try{
  Check ((Gallery).realizedContainers -gt 0 -and (Gallery).realizedContainers -lt 120) 'finite virtualized viewport'
  Check ((Gallery).decodedBytes -le 64*1024*1024 -and (Gallery).thumbnailActive -le 1) 'image memory and request budgets'
  if($ReconnectScope){
-  Click 'GalleryFilters';Choose 'GalleryFilterKind' '格式';Choose 'GalleryFilterValue' 'PNG';Click 'GalleryApplyFilter'
+  ApplyFacet 1 'PNG'
   Await {(Gallery).formatFilter -eq 'PNG' -and (Gallery).total -eq 65 -and (State).captureRevision -eq (State).revision} 'old scoped library'
   (Find 'GalleryImage1').GetCurrentPattern([Windows.Automation.SelectionItemPattern]::Pattern).Select()
   Await {(Gallery).detailId -eq 1 -and (State).captureRevision -eq (State).revision} 'old populated detail'
@@ -152,30 +168,30 @@ try{
  Click 'GalleryOpenOriginal';Check ((Gallery).lastAction -eq 'open') 'structured original intent'
  Click 'GalleryCopyPath';Check ((Gallery).lastAction -eq 'path') 'copy path intent'
  Click 'GalleryTag1';Check ((Gallery).tagFilter -eq 1 -and (Gallery).total -eq 87 -and $null -eq (Gallery).detailId) 'semantic tag filters indexed fixture'
- Click 'GalleryFilters';Choose 'GalleryFilterKind' '内容标签'
- Await {$null -ne (Find 'GalleryFilterInput')} 'filter input available after popup closes'
+ Click 'GalleryFilters';Click 'GalleryFilterKind3'
+ Await {$null -ne (Find 'GalleryFilterInput')} 'filter input available inside one panel'
  $edit=Find 'GalleryFilterInput';Check ($null -ne $edit) 'explicit native filter text input'
  $edit.GetCurrentPattern([Windows.Automation.ValuePattern]::Pattern).SetValue('missing-semantic-name')
  Click 'GalleryApplyFilter';Check ((Gallery).tagFilter -eq 1 -and (Gallery).total -eq 87) 'invalid semantic entry preserves active scope'
- Click 'GalleryFilters'
+ Click 'GalleryClear'
 
  (Find 'GallerySearch').GetCurrentPattern([Windows.Automation.ValuePattern]::Pattern).SetValue('no-such-fixture')
  Await {(Gallery).queryLength -gt 0 -and (Gallery).itemCount -eq 0 -and -not (Gallery).loading -and (State).captureRevision -eq (State).revision} 'no matches'
  Check ((Gallery).selectedCount -eq 0 -and $null -eq (Gallery).detailId) 'old details and selection cleared'
- Click 'GalleryClear';Await {(Gallery).itemCount -eq 120 -and -not (Gallery).loading -and (State).captureRevision -eq (State).revision} 'clear filters'
+ Click 'GalleryFilters';Click 'GalleryClear';Await {(Gallery).itemCount -eq 120 -and -not (Gallery).loading -and (State).captureRevision -eq (State).revision} 'clear filters'
 
  Click 'GalleryViewMode';Check ((Gallery).viewMode -eq 'list' -and (Gallery).realizedContainers -lt 120) 'finite native list view'
  Click 'GalleryViewMode';Check ((Gallery).viewMode -eq 'grid') 'native grid restored'
  Choose 'GallerySort' '名称 Z–A';Await {$g=Gallery;return $g.ids.Count -gt 0 -and $g.ids[0] -eq 1000001 -and (State).captureRevision -eq (State).revision} 'descending sort actual row'
  Choose 'GallerySort' '名称 A–Z';Await {$g=Gallery;return $g.ids.Count -gt 0 -and $g.ids[0] -eq 1 -and (State).captureRevision -eq (State).revision} 'ascending sort restored'
- foreach($filter in @(@{kind='格式';value='PNG';field='formatFilter';total=65},@{kind='模型';value='合成模型 SDXL';field='modelFilter';total=66},@{kind='画师';value='合成画师 A';field='artistFilter';total=66},@{kind='提示词词项';value='synthetic-prompt-token';field='promptTagFilter';total=131})){
-  Click 'GalleryFilters';Choose 'GalleryFilterKind' $filter.kind;Choose 'GalleryFilterValue' $filter.value
-  Click 'GalleryApplyFilter';Await {(Gallery).total -eq $filter.total -and -not (Gallery).loading -and (State).captureRevision -eq (State).revision} ('applied '+$filter.kind)
+ foreach($filter in @(@{kind=1;value='PNG';field='formatFilter';total=65},@{kind=0;value='合成模型 SDXL';field='modelFilter';total=66},@{kind=2;value='合成画师 A';field='artistFilter';total=66},@{kind=4;value='synthetic-prompt-token';field='promptTagFilter';total=131})){
+  ApplyFacet $filter.kind $filter.value
+  Await {(Gallery).total -eq $filter.total -and -not (Gallery).loading -and (State).captureRevision -eq (State).revision} ('applied '+$filter.field)
   Check ((Gallery).($filter.field) -eq $filter.value) ('exact filter '+$filter.kind)
-  Click 'GalleryClear';Await {(Gallery).total -eq 131 -and -not (Gallery).loading -and (State).captureRevision -eq (State).revision} 'filters cleared'
+  Click 'GalleryFilters';Click 'GalleryClear';Await {(Gallery).total -eq 131 -and -not (Gallery).loading -and (State).captureRevision -eq (State).revision} 'filters cleared'
  }
  Choose 'GalleryRoots' 'demo-images';Await {(Gallery).itemCount -eq 120 -and -not (Gallery).loading -and (State).captureRevision -eq (State).revision} 'directory filter'
- Click 'GalleryClear'
+ Click 'GalleryFilters';Click 'GalleryClear'
  Click 'NavModels';Click 'NavGallery';Check ((Gallery).itemCount -eq 120 -and (Gallery).page -eq 1) 'navigation retains gallery window'
  Click 'NavSettings';Click 'ThemeDark';Click 'ThemeLight';Click 'NavGallery';Check (-not (State).catalogOpened) 'production catalog remains closed'
  Click 'ClosePreview';Check ($process.WaitForExit(30000) -and $process.ExitCode -eq 0) 'native gallery safe close'

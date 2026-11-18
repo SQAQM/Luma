@@ -90,9 +90,11 @@ public sealed partial class GalleryView
  private async Task ReloadCatalog()
  {
   var client=_client;var model=_model;if(client is null||model is null)return;
-  try{var roots=await client.CallAsync("catalog.roots",new{});var facets=await client.CallAsync("catalog.facets",new{});if(!ReferenceEquals(model,_model)||!_active||_disposed)return;
-   long? selected=_rootIds.ElementAtOrDefault(RootsBox.SelectedIndex);_updating=true;try{SetRootOptions(roots,selected);_facets=facets;UpdateFilterValues();}finally{_updating=false;}
-  }catch(Exception){Feedback.Text="筛选摘要暂不可用，可重试刷新。";}
+  int version=++_facetRequestVersion;
+  try{var roots=await client.CallAsync("catalog.roots",new{});var facets=await client.CallAsync("catalog.facets",new{});if(version!=_facetRequestVersion||!ReferenceEquals(model,_model)||!_active||_disposed)return;
+   long? selected=_rootIds.ElementAtOrDefault(RootsBox.SelectedIndex);_updating=true;try{SetRootOptions(roots,selected);SetFilterFacets(facets);}finally{_updating=false;}
+   Changed?.Invoke();
+  }catch(Exception){if(version==_facetRequestVersion&&ReferenceEquals(model,_model)&&_active&&!_disposed)Feedback.Text="筛选摘要暂不可用，可重试刷新。";}
  }
  internal void RefreshManagedLibrary(){_catalogDirty=true;if(_active&&_model is not null)_=ReloadManaged();}
 }

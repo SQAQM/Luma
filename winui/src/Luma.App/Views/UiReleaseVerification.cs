@@ -26,6 +26,13 @@ public sealed partial class ShellView
    throw new InvalidOperationException("Missing own control "+id);
   }
   Rect Bounds(FrameworkElement element)=>element.TransformToVisual(XamlRoot.Content).TransformBounds(new(0,0,element.ActualWidth,element.ActualHeight));
+  async Task CaptureNamed(string name)
+  {
+   Changed?.Invoke();await capture();
+   string frame=Directory.EnumerateFiles(directory,"capture-*.png").MaxBy(File.GetLastWriteTimeUtc)
+    ?? throw new InvalidOperationException("Own workspace capture missing");
+   File.Copy(frame,Path.Combine(directory,name+".png"),true);
+  }
   try{
    Navigate(WorkspacePage.Models);await Wait<ComboBox>("ManageModelRoots");
    for(int i=0;i<150&&(_engine?.Connected!=true||_managementState is null);i++)await Task.Delay(100);
@@ -49,9 +56,33 @@ public sealed partial class ShellView
    var tokenBounds=Bounds(token);var densityBounds=Bounds(density);Check(Math.Abs(tokenBounds.Left-densityBounds.Left)<1,"credential and preference fields share left edge");Check(Math.Abs(tokenBounds.Width-densityBounds.Width)<1,"credential and preference fields share width");
    token.StartBringIntoView(new BringIntoViewOptions{AnimationDesired=false,VerticalAlignmentRatio=.45});await Task.Delay(150);Changed?.Invoke();await capture();
    var registry=await Wait<Button>("ManageRegistry");registry.Focus(FocusState.Programmatic);await Task.Delay(150);var settingsScroll=await Wait<ScrollViewer>("ManageFormScroll");var rb=Bounds(registry);var sb=Bounds(settingsScroll);Check(rb.Top>=sb.Top&&rb.Bottom<=sb.Bottom,"lower settings action scrolls fully into view");
-   Navigate(WorkspacePage.Organize);await Wait<ComboBox>("FilesClassification");await Files.VerifyClassificationUi(Check,directory);Changed?.Invoke();await capture();
+   string duplicateRoot=Path.Combine(directory+"-fixtures","duplicates");
+   Directory.CreateDirectory(duplicateRoot);
+   string first=Path.Combine(duplicateRoot,"sample-a.png"),second=Path.Combine(duplicateRoot,"sample-b.png");
+   await SyntheticPng(first,3);File.Copy(first,second);
+   if(!await _managementState.WriteAsync("catalog.import",new{path=duplicateRoot,recursive=true}))
+    throw new InvalidOperationException("Own duplicate fixture import failed");
+   var api=new Luma.Core.Management.ManagementApi(_engine!.Client!);
+   for(int i=0;;i++){
+    var fileState=await api.ReadAsync("files.state",new{},default);
+    if(fileState.GetProperty("roots").EnumerateArray().Any(r=>r.GetProperty("name").GetString()=="duplicates"&&r.GetProperty("count").GetInt64()==2))break;
+    if(i>=149)throw new TimeoutException("Own duplicate fixture index missing");
+    await Task.Delay(60);
+   }
+   Navigate(WorkspacePage.Organize);await Wait<ComboBox>("FilesClassification");
+   Check(Workspace.Background is SolidColorBrush body&&RailTint.Background is SolidColorBrush side&&
+    ((body.Opacity<=.15&&side.Opacity<=.15)||(body.Opacity==1&&side.Opacity==1))&&Workspace.BorderThickness.Left==0,
+    "navigation and workspace share the native material without a separate opaque frame");
+   var draft=await Wait<Button>("FilesGenerate");Check(!draft.IsEnabled,"classification waits for a concrete destination and scope");
+   await CaptureNamed("workspace-classification");
+   await Files.VerifyClassificationUi(Check,directory);await CaptureNamed("workspace-rules");
+   Navigate(WorkspacePage.Duplicates);await Wait<Button>("FilesScan");
+   await Files.VerifyCleanupFlowUi(Check,()=>CaptureNamed("workspace-cleanup"),first,second);
+   Navigate(WorkspacePage.Organize);await Wait<ComboBox>("FilesClassification");
+   Check(Files.IsReviewClearedForVerification,"changing workspaces cannot carry a cleanup preview into classification");
    Navigate(WorkspacePage.Gallery);var gallerySearch=await Wait<TextBox>("GallerySearch");var gallerySort=await Wait<ComboBox>("GallerySort");Check(Math.Abs(gallerySearch.ActualHeight-gallerySort.ActualHeight)<1,"gallery search and sorting heights match");
-   Check(gallerySearch.ActualHeight>=36,"input height is at least 36");await Task.Delay(150);Changed?.Invoke();await capture();
+   Check(gallerySearch.ActualHeight>=36,"input height is at least 36");await Task.Delay(150);await CaptureNamed("workspace-gallery");
+   await LiveGallery.VerifyFilterPanelUi(Check,()=>CaptureNamed("workspace-filter"));
   }catch(Exception error){checks.Add(new{passed=false,name="probe completed",error=error.GetType().Name+": "+error.Message});}
   bool passed=checks.All(c=>JsonSerializer.SerializeToElement(c).GetProperty("passed").GetBoolean());
   await File.WriteAllTextAsync(Path.Combine(directory,"ui-release-report.json"),JsonSerializer.Serialize(new{result=passed?"passed_native_release_ui":"failed_native_release_ui",checks,frames,scope="own fresh diagnostic profile and temporary control fixtures; intrinsic events and actual XAML Rendering samples; no OS click automation or user library"}));
@@ -65,6 +96,36 @@ public sealed partial class ManagementView
 
 public sealed partial class FilesView
 {
+ internal bool IsReviewClearedForVerification=>_reviewId is null&&_review.Review is null&&!CanConfirmCurrentReview;
+ internal async Task VerifyCleanupFlowUi(Action<bool,string> check,Func<Task> capture,string first,string second)
+ {
+  async Task Until(Func<bool> ready)
+  {
+   for(int i=0;i<150;i++){if(ready())return;await Task.Delay(60);}
+   throw new TimeoutException("Own cleanup fixture did not reach the next phase");
+  }
+  await Scan();await Until(()=>_groups.Length==1&&_members.Length==2);
+  check(_visible&&_mode=="duplicates","a direct duplicate scan keeps results in cleanup");
+  check(_members.Count(m=>B(m,"is_keep"))==1&&Entries.Items.OfType<FileRow>().Count(row=>row.Label.StartsWith("保留"))==1,
+   "duplicate members display exactly one keeper from the engine flag");
+  await SelectAll(true);
+  check(_groups.All(g=>B(g,"selected")),"group selection reflects the saved engine flags");
+  await Generate("duplicate_cleanup");
+  await Until(()=>CanConfirmCurrentReview);
+  check(_review.Review?.Actionable==1&&File.Exists(first)&&File.Exists(second),
+   "duplicate preview stays non-destructive and reaches the explicit confirmation");
+  check(_execute is {Visibility:Visibility.Visible,IsEnabled:true} && _generate is {Visibility:Visibility.Collapsed},
+   "preview and confirm share one action slot");
+  check(WorkbenchControls.Visibility==Visibility.Collapsed&&Summary.Text.Contains("整个图库"),
+   "cleanup review shows its saved scope without an unrelated scan selector");
+  var entry=Entries.Items.OfType<FileRow>().SingleOrDefault();
+  check(entry?.Label.Contains("隔离 · sample-",StringComparison.Ordinal)==true&&
+   entry.Label.Contains("保留 · sample-",StringComparison.Ordinal)&&
+   Path.IsPathFullyQualified(S(entry.Value,"source"))&&Path.IsPathFullyQualified(S(entry.Value,"keep_path")),
+   "cleanup preview leads with filenames and retains full paths for inspection");
+  await capture();
+ }
+
  internal async Task VerifyClassificationUi(Action<bool,string> check,string directory)
  {
   await SetMode("organize");

@@ -21,8 +21,9 @@ public sealed partial class ViewerView
   Check(new[]{Back,Previous,ZoomIn,FullButton}.All(button=>GlassButtonEffects.GetEnabled(button)),
    theme+" visible viewer buttons keep their production press effect");
   Check(ToolDock.Background is AcrylicBrush dock&&ViewerRoot.Background is SolidColorBrush shell&&
-   (dock.AlwaysUseFallback ? shell.Opacity==1 : shell.Opacity<=.4)&&Picture.Opacity==1,
-   theme+" the outer material transmits background when enabled and the photo keeps its opacity");
+   StageMatte.Background is SolidColorBrush stage&&
+   (dock.AlwaysUseFallback ? shell.Opacity==1&&stage.Opacity==1 : shell.Opacity<=.15&&stage.Opacity<=.15)&&Picture.Opacity==1,
+   theme+" the shell and matte share the light background material while photo opacity stays unchanged");
   Check(StageMatte.Visibility==Visibility.Visible,theme+" windowed image sits on the photo matte");
   await capture("appearance-"+theme.ToLowerInvariant());
   SetFullscreen(true);UpdateLayout();await Task.Delay(240);

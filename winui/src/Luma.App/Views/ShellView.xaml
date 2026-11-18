@@ -2,7 +2,7 @@
  <Grid x:Name="ShellRoot" Background="Transparent">
   <Grid.ColumnDefinitions><ColumnDefinition x:Name="RailColumn" Width="126"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
   <Grid.RowDefinitions><RowDefinition x:Name="TopRow" Height="0"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-  <Border x:Name="Rail" Grid.Row="1" Background="Transparent" BorderThickness="0">
+  <Border x:Name="Rail" Grid.Row="1" Background="Transparent" BorderThickness="0,0,1,0" BorderBrush="{ThemeResource LumaFrameEdge}">
    <Grid x:Name="RailHost"><Border x:Name="RailTint" Background="{ThemeResource LumaSidebar}" IsHitTestVisible="False"/><Grid x:Name="RailContent" RowSpacing="14" Padding="10"><Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
     <ScrollViewer x:Name="NavigationScroll" Grid.Row="0" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto"><StackPanel x:Name="Navigation" Spacing="4"/></ScrollViewer>
     <StackPanel x:Name="Preferences" Grid.Row="1" Spacing="12">
@@ -12,7 +12,7 @@
     </StackPanel><Grid x:Name="FooterActions" Grid.Row="1" ColumnSpacing="4" Padding="0,8,0,0" BorderBrush="{ThemeResource LumaFrameEdge}" BorderThickness="0,1,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel x:Name="SettingsNavigation"/><Button Grid.Column="1" Width="32" MinWidth="32" Padding="0" Click="OpenImageClicked" Style="{StaticResource LumaGlassGroupIcon}" AutomationProperties.AutomationId="OpenImage" AutomationProperties.Name="打开图片 (Ctrl+O)" ToolTipService.ToolTip="打开图片 (Ctrl+O)"><FontIcon Glyph="&#xE8E5;" FontSize="16"/></Button></Grid>
    </Grid></Grid>
   </Border>
-  <Grid x:Name="Workspace" Grid.Column="1" Grid.Row="1" Padding="24" RowSpacing="16" Margin="0,3,10,10" CornerRadius="15" Background="{ThemeResource LumaWorkspace}" BorderBrush="{ThemeResource LumaFrameEdge}" BorderThickness="1">
+  <Grid x:Name="Workspace" Grid.Column="1" Grid.Row="1" Padding="24" RowSpacing="16" Background="{ThemeResource LumaWorkspace}">
    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
    <Grid ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
     <StackPanel Spacing="4"><TextBlock x:Name="ScopeNote" Text="本机图片与模型" Style="{StaticResource LumaCaption}"/><TextBlock x:Name="PageTitle" Style="{StaticResource LumaHeading}" AutomationProperties.AutomationId="PageTitle"/></StackPanel>
