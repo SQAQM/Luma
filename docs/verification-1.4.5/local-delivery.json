@@ -1,0 +1,18 @@
+{
+  "result": "passed_local_packages",
+  "newVersion": "1.4.5",
+  "installationUpdated": false,
+  "reason": "Previous workspace application directory absent. Other installation locations untouched.",
+  "setup": {
+    "requestedExecutionLevel": "asInvoker",
+    "name": "Luma-1.4.5-Setup-x64.exe",
+    "bytes": 93482739,
+    "sha256": "a6dc593a90e6700f2e0a2dc3441ff5d5b25f5c21462332bb1bbd3ef31b93f01c"
+  },
+  "portable": {
+    "name": "Luma-1.4.5-Portable-x64.zip",
+    "bytes": 131098870,
+    "sha256": "331b81d0034d8e6c46f409d4582f51c93d8e9fa8996ff0666311073b165d9d91",
+    "crcAndEntriesVerified": true
+  }
+}

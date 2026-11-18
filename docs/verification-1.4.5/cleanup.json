@@ -1,0 +1,10 @@
+{
+  "result": "passed_verified_target_cleanup",
+  "candidateDirectoriesRemoved": 10,
+  "priorPackagesRemoved": 2,
+  "logicalBytesRemoved": 1503828984,
+  "remainingDeliverables": [
+    "Luma-1.4.5-Setup-x64.exe",
+    "Luma-1.4.5-Portable-x64.zip"
+  ]
+}
