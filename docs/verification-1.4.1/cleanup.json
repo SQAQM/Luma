@@ -1,0 +1,16 @@
+{
+  "result": "completed_owned_output_cleanup",
+  "version": "1.4.1",
+  "logicalBytes": 2791386035,
+  "files": 6795,
+  "currentPackages": [
+    "Luma-1.4.1-Setup-x64.exe",
+    "Luma-1.4.1-Portable-x64.zip"
+  ],
+  "dataAccessed": false,
+  "removedPackages": [
+    "Luma-1.4.0-Setup-x64.exe",
+    "Luma-1.4.0-Portable-x64.zip"
+  ],
+  "scope": "Resolved explicit generated 1.4.1 directories and hash-verified 1.4.0 packages."
+}
