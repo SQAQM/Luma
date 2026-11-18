@@ -1,0 +1,15 @@
+{
+  "result": "completed_owned_output_cleanup",
+  "version": "1.4.2",
+  "files": 4545,
+  "logicalBytes": 1870905734,
+  "currentPackages": [
+    "Luma-1.4.2-Setup-x64.exe",
+    "Luma-1.4.2-Portable-x64.zip"
+  ],
+  "removedPackages": [
+    "Luma-1.4.1-Setup-x64.exe",
+    "Luma-1.4.1-Portable-x64.zip"
+  ],
+  "dataAccessed": false
+}

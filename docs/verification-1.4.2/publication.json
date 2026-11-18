@@ -1,0 +1,63 @@
+{
+  "result": "passed_public_release_verification",
+  "release": "https://github.com/SQAQM/Luma/releases/tag/v1.4.2",
+  "sourceCommit": "97de32bb8b7672280935f00a7087c798e980e0b9",
+  "ci": [
+    {
+      "url": "https://github.com/SQAQM/Luma/actions/runs/44226289645/job/134540137567",
+      "steps": {
+        "Set up job": "success",
+        "Run actions/checkout@v4": "success",
+        "Resolve release source": "success",
+        "Run actions/setup-python@v5": "success",
+        "Run actions/setup-dotnet@v4": "success",
+        "Prepare workspace": "success",
+        "Focused regression": "success",
+        "Freeze local engine": "success",
+        "Build native application": "success",
+        "Package installer and portable": "success",
+        "Publish stable release": "success",
+        "Post Run actions/setup-dotnet@v4": "success",
+        "Post Run actions/setup-python@v5": "success",
+        "Post Run actions/checkout@v4": "success",
+        "Complete job": "success"
+      }
+    },
+    {
+      "url": "https://github.com/SQAQM/Luma/actions/runs/44226289626/job/134540136988",
+      "steps": {
+        "Set up job": "success",
+        "Run actions/checkout@v4": "success",
+        "Run actions/setup-python@v5": "success",
+        "Run actions/setup-dotnet@v4": "success",
+        "Install native engine dependencies": "success",
+        "Check changed workflows and packaging": "success",
+        "Core checks": "success",
+        "Post Run actions/setup-dotnet@v4": "success",
+        "Post Run actions/setup-python@v5": "success",
+        "Post Run actions/checkout@v4": "success",
+        "Complete job": "success"
+      }
+    }
+  ],
+  "assets": {
+    "delivery-manifest.json": "e57a4def737f1c0049d3fe74a0d70c49e23d15ac2bbd0c71f29131860920b8f8",
+    "Luma-1.4.2-Portable-x64.zip": "997dd470d1ca7ba451ea405cf402900edd324a384f2c9bdcf6153e71922c1383",
+    "Luma-1.4.2-Setup-x64.exe": "5f722d1a0d6be546f7860814cc32909f2b60e1065eb53a73256f803d77f3d496",
+    "SHA256SUMS.txt": "3825c33999792719ce2b392802b3d6f3f152d7913c7f8b11949542410a9cfa2a"
+  },
+  "packages": [
+    {
+      "name": "Luma-1.4.2-Setup-x64.exe",
+      "bytes": 99451653,
+      "sha256": "5f722d1a0d6be546f7860814cc32909f2b60e1065eb53a73256f803d77f3d496",
+      "anonymousDownloadHttp": 200
+    },
+    {
+      "name": "Luma-1.4.2-Portable-x64.zip",
+      "bytes": 141536818,
+      "sha256": "997dd470d1ca7ba451ea405cf402900edd324a384f2c9bdcf6153e71922c1383",
+      "anonymousDownloadHttp": 200
+    }
+  ]
+}
