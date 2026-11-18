@@ -1,0 +1,36 @@
+{
+  "result": "passed_public_release_verification",
+  "sourceCommit": "b58c3c47be1c994e957b647cc0c6dbe929ba3f22",
+  "release": "https://github.com/SQAQM/Luma/releases/tag/v1.4.0",
+  "runs": {
+    "release": {
+      "url": "https://github.com/SQAQM/Luma/actions/runs/44215517428",
+      "conclusion": "success"
+    },
+    "checks": {
+      "url": "https://github.com/SQAQM/Luma/actions/runs/44215517478",
+      "conclusion": "success"
+    }
+  },
+  "packages": [
+    {
+      "name": "Luma-1.4.0-Setup-x64.exe",
+      "bytes": 99439692,
+      "sha256": "6b78314c0dd24f0fd514afef3a595e513802799ec31162d3d5ab268fd91b284e",
+      "anonymousDownloadHttp": 200
+    },
+    {
+      "name": "Luma-1.4.0-Portable-x64.zip",
+      "bytes": 141532373,
+      "sha256": "489079f8e490cbeaf1f1fa5903e12ec289aa9c2738ff19058838e232abcbeb29",
+      "anonymousDownloadHttp": 200
+    }
+  ],
+  "assetDigests": {
+    "delivery-manifest.json": "sha256:df197c40e743d4757a267279646d99688003cb944834b648b9d5161fc8b78531",
+    "Luma-1.4.0-Portable-x64.zip": "sha256:489079f8e490cbeaf1f1fa5903e12ec289aa9c2738ff19058838e232abcbeb29",
+    "Luma-1.4.0-Setup-x64.exe": "sha256:6b78314c0dd24f0fd514afef3a595e513802799ec31162d3d5ab268fd91b284e",
+    "SHA256SUMS.txt": "sha256:da89a3afeb2f1418f31c856a83abe35cedb549c28137f405e4bfef31b1fd1dd8"
+  },
+  "scope": "GitHub public latest release, exact source refs, successful Actions runs, asset metadata and anonymous HEAD checks."
+}

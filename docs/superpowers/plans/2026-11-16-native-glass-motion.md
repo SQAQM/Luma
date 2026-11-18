@@ -17,6 +17,6 @@ Use compositor transitions on a small, fixed set of surfaces. No per-image effec
 - [x] Add policy-aware native surface elevation and show/hide transitions with lifetime cleanup.
 - [x] Rework the viewer's normal/fullscreen chrome into stable overlays and verify native geometry/focus.
 - [x] Inspect synthetic light/dark, large-text and reduced-motion states; obtain context-free PNG design review and independent source review.
-- [ ] Freeze reviewed source, build/audit installer and portable, update only owned program files, publish and remove this iteration's temporary/build output and previous packages.
+- [x] Freeze reviewed source, build/audit installer and portable, update only owned program files, publish and remove this iteration's temporary/build output and previous packages.
 
 Validation remains proportional: focused Core/native regressions, affected media/thumbnail cases, source audit and package checks. A full legacy environment-dependent discovery run is not required for a UI-only change. Make the preview reviewable before final packaging, and reuse the existing toolchain.

@@ -1,0 +1,1114 @@
+{
+  "result": "passed_local_native_candidate_only",
+  "version": "1.4.0",
+  "sourceInputs": 287,
+  "engineInputs": 102,
+  "payloadFiles": 733,
+  "engineModules": 746,
+  "setup": {
+    "requestedExecutionLevel": "asInvoker",
+    "name": "Luma-1.4.0-Setup-x64.exe",
+    "bytes": 93495468,
+    "sha256": "ba0a0b8e4d4e68bd737b70ea7de8e0ddd5a13b783e18847bde38ae60b555ca0b"
+  },
+  "portable": {
+    "name": "Luma-1.4.0-Portable-x64.zip",
+    "bytes": 131067251,
+    "sha256": "706c3518ba1100c529383c3ed4116618c4cc88adaac08f4f125d56e1cdc07e69",
+    "crcAndEntriesVerified": true
+  },
+  "evidence": {
+    "docs/verification-1.4.0/frozen-runtime.json": {
+      "sha256": "763407631e9a98d7618155152ccd75396bc08317d1d8b4bf3b5e7b1344391c1e",
+      "result": "passed_frozen_runtime_selfcheck",
+      "checks": null
+    },
+    "docs/verification-1.4.0/glass-100.json": {
+      "sha256": "8e0853a0e79d4e6fb246520dbb407affe97ef0342d2ce3f8afce7d0fc26b6dde",
+      "result": "passed_viewer_glass_ui",
+      "checks": [
+        {
+          "passed": true,
+          "name": "ordinary image stage uses the full viewer without reserved chrome rows"
+        },
+        {
+          "passed": true,
+          "name": "ordinary filename and command groups stay onscreen"
+        },
+        {
+          "passed": true,
+          "name": "ordinary filename and commands do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "ordinary shared dock stays onscreen"
+        },
+        {
+          "passed": true,
+          "name": "ordinary header and dock do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "ordinary heart and stars remain at the bottom of the shared dock"
+        },
+        {
+          "passed": true,
+          "name": "film toggle opens the bounded native strip onscreen"
+        },
+        {
+          "passed": true,
+          "name": "film toggle does not resize the image stage"
+        },
+        {
+          "passed": true,
+          "name": "shared dock and filmstrip do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "floating filmstrip keeps the existing bounded model order"
+        },
+        {
+          "passed": true,
+          "name": "filmstrip filename and command groups stay onscreen"
+        },
+        {
+          "passed": true,
+          "name": "filmstrip filename and commands do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "filmstrip shared dock stays onscreen"
+        },
+        {
+          "passed": true,
+          "name": "filmstrip header and dock do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "filmstrip heart and stars remain at the bottom of the shared dock"
+        },
+        {
+          "passed": true,
+          "name": "information toggle opens a visible bounded panel"
+        },
+        {
+          "passed": true,
+          "name": "information panel stays below the filename and command groups"
+        },
+        {
+          "passed": true,
+          "name": "narrow information panel keeps its explicit replacement layout"
+        },
+        {
+          "passed": true,
+          "name": "closing information restores the ordinary stage bounds"
+        },
+        {
+          "passed": true,
+          "name": "film toggle closes the strip"
+        },
+        {
+          "passed": true,
+          "name": "sort keeps native keyboard focus and idle ownership"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen idle preserves focused sort input"
+        },
+        {
+          "passed": true,
+          "name": "open sort popup keeps fullscreen controls visible"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen information and filmstrip stay onscreen"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen information and bottom overlays do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen filename and command groups stay onscreen"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen filename and commands do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen shared dock stays onscreen"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen header and dock do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen heart and stars remain at the bottom of the shared dock"
+        },
+        {
+          "passed": true,
+          "name": "actual fullscreen idle callback hides the overlay controls"
+        },
+        {
+          "passed": true,
+          "name": "idle hide returns overlay focus to the viewer"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen auto-hide preserves stage geometry, fit, pan and rotation"
+        },
+        {
+          "passed": true,
+          "name": "restoring controls preserves the same image geometry and panel choices"
+        },
+        {
+          "passed": true,
+          "name": "leaving fullscreen restores saved ordinary panel choices"
+        },
+        {
+          "passed": true,
+          "name": "restored filename and command groups stay onscreen"
+        },
+        {
+          "passed": true,
+          "name": "restored filename and commands do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "restored shared dock stays onscreen"
+        },
+        {
+          "passed": true,
+          "name": "restored header and dock do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "restored heart and stars remain at the bottom of the shared dock"
+        },
+        {
+          "passed": true,
+          "name": "Light shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Light glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Light shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Light glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Light shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Light glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Light shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Light glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Light active viewer effect surfaces stay bounded"
+        },
+        {
+          "passed": true,
+          "name": "Light confirmation primary action uses its shared prominent style"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: fixture starts with nonzero parent translation and elevation",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: production expressions property set and spring animations initialize without exception",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: native handout targets template content while preserving parent translation and elevation",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: native bounds use the resting layout size",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: held pointer controller retargets drag",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: same native property set receives anisotropic scale and translation targets",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: pointer controller releases",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: repress during native return reuses the adapter without compounding its target or changing parent translation",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: explicit cancel reset removes expressions and disposes native resources",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: keyboard controller starts",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: production lost-focus handler restores native rest",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: native IsEnabled property callback resets a held press",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: touch controller initializes its distinct native spring",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: root reduce-motion policy resets native scale translation and resources",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: production Animate allocates no native resources under reduced motion",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: attached-property removal disposes native resources and detaches weak ownership",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "high-contrast policy removes optional shadows and surface transition requests"
+        },
+        {
+          "passed": true,
+          "name": "reduced motion keeps static material depth without requesting animated dismissal"
+        },
+        {
+          "passed": true,
+          "name": "Dark shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Dark glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Dark shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Dark glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Dark shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Dark glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Dark shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Dark glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Dark active viewer effect surfaces stay bounded"
+        },
+        {
+          "passed": true,
+          "name": "Dark confirmation primary action uses its shared prominent style"
+        }
+      ]
+    },
+    "docs/verification-1.4.0/glass-150.json": {
+      "sha256": "2ffff3588659419e3a9a9dd93b65e875488d60679812ae4eeabdf2fee39581f5",
+      "result": "passed_viewer_glass_ui",
+      "checks": [
+        {
+          "passed": true,
+          "name": "ordinary image stage uses the full viewer without reserved chrome rows"
+        },
+        {
+          "passed": true,
+          "name": "ordinary filename and command groups stay onscreen"
+        },
+        {
+          "passed": true,
+          "name": "ordinary filename and commands do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "ordinary shared dock stays onscreen"
+        },
+        {
+          "passed": true,
+          "name": "ordinary header and dock do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "ordinary heart and stars remain at the bottom of the shared dock"
+        },
+        {
+          "passed": true,
+          "name": "film toggle opens the bounded native strip onscreen"
+        },
+        {
+          "passed": true,
+          "name": "film toggle does not resize the image stage"
+        },
+        {
+          "passed": true,
+          "name": "shared dock and filmstrip do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "floating filmstrip keeps the existing bounded model order"
+        },
+        {
+          "passed": true,
+          "name": "filmstrip filename and command groups stay onscreen"
+        },
+        {
+          "passed": true,
+          "name": "filmstrip filename and commands do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "filmstrip shared dock stays onscreen"
+        },
+        {
+          "passed": true,
+          "name": "filmstrip header and dock do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "filmstrip heart and stars remain at the bottom of the shared dock"
+        },
+        {
+          "passed": true,
+          "name": "information toggle opens a visible bounded panel"
+        },
+        {
+          "passed": true,
+          "name": "information panel stays below the filename and command groups"
+        },
+        {
+          "passed": true,
+          "name": "narrow information panel keeps its explicit replacement layout"
+        },
+        {
+          "passed": true,
+          "name": "closing information restores the ordinary stage bounds"
+        },
+        {
+          "passed": true,
+          "name": "film toggle closes the strip"
+        },
+        {
+          "passed": true,
+          "name": "sort keeps native keyboard focus and idle ownership"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen idle preserves focused sort input"
+        },
+        {
+          "passed": true,
+          "name": "open sort popup keeps fullscreen controls visible"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen information and filmstrip stay onscreen"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen information and bottom overlays do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen filename and command groups stay onscreen"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen filename and commands do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen shared dock stays onscreen"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen header and dock do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen heart and stars remain at the bottom of the shared dock"
+        },
+        {
+          "passed": true,
+          "name": "actual fullscreen idle callback hides the overlay controls"
+        },
+        {
+          "passed": true,
+          "name": "idle hide returns overlay focus to the viewer"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen auto-hide preserves stage geometry, fit, pan and rotation"
+        },
+        {
+          "passed": true,
+          "name": "restoring controls preserves the same image geometry and panel choices"
+        },
+        {
+          "passed": true,
+          "name": "leaving fullscreen restores saved ordinary panel choices"
+        },
+        {
+          "passed": true,
+          "name": "restored filename and command groups stay onscreen"
+        },
+        {
+          "passed": true,
+          "name": "restored filename and commands do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "restored shared dock stays onscreen"
+        },
+        {
+          "passed": true,
+          "name": "restored header and dock do not overlap"
+        },
+        {
+          "passed": true,
+          "name": "restored heart and stars remain at the bottom of the shared dock"
+        },
+        {
+          "passed": true,
+          "name": "Light shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Light glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Light shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Light glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Light shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Light glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Light shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Light glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Light active viewer effect surfaces stay bounded"
+        },
+        {
+          "passed": true,
+          "name": "Light confirmation primary action uses its shared prominent style"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: fixture starts with nonzero parent translation and elevation",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: production expressions property set and spring animations initialize without exception",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: native handout targets template content while preserving parent translation and elevation",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: native bounds use the resting layout size",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: held pointer controller retargets drag",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: same native property set receives anisotropic scale and translation targets",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: pointer controller releases",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: repress during native return reuses the adapter without compounding its target or changing parent translation",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: explicit cancel reset removes expressions and disposes native resources",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: keyboard controller starts",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: production lost-focus handler restores native rest",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: native IsEnabled property callback resets a held press",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: touch controller initializes its distinct native spring",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: root reduce-motion policy resets native scale translation and resources",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: production Animate allocates no native resources under reduced motion",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "native motion controller/compositor: attached-property removal disposes native resources and detaches weak ownership",
+          "scope": "factory-owned synthetic button; direct controller state; no physical pointer or keyboard routing claim"
+        },
+        {
+          "passed": true,
+          "name": "high-contrast policy removes optional shadows and surface transition requests"
+        },
+        {
+          "passed": true,
+          "name": "reduced motion keeps static material depth without requesting animated dismissal"
+        },
+        {
+          "passed": true,
+          "name": "Dark shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Dark glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Dark shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Dark glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Dark shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Dark glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Dark shared surfaces use the bounded native material owner"
+        },
+        {
+          "passed": true,
+          "name": "Dark glass surfaces have native elevation"
+        },
+        {
+          "passed": true,
+          "name": "Dark active viewer effect surfaces stay bounded"
+        },
+        {
+          "passed": true,
+          "name": "Dark confirmation primary action uses its shared prominent style"
+        }
+      ]
+    },
+    "docs/verification-1.4.0/model-150.json": {
+      "sha256": "3a2e9d3f0e113bf8b4de3196580ba19215ff0febb5b7861ae47cafae6af9c492",
+      "result": "passed_model_usability_ui",
+      "checks": [
+        {
+          "name": "typing stays enabled and focused while a result read is pending",
+          "passed": true
+        },
+        {
+          "name": "edits made during an older read survive and query the newest text",
+          "passed": true
+        },
+        {
+          "name": "completed reads do not reclaim focus after the user moves away",
+          "passed": true
+        },
+        {
+          "name": "model filter keyboard focus survives a result refresh",
+          "passed": true
+        },
+        {
+          "name": "same workspace reactivation applies a draft hidden before debounce",
+          "passed": true
+        },
+        {
+          "name": "viewer return applies a draft hidden before debounce",
+          "passed": true
+        },
+        {
+          "name": "changing management pages resets the model search draft",
+          "passed": true
+        },
+        {
+          "name": "all directories label fits the compact toolbar at the configured text scale",
+          "passed": true
+        },
+        {
+          "name": "native sync has no redundant compatibility export option",
+          "passed": true
+        },
+        {
+          "name": "native sync does not request extra companion formats",
+          "passed": true
+        },
+        {
+          "name": "native review separates two surviving files and three redundant companions",
+          "passed": true
+        },
+        {
+          "name": "five-file review fits fully without hidden rows at configured text scale",
+          "passed": true
+        }
+      ]
+    },
+    "docs/verification-1.4.0/viewer-150.json": {
+      "sha256": "02b8643fbc4d2f99504ddc7a28a75c953c40c6a2569413583e0c5267b700f73d",
+      "result": "passed_viewer_usability_ui",
+      "checks": [
+        {
+          "passed": true,
+          "name": "grid return keeps selected image"
+        },
+        {
+          "passed": true,
+          "name": "grid close restores native focus to current gallery item"
+        },
+        {
+          "passed": true,
+          "name": "grid current viewer image selects within same page"
+        },
+        {
+          "passed": true,
+          "name": "grid virtualized return realizes and focuses current item"
+        },
+        {
+          "passed": true,
+          "name": "grid returning current item is fully inside gallery viewport"
+        },
+        {
+          "passed": true,
+          "name": "grid stale identity cannot select replacement image"
+        },
+        {
+          "passed": true,
+          "name": "grid offpage image does not change selection or fetch a new page"
+        },
+        {
+          "passed": true,
+          "name": "grid deferred image focus respects a newer control focus"
+        },
+        {
+          "passed": true,
+          "name": "list return keeps selected image"
+        },
+        {
+          "passed": true,
+          "name": "list close restores native focus to current gallery item"
+        },
+        {
+          "passed": true,
+          "name": "list current viewer image selects within same page"
+        },
+        {
+          "passed": true,
+          "name": "list virtualized return realizes and focuses current item"
+        },
+        {
+          "passed": true,
+          "name": "list returning current item is fully inside gallery viewport"
+        },
+        {
+          "passed": true,
+          "name": "list stale identity cannot select replacement image"
+        },
+        {
+          "passed": true,
+          "name": "list offpage image does not change selection or fetch a new page"
+        },
+        {
+          "passed": true,
+          "name": "list deferred image focus respects a newer control focus"
+        }
+      ]
+    },
+    "docs/verification-1.4.0/filmstrip-150.json": {
+      "sha256": "40cb10eec4584fb3b9323dc4d37384423dab19338c2929d5df19698bdd76e5db",
+      "result": "passed_filmstrip_perf_ui",
+      "checks": [
+        {
+          "passed": true,
+          "name": "own twelve gradients imported"
+        },
+        {
+          "passed": true,
+          "name": "all nine filmstrip tiles fit the native viewport"
+        },
+        {
+          "passed": true,
+          "name": "initial nine thumbnails decode without failure"
+        },
+        {
+          "passed": true,
+          "name": "next retains the eight overlapping native tile instances"
+        },
+        {
+          "passed": true,
+          "name": "next retains eight decoded image instances"
+        },
+        {
+          "passed": true,
+          "name": "next completes at most one new thumbnail RPC/decode cycle"
+        },
+        {
+          "passed": true,
+          "name": "next selects the current native filmstrip item"
+        },
+        {
+          "passed": true,
+          "name": "next keeps bounded neighbors and existing decoded cache limits"
+        },
+        {
+          "passed": true,
+          "name": "next thumbnail pipeline has no failure"
+        },
+        {
+          "passed": true,
+          "name": "back retains the eight overlapping native tile instances"
+        },
+        {
+          "passed": true,
+          "name": "back retains eight decoded image instances"
+        },
+        {
+          "passed": true,
+          "name": "back completes at most one new thumbnail RPC/decode cycle"
+        },
+        {
+          "passed": true,
+          "name": "back selects the current native filmstrip item"
+        },
+        {
+          "passed": true,
+          "name": "back keeps bounded neighbors and existing decoded cache limits"
+        },
+        {
+          "passed": true,
+          "name": "back thumbnail pipeline has no failure"
+        },
+        {
+          "passed": true,
+          "name": "next/back returns to original image"
+        },
+        {
+          "passed": true,
+          "name": "sort updates filmstrip order"
+        },
+        {
+          "passed": true,
+          "name": "sort keeps unique bounded neighbors"
+        },
+        {
+          "passed": true,
+          "name": "rapid navigation settles on the latest model window"
+        },
+        {
+          "passed": true,
+          "name": "rapid navigation preserves current selection"
+        },
+        {
+          "passed": true,
+          "name": "departed tiles do not accumulate pending requests while decoding is unavailable"
+        }
+      ]
+    },
+    "docs/verification-1.4.0/media-150.json": {
+      "sha256": "d51847e57a41e258f44c880e9ab0266c2232180e6b5759a20b5908bad47e6943",
+      "result": "passed_media_ui",
+      "checks": [
+        {
+          "passed": true,
+          "name": "own media imported"
+        },
+        {
+          "passed": true,
+          "name": "native frame count animated.gif"
+        },
+        {
+          "passed": true,
+          "name": "page navigation visible"
+        },
+        {
+          "passed": true,
+          "name": "autoplay follows reduced motion"
+        },
+        {
+          "passed": true,
+          "name": "animation advances decoded pixels"
+        },
+        {
+          "passed": true,
+          "name": "pause holds pixels"
+        },
+        {
+          "passed": true,
+          "name": "pending frame keeps current pixels"
+        },
+        {
+          "passed": true,
+          "name": "rapid frame requests keep latest"
+        },
+        {
+          "passed": true,
+          "name": "animation keeps zoom and rotation"
+        },
+        {
+          "passed": true,
+          "name": "pager fits stage"
+        },
+        {
+          "passed": true,
+          "name": "pixel cache stays bounded"
+        },
+        {
+          "passed": true,
+          "name": "fit media stays within the image stage"
+        },
+        {
+          "passed": true,
+          "name": "fit media fills one stage dimension with the dock visible"
+        },
+        {
+          "passed": true,
+          "name": "library stays hidden behind viewer"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen frame navigation stays onscreen"
+        },
+        {
+          "passed": true,
+          "name": "close stops both playback timers"
+        },
+        {
+          "passed": true,
+          "name": "viewer closes .gif"
+        },
+        {
+          "passed": true,
+          "name": "native frame count animated.webp"
+        },
+        {
+          "passed": true,
+          "name": "page navigation visible"
+        },
+        {
+          "passed": true,
+          "name": "autoplay follows reduced motion"
+        },
+        {
+          "passed": true,
+          "name": "animation advances decoded pixels"
+        },
+        {
+          "passed": true,
+          "name": "pause holds pixels"
+        },
+        {
+          "passed": true,
+          "name": "pending frame keeps current pixels"
+        },
+        {
+          "passed": true,
+          "name": "rapid frame requests keep latest"
+        },
+        {
+          "passed": true,
+          "name": "animation keeps zoom and rotation"
+        },
+        {
+          "passed": true,
+          "name": "pager fits stage"
+        },
+        {
+          "passed": true,
+          "name": "pixel cache stays bounded"
+        },
+        {
+          "passed": true,
+          "name": "fit media stays within the image stage"
+        },
+        {
+          "passed": true,
+          "name": "fit media fills one stage dimension with the dock visible"
+        },
+        {
+          "passed": true,
+          "name": "library stays hidden behind viewer"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen frame navigation stays onscreen"
+        },
+        {
+          "passed": true,
+          "name": "close stops both playback timers"
+        },
+        {
+          "passed": true,
+          "name": "viewer closes .webp"
+        },
+        {
+          "passed": true,
+          "name": "native frame count pages.tiff"
+        },
+        {
+          "passed": true,
+          "name": "page navigation visible"
+        },
+        {
+          "passed": true,
+          "name": "TIFF stays on selected page"
+        },
+        {
+          "passed": true,
+          "name": "page load keeps pixels"
+        },
+        {
+          "passed": true,
+          "name": "second TIFF page dimensions"
+        },
+        {
+          "passed": true,
+          "name": "page boundary controls"
+        },
+        {
+          "passed": true,
+          "name": "original pixels keep selected page"
+        },
+        {
+          "passed": true,
+          "name": "pager fits stage"
+        },
+        {
+          "passed": true,
+          "name": "pixel cache stays bounded"
+        },
+        {
+          "passed": true,
+          "name": "fit media stays within the image stage"
+        },
+        {
+          "passed": true,
+          "name": "fit media fills one stage dimension with the dock visible"
+        },
+        {
+          "passed": true,
+          "name": "library stays hidden behind viewer"
+        },
+        {
+          "passed": true,
+          "name": "fullscreen frame navigation stays onscreen"
+        },
+        {
+          "passed": true,
+          "name": "close stops both playback timers"
+        },
+        {
+          "passed": true,
+          "name": "viewer closes .tiff"
+        }
+      ]
+    },
+    "docs/verification-1.4.0/review.json": {
+      "sha256": "1ad6bcba5feb4d7f27c447abc2ddfaf3970cb59a27518be0f9373430d8aed487",
+      "result": "passed_design_and_source_review",
+      "checks": null
+    }
+  },
+  "verifierSha256": "18a505c5066411f6284e955836d539368afdb4734e0fc6f087e33a94cd80520c",
+  "scope": "immutable payload and supplied local synthetic evidence; no production-capacity or real-library claim"
+}
