@@ -71,9 +71,19 @@ public sealed partial class ViewerView
   var bounds=MediaPager.TransformToVisual(StageContainer).TransformBounds(new(0,0,MediaPager.ActualWidth,MediaPager.ActualHeight));
   check(bounds.Left>=0&&bounds.Right<=StageContainer.ActualWidth&&bounds.Bottom<=StageContainer.ActualHeight,"pager fits stage");
   check(_images.Bytes<=128L*1024*1024&&_images.CacheCount<=4,"pixel cache stays bounded");
-  UpdateLayout();var pictureBounds=Picture.TransformToVisual(StageContainer).TransformBounds(new(0,0,Picture.ActualWidth,Picture.ActualHeight));var dockBounds=ToolDock.TransformToVisual(StageContainer).TransformBounds(new(0,0,ToolDock.ActualWidth,ToolDock.ActualHeight));
-  check(pictureBounds.Bottom<=dockBounds.Top+1,"fit picture stays above tool dock");
-  await capture();SetFullscreen(true);check(Microsoft.UI.Xaml.Controls.Grid.GetRow(ToolDock)==0,"fullscreen uses overlay controls");SetFullscreen(false);
+  UpdateLayout();
+  var pictureBounds=Picture.TransformToVisual(Stage).TransformBounds(new(0,0,Picture.ActualWidth,Picture.ActualHeight));
+  check(pictureBounds.Width>0&&pictureBounds.Height>0&&pictureBounds.Left>=-1&&pictureBounds.Top>=-1&&
+   pictureBounds.Right<=Stage.ActualWidth+1&&pictureBounds.Bottom<=Stage.ActualHeight+1,
+   "fit media stays within the image stage");
+  check(Math.Abs(pictureBounds.Width-Stage.ActualWidth)<=1||Math.Abs(pictureBounds.Height-Stage.ActualHeight)<=1,
+   "fit media fills one stage dimension with the dock visible");
+  await capture();SetFullscreen(true);UpdateLayout();
+  var fullPager=MediaPager.TransformToVisual(StageContainer).TransformBounds(new(0,0,MediaPager.ActualWidth,MediaPager.ActualHeight));
+  check(MediaPager.Visibility==Visibility.Visible&&fullPager.Width>0&&fullPager.Left>=0&&fullPager.Top>=0&&
+   fullPager.Right<=StageContainer.ActualWidth&&fullPager.Bottom<=StageContainer.ActualHeight,
+   "fullscreen frame navigation stays onscreen");
+  SetFullscreen(false);
   CloseViewer();check(!_mediaTimer.IsRunning&&!_media.Playing&&!_playbackTimer.IsRunning,"close stops both playback timers");
  }
 }

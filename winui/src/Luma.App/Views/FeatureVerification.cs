@@ -49,10 +49,10 @@ public sealed partial class ShellView
   }
   catch(Exception error){File.WriteAllText(Path.Combine(directory,"feature-ui-report.json"),JsonSerializer.Serialize(new{result="failed_feature_ui",checks,error=error.ToString()}));}
  }
- private static async Task SyntheticPng(string path,int variant)
+ private static async Task SyntheticPng(string path,int variant,bool materialTexture=false)
  {
   const int width=960,height=640;byte[] pixels=new byte[width*height*4];
-  for(int y=0;y<height;y++)for(int x=0;x<width;x++){int p=(y*width+x)*4;pixels[p]=(byte)(90+x*100/width);pixels[p+1]=(byte)(65+y*90/height);pixels[p+2]=(byte)(45+variant*25);pixels[p+3]=255;}
+  for(int y=0;y<height;y++)for(int x=0;x<width;x++){int p=(y*width+x)*4;int detail=materialTexture?((x/24+y/24)%2==0?22:-22):0;pixels[p]=(byte)Math.Clamp(90+x*100/width+detail,0,255);pixels[p+1]=(byte)Math.Clamp(65+y*90/height+detail,0,255);pixels[p+2]=(byte)Math.Clamp((byte)(45+variant*25)+detail,0,255);pixels[p+3]=255;}
   using var memory=new MemoryStream();using var stream=memory.AsRandomAccessStream();var encoder=await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId,stream);
   encoder.SetPixelData(BitmapPixelFormat.Bgra8,BitmapAlphaMode.Ignore,width,height,96,96,pixels);await encoder.FlushAsync();await File.WriteAllBytesAsync(path,memory.ToArray());
  }

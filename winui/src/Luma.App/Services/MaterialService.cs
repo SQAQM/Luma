@@ -35,7 +35,7 @@ internal sealed class MaterialService:IDisposable
   if(_disposed)return;
   _requested=requested;
   _reduceMotion=reduceMotion;
-  if(_root.XamlRoot is{} xamlRoot)GlassButtonEffects.SetPolicy(xamlRoot,!reduceMotion&&_settings.AnimationsEnabled&&!_accessibility.HighContrast);
+  if(_root.XamlRoot is{} xamlRoot){bool motion=!reduceMotion&&_settings.AnimationsEnabled&&!_accessibility.HighContrast;GlassButtonEffects.SetPolicy(xamlRoot,motion);GlassSurfaceEffects.SetPolicy(xamlRoot,motion,!_accessibility.HighContrast);}
   var plan=MaterialPolicy.Choose(requested,_settings.AdvancedEffectsEnabled,_accessibility.HighContrast,_supported&&!_failed);
   bool themeChanged=_theme!=theme;_theme=theme;
   if(plan==_plan&&!themeChanged)return;

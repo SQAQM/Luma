@@ -18,6 +18,6 @@ internal static class MaterialTests
   Check(old.UseMaterials&&old.Theme=="Dark"&&old.ReduceMotion,"old preference compatibility");
   var disabled=new WindowPreferences(UseMaterials:false);var roundTrip=JsonSerializer.Deserialize<WindowPreferences>(JsonSerializer.Serialize(disabled));
   Check(roundTrip is{UseMaterials:false},"solid preference round trip");
-  return count;
+  return count+GlassPressMotionTests.Run();
  }
 }

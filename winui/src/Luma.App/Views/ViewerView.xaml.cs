@@ -21,6 +21,7 @@ public sealed partial class ViewerView:UserControl,IDisposable
   InitializeImmersive();InitializePlayback();InitializeMedia();Reactions.ChangeRequested+=ChangeAnnotation;
   GotFocus+=(_,e)=>{if(e.OriginalSource is Button button)Controls.ScrollFocus.Request(button);};
   Sort.ItemsSource=_sortNames;Filmstrip.ItemsSource=_tiles;SizeChanged+=(_,_)=>LayoutInfo();
+  Header.SizeChanged+=(_,_)=>LayoutImmersive();BottomChrome.SizeChanged+=(_,_)=>LayoutImmersive();
   _heartbeat=DispatcherQueue.CreateTimer();_heartbeat.Interval=TimeSpan.FromMilliseconds(40);_heartbeat.Tick+=(_,_)=>{double ms=_clock.Elapsed.TotalMilliseconds;_clock.Restart();_maxHeartbeat=Math.Max(_maxHeartbeat,ms);_heartbeatCount++;if(_stalls.Count>=512)_stalls.RemoveAt(0);_stalls.Add(ms);};
   AddKey(VirtualKey.Left,()=>Navigate(-1));AddKey(VirtualKey.Right,()=>Navigate(1));AddKey(VirtualKey.F11,()=>FullscreenRequested?.Invoke(!Fullscreen));AddKey(VirtualKey.Escape,()=>{if(Fullscreen)FullscreenRequested?.Invoke(false);else CloseViewer();});
   AddKey(VirtualKey.PageUp,()=>StepMedia(-1));AddKey(VirtualKey.PageDown,()=>StepMedia(1));AddKey(VirtualKey.Space,TogglePlayback);AddKey(VirtualKey.Number0,Fit);AddKey(VirtualKey.Number1,()=>Actual());AddKey(VirtualKey.I,()=>ToggleInfo());
@@ -69,7 +70,18 @@ public sealed partial class ViewerView:UserControl,IDisposable
  }
  private void StageResized(object sender,SizeChangedEventArgs e){_viewport.Resize(Stage.ActualWidth,Stage.ActualHeight);Pixels.Clip=new RectangleGeometry{Rect=new Rect(0,0,Stage.ActualWidth,Stage.ActualHeight)};ApplyTransform();}
  private void ApplyTransform(bool notify=true){Canvas.SetLeft(Picture,(_viewport.Width-_viewport.ImageWidth)/2);Canvas.SetTop(Picture,(_viewport.Height-_viewport.ImageHeight)/2);Transform.ScaleX=Transform.ScaleY=_viewport.Scale;Transform.Rotation=_viewport.Turns*90;Transform.TranslateX=_viewport.X;Transform.TranslateY=_viewport.Y;ZoomText.Text=$"{_viewport.Scale*100*(XamlRoot?.RasterizationScale??1):0}%";if(notify)Changed?.Invoke();}
- private void LayoutInfo(){if(Body is null)return;bool wide=ActualWidth>=1000;string label=_info?"关闭图片信息 (I)":"图片信息 (I)";AutomationProperties.SetName(InfoToggle,label);ToolTipService.SetToolTip(InfoToggle,label);Info.Visibility=_info&&_controlsVisible?Visibility.Visible:Visibility.Collapsed;StageContainer.Visibility=_info&&!wide&&!Fullscreen?Visibility.Collapsed:Visibility.Visible;StageColumn.Width=_info&&!wide&&!Fullscreen?new GridLength(0):new GridLength(1,GridUnitType.Star);InfoColumn.Width=!_info?new GridLength(0):Fullscreen?new GridLength(Math.Min(340,Math.Max(0,ActualWidth))):wide?new GridLength(340):new GridLength(1,GridUnitType.Star);LayoutImmersive();}
+ private void LayoutInfo()
+ {
+  if(Body is null)return;
+  bool wide=ActualWidth>=1000;
+  string label=_info?"关闭图片信息 (I)":"图片信息 (I)";
+  AutomationProperties.SetName(InfoToggle,label);ToolTipService.SetToolTip(InfoToggle,label);
+  Info.Visibility=_info&&_controlsVisible?Visibility.Visible:Visibility.Collapsed;
+  StageContainer.Visibility=_info&&!wide&&!Fullscreen?Visibility.Collapsed:Visibility.Visible;
+  StageColumn.Width=_info&&!wide&&!Fullscreen?new GridLength(0):new GridLength(1,GridUnitType.Star);
+  InfoColumn.Width=!_info?new GridLength(0):Fullscreen?new GridLength(Math.Min(340,Math.Max(0,ActualWidth))):wide?new GridLength(340):new GridLength(1,GridUnitType.Star);
+  LayoutImmersive();
+ }
  private void FilmToggleClicked(object s,RoutedEventArgs e){PausePlayback();_film=!_film;RestoreControls();LayoutImmersive();AutomationProperties.SetItemStatus(FilmToggle,_film?"已展开":"已收起");Changed?.Invoke();}
  private void ToggleInfo(){PausePlayback();_info=!_info;RestoreControls();LayoutInfo();if(_info)Update();Changed?.Invoke();}
  private void Wheel(object sender,PointerRoutedEventArgs e){PausePlayback();if(_images?.Frame is null)return;var p=e.GetCurrentPoint(Stage);_viewport.ZoomAt(Math.Pow(1.15,p.Properties.MouseWheelDelta/120.0),p.Position.X,p.Position.Y);ApplyTransform();e.Handled=true;}

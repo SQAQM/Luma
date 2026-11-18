@@ -1,0 +1,19 @@
+{
+  "result": "passed_design_and_source_review",
+  "blindFrames": [
+    "viewer-glass-appearance-light.png at 150% text",
+    "viewer-glass-appearance-dark.png at 150% text",
+    "model-directory-selected.png at 150% text"
+  ],
+  "observations": [
+    "Synthetic, high-contrast viewer backdrop remained readable beneath floating glass. No control overlap or clipped labels in the viewer frames.",
+    "Favorite and rating glyphs are thinner than the main toolbar, especially in dark mode.",
+    "The model screen has abbreviated filenames and unused right-hand space at this width. A partial bottom row is visible in the scrolled area."
+  ],
+  "sourceReview": [
+    "Preserved parent transforms and depth by limiting press animation to the template glass root.",
+    "Separated primary contrast states and paired high-contrast system colors.",
+    "Fixed queued root-focus reopening of fullscreen chrome."
+  ],
+  "scope": "Static synthetic PNG review only. Native diagnostics exercised the compositor adapter and focus controls directly. No hardware input or large-library benchmark."
+}

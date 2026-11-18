@@ -49,7 +49,15 @@ public sealed partial class ViewerView
         AddHandler(PointerCanceledEvent, release, true);
         AddHandler(PointerCaptureLostEvent, release, true);
         AddHandler(KeyDownEvent, new KeyEventHandler((_, _) => RestoreControls()), true);
-        GotFocus += (_, _) => RestoreControls();
+        GotFocus += (_, _) =>
+        {
+            // GotFocus is queued by WinUI. The idle callback returns focus to
+            // this viewport before hiding chrome; its own queued event must
+            // not immediately reopen that chrome. Real keys/pointers and
+            // focus entering an overlay still restore the controls.
+            if (!_controlsVisible && ReferenceEquals(FocusManager.GetFocusedElement(XamlRoot), this)) return;
+            RestoreControls();
+        };
         LostFocus += (_, _) => RestartIdle();
         Stage.ManipulationStarted += (_, _) => { _manipulating = true; RestoreControls(); };
         Stage.ManipulationCompleted += (_, _) => { _manipulating = false; RestartIdle(); };
@@ -99,40 +107,24 @@ public sealed partial class ViewerView
             bool immersive = Fullscreen;
             if (_appliedFullscreen != immersive)
             {
-                // A virtualizing ListView must not remain visible while its grid
-                // row/extent switches between a normal row and a viewport overlay.
-                Filmstrip.Visibility = Visibility.Collapsed;
                 ViewerRoot.Background = new SolidColorBrush(immersive ? Microsoft.UI.Colors.Black : Microsoft.UI.Colors.Transparent);
-                HeaderRow.Height = ReactionsRow.Height = FilmRow.Height = immersive ? new GridLength(0) : GridLength.Auto;
-                Grid.SetRow(Body, immersive ? 0 : 1);
-                Grid.SetRowSpan(Body, immersive ? 4 : 1);
                 Grid.SetColumnSpan(StageContainer, immersive ? 2 : 1);
-                DockRow.Height=immersive?new GridLength(0):GridLength.Auto;
-                Grid.SetRow(ToolDock,immersive?0:1);
-                Grid.SetRow(Header, 0);
-                Grid.SetRowSpan(Header, immersive ? 4 : 1);
-                Header.VerticalAlignment = immersive ? VerticalAlignment.Top : VerticalAlignment.Stretch;
-                HeaderBackdrop.Visibility = immersive ? Visibility.Visible : Visibility.Collapsed;
-                Grid.SetRow(ReactionsHost, immersive ? 0 : 2);
-                Grid.SetRowSpan(ReactionsHost, immersive ? 4 : 1);
-                ReactionsHost.VerticalAlignment = immersive ? VerticalAlignment.Bottom : VerticalAlignment.Stretch;
-                Grid.SetRow(Filmstrip, immersive ? 0 : 3);
-                Grid.SetRowSpan(Filmstrip, immersive ? 4 : 1);
-                Filmstrip.VerticalAlignment = immersive ? VerticalAlignment.Bottom : VerticalAlignment.Stretch;
-                Grid.SetRow(Feedback, immersive ? 0 : 1);
-                Grid.SetRowSpan(Feedback, immersive ? 4 : 1);
                 _appliedFullscreen = immersive;
             }
-            // These offsets depend on currently expanded panels and window width,
-            // but the mode-specific grid topology/background above does not.
-            ReactionsHost.Margin = immersive ? new Thickness(8, 0, 8, _film ? 88 : 8) : new Thickness(0, 0, _info && ActualWidth >= 1000 ? 340 : 0, 0);
-            ToolDock.Margin = new Thickness(8, 0, 8, immersive ? (_film ? 128 : 48) : 12);
-            Info.Margin = immersive ? new Thickness(0, 52, 8, _film ? 170 : 90) : new Thickness(0);
+            // Only an explicit information-panel change allocates stage space.
+            // Idle chrome and the filmstrip are overlays in both viewing modes;
+            // hiding them must never resize/refit the decoded image.
+            double infoInset = immersive && _info ? InfoColumn.Width.Value : 0;
+            double dockWidth = ActualWidth - (immersive ? infoInset : _info && ActualWidth >= 1000 ? 340 : 0);
+            DockCommands.Orientation = dockWidth < 480 ? Orientation.Vertical : Orientation.Horizontal;
+            BottomChrome.Margin = new Thickness(12, 0, 12 + infoInset, 12);
+            Info.Margin = new Thickness(0, Math.Max(68, Header.ActualHeight + 20), 12, 12);
             Header.Visibility = ToolDock.Visibility = ReactionsHost.Visibility = _controlsVisible ? Visibility.Visible : Visibility.Collapsed;
-            Feedback.Margin = new Thickness(16, 8, 16, immersive ? (_film ? 184 : 104) : 66);
+            Feedback.Margin = new Thickness(16, 8, 16 + infoInset, Math.Max(112, BottomChrome.ActualHeight + 22));
             Feedback.Visibility = _controlsVisible ? Visibility.Visible : Visibility.Collapsed;
             var filmVisibility = _film && _controlsVisible ? Visibility.Visible : Visibility.Collapsed;
             if (Filmstrip.Visibility != filmVisibility) Filmstrip.Visibility = filmVisibility;
+            FilmstripSurface.Visibility = filmVisibility;
         }
         finally { _applyingImmersiveLayout = false; }
     }

@@ -1,0 +1,40 @@
+{
+  "result": "failed_viewer_glass_ui",
+  "failed": [
+    {
+      "passed": false,
+      "name": "actual fullscreen idle callback hides the overlay controls"
+    }
+  ],
+  "trace": [
+    {
+      "scenario": "idle-events",
+      "events": [
+        {
+          "kind": "focus:Button",
+          "ms": 4,
+          "visible": true,
+          "focus": "Button",
+          "rootFocus": "Unfocused",
+          "timer": true
+        },
+        {
+          "kind": "tick",
+          "ms": 2039,
+          "visible": false,
+          "focus": "ViewerView",
+          "rootFocus": "Pointer",
+          "timer": false
+        },
+        {
+          "kind": "focus:ViewerView",
+          "ms": 2044,
+          "visible": true,
+          "focus": "ViewerView",
+          "rootFocus": "Pointer",
+          "timer": true
+        }
+      ]
+    }
+  ]
+}
