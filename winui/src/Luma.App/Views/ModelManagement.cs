@@ -117,7 +117,7 @@ public sealed partial class ManagementView
   if(_modelSearch?.Parent is Grid existing&&ModelControls.Children.Contains(existing)){UpdateModelRootChoice();BuildModelFilters();UpdateModelProgress();return;}
   ModelControls.Children.Clear();ModelPager.Children.Clear();foreach(var button in _modelButtons){_writes.Remove(button);_enabledWhen.Remove(button);}_modelButtons.Clear();
   Button Tool(string title,string id,Func<Task> action,bool write=false,Func<bool>? when=null){var b=Button(title,id,action,write,when);_modelButtons.Add(b);return b;}
-  Button Icon(string title,string id,string glyph,Func<Task> action,bool write=false,Func<bool>? when=null){var b=Tool(title,id,action,write,when);b.Style=(Style)Application.Current.Resources["LumaViewerIcon"];b.Content=new FontIcon{Glyph=glyph,FontSize=15};AutomationProperties.SetName(b,title);return b;}
+  Button Icon(string title,string id,LineGlyph glyph,Func<Task> action,bool write=false,Func<bool>? when=null){var b=Tool(title,id,action,write,when);b.Style=(Style)Application.Current.Resources["LumaViewerIcon"];b.Content=LineIcons.Create(glyph);AutomationProperties.SetName(b,title);return b;}
   var folders=new Grid{ColumnSpacing=8};
   folders.ColumnDefinitions.Add(new(){Width=GridLength.Auto});
   folders.ColumnDefinitions.Add(new(){Width=new(1,GridUnitType.Star)});
@@ -136,12 +136,12 @@ public sealed partial class ManagementView
   actions.Children.Add(Tool("补全资料","ManageFetchModelInfo",FetchModelInformation,true,()=>_models.Length>0&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
   var tidy=Tool("整理","ManageCleanupModelInfo",CleanupModelInformation,true,()=>!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j)));
   AutomationProperties.SetName(tidy,"整理资料");ToolTipService.SetToolTip(tidy,"整理资料");actions.Children.Add(tidy);
-  actions.Children.Add(Icon("移除目录","ManageRemoveModelRoot","\uE74D",RemoveModelRoot,true,()=>_rootId is not null&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
+  actions.Children.Add(Icon("移除目录","ManageRemoveModelRoot",LineGlyph.Trash,RemoveModelRoot,true,()=>_rootId is not null&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
   Grid.SetColumn(actions,2);folders.Children.Add(actions);
-  ModelPager.Children.Add(Icon("刷新","ManageRefresh","\uE72C",async()=>{if(_rootId is long id&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j)))await Write("models.scan",new{rootId=id},false);await RefreshFromStart();},true));
+  ModelPager.Children.Add(Icon("刷新","ManageRefresh",LineGlyph.Refresh,async()=>{if(_rootId is long id&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j)))await Write("models.scan",new{rootId=id},false);await RefreshFromStart();},true));
   ModelControls.Children.Add(folders);
-  var previous=Icon("上一页","ManageModelPrevious","\uE76B",()=>ChangeModelPage(false),when:()=>CanChangeModelPage&&_history.Count>0);ModelPager.Children.Add(previous);
-  var next=Icon("下一页","ManageModelNext","\uE76C",()=>ChangeModelPage(true),when:()=>CanChangeModelPage&&_next is not null);ModelPager.Children.Add(next);BuildModelFilters();
+  var previous=Icon("上一页","ManageModelPrevious",LineGlyph.Left,()=>ChangeModelPage(false),when:()=>CanChangeModelPage&&_history.Count>0);ModelPager.Children.Add(previous);
+  var next=Icon("下一页","ManageModelNext",LineGlyph.Right,()=>ChangeModelPage(true),when:()=>CanChangeModelPage&&_next is not null);ModelPager.Children.Add(next);BuildModelFilters();
   var progressRow=new Grid{ColumnSpacing=8};progressRow.ColumnDefinitions.Add(new(){Width=new(1,GridUnitType.Star)});progressRow.ColumnDefinitions.Add(new(){Width=GridLength.Auto});
   _modelProgress=Text("");_modelProgress.FontSize=12*_scale;_modelProgress.VerticalAlignment=VerticalAlignment.Center;_modelProgress.MaxLines=1;_modelProgress.TextTrimming=TextTrimming.CharacterEllipsis;AutomationProperties.SetAutomationId(_modelProgress,"ManageModelProgress");progressRow.Children.Add(_modelProgress);
   _modelStop=Tool("停止","ManageCancelModelTask",()=>{var task=_jobs.FirstOrDefault(j=>ModelJob(j)&&ActiveJob(j));return task.ValueKind==JsonValueKind.Object?Write("job.cancel",new{jobId=S(task,"id")},false):Task.CompletedTask;},true,()=>_jobs.Any(j=>ModelJob(j)&&ActiveJob(j)));Grid.SetColumn(_modelStop,1);progressRow.Children.Add(_modelStop);_modelProgressRow=progressRow;ModelControls.Children.Add(progressRow);UpdateModelProgress();

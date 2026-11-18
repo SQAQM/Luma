@@ -9,7 +9,7 @@
     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
     <Border Height="{Binding CoverHeight}" CornerRadius="8" Background="{ThemeResource LumaGlassBase}" BorderBrush="{ThemeResource LumaStroke}" BorderThickness="0.5">
      <Grid>
-      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6" Visibility="{Binding CoverPlaceholder}"><FontIcon Glyph="&#xE8B7;" FontSize="22" Foreground="{ThemeResource LumaSecondary}"/><TextBlock Text="{Binding CoverStatus}" Style="{StaticResource LumaCaption}" FontSize="{Binding CaptionSize}"/></StackPanel>
+      <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6" Visibility="{Binding CoverPlaceholder}"><Viewbox Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center"><ContentPresenter Content="Icon" ContentTemplate="{StaticResource LumaIconGallery}" Style="{StaticResource LumaLineIcon}" Foreground="{ThemeResource LumaSecondary}"/></Viewbox><TextBlock Text="{Binding CoverStatus}" Style="{StaticResource LumaCaption}" FontSize="{Binding CaptionSize}"/></StackPanel>
       <Image Source="{Binding Cover}" Stretch="Uniform"/>
       <Border HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="5" Padding="6,2" CornerRadius="4" Background="{ThemeResource LumaSurface}" Visibility="{Binding CardCategory}">
        <TextBlock Text="{Binding Meta}" FontSize="{Binding CaptionSize}" Style="{StaticResource LumaCaption}" TextTrimming="CharacterEllipsis"/>
@@ -23,7 +23,7 @@
    <Grid Padding="5" ColumnSpacing="10" ToolTipService.ToolTip="{Binding Label}">
     <Grid.ColumnDefinitions><ColumnDefinition Width="58"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
     <Border Height="58" CornerRadius="7" Background="{ThemeResource LumaGlassBase}" BorderBrush="{ThemeResource LumaStroke}" BorderThickness="0.5" ToolTipService.ToolTip="{Binding CoverStatus}">
-     <Grid><FontIcon Glyph="&#xE8B7;" FontSize="22" Foreground="{ThemeResource LumaSecondary}" Visibility="{Binding CoverPlaceholder}"/><Image Source="{Binding Cover}" Stretch="Uniform"/></Grid>
+     <Grid><Viewbox Width="22" Height="22" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding CoverPlaceholder}"><ContentPresenter Content="Icon" ContentTemplate="{StaticResource LumaIconGallery}" Style="{StaticResource LumaLineIcon}" Foreground="{ThemeResource LumaSecondary}"/></Viewbox><Image Source="{Binding Cover}" Stretch="Uniform"/></Grid>
     </Border>
     <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
      <TextBlock Text="{Binding CardTitle}" FontSize="{Binding FontSize}" FontWeight="SemiBold" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"/>
@@ -47,7 +47,7 @@
     <GridView.ItemContainerStyle><Style TargetType="GridViewItem"><Setter Property="Margin" Value="0"/><Setter Property="Padding" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/><Setter Property="VerticalContentAlignment" Value="Stretch"/></Style></GridView.ItemContainerStyle>
     <GridView.ItemsPanel><ItemsPanelTemplate><ItemsWrapGrid Orientation="Horizontal"/></ItemsPanelTemplate></GridView.ItemsPanel>
    </GridView>
-   <StackPanel x:Name="ModelEmpty" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="360" Spacing="10" Visibility="Collapsed"><FontIcon Glyph="&#xE8B7;" FontSize="32" Foreground="{ThemeResource LumaSecondary}"/><TextBlock x:Name="ModelEmptyTitle" Style="{StaticResource LumaHeading}" TextAlignment="Center" TextWrapping="Wrap" AutomationProperties.AutomationId="ManageModelEmpty"/><TextBlock x:Name="ModelEmptyNote" Style="{StaticResource LumaCaption}" TextAlignment="Center" TextWrapping="Wrap"/></StackPanel>
+   <StackPanel x:Name="ModelEmpty" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="360" Spacing="10" Visibility="Collapsed"><Viewbox Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center"><ContentPresenter Content="Icon" ContentTemplate="{StaticResource LumaIconModel}" Style="{StaticResource LumaLineIcon}" Foreground="{ThemeResource LumaSecondary}"/></Viewbox><TextBlock x:Name="ModelEmptyTitle" Style="{StaticResource LumaHeading}" TextAlignment="Center" TextWrapping="Wrap" AutomationProperties.AutomationId="ManageModelEmpty"/><TextBlock x:Name="ModelEmptyNote" Style="{StaticResource LumaCaption}" TextAlignment="Center" TextWrapping="Wrap"/></StackPanel>
    <ScrollViewer x:Name="FormScroll" Grid.Column="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" AutomationProperties.AutomationId="ManageFormScroll"><StackPanel x:Name="Form" Spacing="12"/></ScrollViewer>
   </Grid>
   <StackPanel x:Name="StatusHost" Grid.Row="3" Spacing="6" Margin="0,8,0,0" Visibility="Collapsed"><TextBlock x:Name="Status" TextWrapping="Wrap" Style="{StaticResource LumaBody}" AutomationProperties.AutomationId="ManageStatus"/><Button x:Name="Resolve" Content="核对上次操作状态" Click="ResolveClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="ManageResolve" Visibility="Collapsed"/></StackPanel>

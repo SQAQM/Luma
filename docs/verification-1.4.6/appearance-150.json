@@ -1,0 +1,50 @@
+{
+  "result": "passed_native_appearance",
+  "checks": [
+    {
+      "passed": true,
+      "name": "Dark to Follow System (Light) paints matching text on every sampled frame without another click"
+    },
+    {
+      "passed": true,
+      "name": "Light to Follow System (Dark) paints matching text on every sampled frame without another click"
+    },
+    {
+      "passed": true,
+      "name": "settings exposes four materials and a 0–100 transparency slider"
+    },
+    {
+      "passed": true,
+      "name": "Windows connects one native backdrop for acrylic"
+    },
+    {
+      "passed": true,
+      "name": "maximum background transparency clears the window tint"
+    },
+    {
+      "passed": true,
+      "name": "dragging the slider changes only the background tint"
+    },
+    {
+      "passed": true,
+      "name": "zero transparency covers the backdrop without dimming controls"
+    },
+    {
+      "passed": true,
+      "name": "frosted glass uses the existing compositor layer"
+    },
+    {
+      "passed": true,
+      "name": "liquid and frosted glass have distinct coating and keep one layer"
+    },
+    {
+      "passed": true,
+      "name": "solid switches off the layer and retains the previous transparency"
+    },
+    {
+      "passed": true,
+      "name": "changing presets preserves a usable slider"
+    }
+  ],
+  "scope": "synthetic profile, real native theme and compositor settings, controlled light and dark system color inputs"
+}

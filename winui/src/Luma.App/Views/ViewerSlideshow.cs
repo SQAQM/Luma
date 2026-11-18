@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Luma.Core.Viewer;
+using Luma.Preview.Services;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
@@ -52,7 +53,7 @@ public sealed partial class ViewerView
   if(PlaybackButton is null)return;
   bool playing=IsAnimation?_media.Playing:_playback.Playing;
   string label=IsAnimation?(playing?"暂停动图 (空格)":"播放动图 (空格)"):(playing?"暂停切图 (空格)":"自动切图 (空格)");
-  PlaybackIcon.Glyph=playing?"\uE769":"\uE768";
+  LineIcons.SetKind(PlaybackIcon,playing?LineGlyph.Pause:LineGlyph.Play);
   PlaybackButton.IsEnabled=IsAnimation||_playback.Playing||IsOpen&&_model?.Current is not null&&_model.NextId is not null;
   AutomationProperties.SetName(PlaybackButton,label);ToolTipService.SetToolTip(PlaybackButton,label);
  }

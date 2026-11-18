@@ -2,6 +2,7 @@ param([Parameter(Mandatory=$true)][string]$Executable,[Parameter(Mandatory=$true
 $ErrorActionPreference='Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
+. (Join-Path $PSScriptRoot 'MaterialAutomation.ps1')
 Add-Type -TypeDefinition 'using System;using System.Runtime.InteropServices;public static class SettingsNative{[DllImport("user32.dll")]public static extern bool SetForegroundWindow(IntPtr h);[DllImport("user32.dll")]public static extern IntPtr GetForegroundWindow();[DllImport("user32.dll")]public static extern void keybd_event(byte k,byte s,uint f,UIntPtr i);[DllImport("user32.dll")]public static extern bool SetWindowPos(IntPtr h,IntPtr a,int x,int y,int w,int z,uint f);}'
 $output=[IO.Path]::GetFullPath($OutputDirectory);if(Test-Path -LiteralPath $output){throw 'Fresh own output required'};[IO.Directory]::CreateDirectory($output)|Out-Null
 $data=Join-Path $output 'isolated-data';$statePath=Join-Path $data 'window-state.json';$process=$null;$checks=0
@@ -19,9 +20,9 @@ try{
  Click 'NavSettings';Await {(State).page -eq 'Settings'} 'settings'
  Check (-not (State).engineStarted) 'appearance does not start engine'
  Click 'ThemeDark';Await {(State).actualTheme -eq 'Dark'} 'dark appearance'
- Click 'MaterialToggle';Await {-not (State).material.requested -and (State).material.nativeLayers -eq 0} 'solid preference'
+ Reach 'BackgroundMaterial';Select-LumaBackgroundMaterial $root $process.Id 'Solid';Await {(State).material.material -eq 'Solid' -and (State).material.nativeLayers -eq 0} 'solid preference'
  (Find 'ReduceMotion').GetCurrentPattern([Windows.Automation.TogglePattern]::Pattern).Toggle();Await {(State).workspace.reducedMotion} 'reduce motion'
- Click 'MaterialToggle';Click 'ThemeLight'
+ Reach 'BackgroundMaterial';Select-LumaBackgroundMaterial $root $process.Id 'Acrylic';Await {(State).material.material -eq 'Acrylic'} 'acrylic preference';Click 'ThemeLight'
  Click 'SettingsOpenLibrary';if($MissingEngine){Await {(State).engine.state -eq '连接失败'} 'visible connection failure';Check ((State).workspace.management.feedback -like '*缺少引擎*') 'settings shows connection error';Click 'ThemeDark';Check ((State).actualTheme -eq 'Dark') 'appearance survives connection failure';$process.CloseMainWindow()|Out-Null;Check ($process.WaitForExit(30000)) 'safe failed-engine close';@{result='passed';count=$checks;syntheticOnly=$true;networkUsed=$false}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $output 'settings-failure-report.json');return};Await {(State).engine.connected -and $null -ne (Find 'ManagePreferenceDensity')} 'explicit local service and settings stay open'
  Check (-not (State).engine.galleryOpened -and -not (State).engine.startupCatalogQueried) 'Civitai settings do not require gallery startup'
  Check ((State).page -eq 'Settings') 'connection preserves settings destination'

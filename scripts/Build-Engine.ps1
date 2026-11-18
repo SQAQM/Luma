@@ -1,4 +1,4 @@
-param([string]$OutputDirectory='release/Engine-1.4.5')
+param([string]$OutputDirectory='release/Engine-1.4.6')
 $ErrorActionPreference='Stop'
 $taskWorkspace=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $taskOutput=[IO.Path]::GetFullPath((Join-Path $taskWorkspace $OutputDirectory))

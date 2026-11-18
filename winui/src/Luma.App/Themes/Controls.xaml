@@ -444,15 +444,22 @@
   <Setter Property="Foreground" Value="{ThemeResource LumaText}" />
   <Setter Property="CornerRadius" Value="6" />
  </Style>
- <Style x:Key="LumaReactionSymbol" TargetType="TextBlock">
-  <Setter Property="FontFamily" Value="Segoe UI Symbol" />
-  <Setter Property="FontSize" Value="22" />
+ <Style x:Key="LumaLineIcon" TargetType="ContentPresenter">
+  <Setter Property="Width" Value="18" />
+  <Setter Property="Height" Value="18" />
+  <Setter Property="HorizontalAlignment" Value="Center" />
+  <Setter Property="VerticalAlignment" Value="Center" />
+  <Setter Property="HorizontalContentAlignment" Value="Center" />
+  <Setter Property="VerticalContentAlignment" Value="Center" />
+  <Setter Property="IsHitTestVisible" Value="False" />
+ </Style>
+ <Style x:Key="LumaReactionSymbol" TargetType="ContentPresenter">
   <Setter Property="Foreground" Value="{ThemeResource LumaText}" />
  </Style>
- <Style x:Key="LumaHeartSymbol" TargetType="TextBlock" BasedOn="{StaticResource LumaReactionSymbol}">
+ <Style x:Key="LumaHeartSymbol" TargetType="ContentPresenter" BasedOn="{StaticResource LumaReactionSymbol}">
   <Setter Property="Foreground" Value="{ThemeResource LumaHeart}" />
  </Style>
- <Style x:Key="LumaStarSymbol" TargetType="TextBlock" BasedOn="{StaticResource LumaReactionSymbol}">
+ <Style x:Key="LumaStarSymbol" TargetType="ContentPresenter" BasedOn="{StaticResource LumaReactionSymbol}">
   <Setter Property="Foreground" Value="{ThemeResource LumaStar}" />
  </Style>
  <Style x:Key="LumaReaction" TargetType="Button">

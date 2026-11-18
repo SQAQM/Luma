@@ -4,6 +4,7 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
+. (Join-Path $PSScriptRoot 'MaterialAutomation.ps1')
 Add-Type -TypeDefinition 'using System;using System.Runtime.InteropServices;public static class ProbeEntry{[DllImport("user32.dll")]public static extern bool PostMessage(IntPtr h,uint m,IntPtr w,IntPtr l);}'
 $refs=@(Get-ChildItem -LiteralPath (Join-Path $PSHOME 'ref') -File -Filter '*.dll' | ForEach-Object FullName)
 $forms=[System.Windows.Forms.Form].Assembly.Location;$drawing=[System.Drawing.Bitmap].Assembly.Location
@@ -19,16 +20,23 @@ try{
  $hostWindow=[LumaPatternHost]::new();$hostWindow.Show();$hostWindow.Update();[LumaOwnedCapture]::Pump()
  $start=[Diagnostics.ProcessStartInfo]::new([IO.Path]::GetFullPath($Executable));$start.UseShellExecute=$false;$start.WindowStyle='Hidden';$start.Arguments='--data-dir "'+$data+'" --diagnostics';$process=[Diagnostics.Process]::Start($start);Await {(State).ready} 'own ready';$hwnd=[IntPtr][long](State).hwnd
  [LumaOwnedCapture]::Place($hwnd);Settle;$root=[Windows.Automation.AutomationElement]::FromHandle($hwnd)
- function Click([string]$id){$returnPage=$null;if($id -in @('ThemeLight','ThemeDark','ThemeSystem','MaterialToggle')){$returnPage=(State).page;if($returnPage -ne 'Settings'){Click 'NavSettings'}};Await {$e=$root.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::AutomationIdProperty,$id));$p=$null;if($e -and $e.Current.IsEnabled -and $e.TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern,[ref]$p)){$script:invoke=$p;return $true};return $false} $id;$script:invoke.Invoke();Settle;if($returnPage -and $returnPage -ne 'Settings'){Click ('Nav'+$returnPage)}}
+ function Click([string]$id){$returnPage=$null;if($id -in @('ThemeLight','ThemeDark','ThemeSystem')){$returnPage=(State).page;if($returnPage -ne 'Settings'){Click 'NavSettings'}};Await {$e=$root.FindFirst([Windows.Automation.TreeScope]::Descendants,[Windows.Automation.PropertyCondition]::new([Windows.Automation.AutomationElement]::AutomationIdProperty,$id));$p=$null;if($e -and $e.Current.IsEnabled -and $e.TryGetCurrentPattern([Windows.Automation.InvokePattern]::Pattern,[ref]$p)){$script:invoke=$p;return $true};return $false} $id;$script:invoke.Invoke();Settle;if($returnPage -and $returnPage -ne 'Settings'){Click ('Nav'+$returnPage)}}
+ function SetMaterial([string]$material){
+  $returnPage=(State).page
+  if($returnPage -ne 'Settings'){Click 'NavSettings'}
+  Select-LumaBackgroundMaterial $root $process.Id $material
+  Await {(State).material.material -eq $material} ('material '+$material)
+  if($returnPage -ne 'Settings'){Click ('Nav'+$returnPage)}
+ }
  Click 'GalleryOpen';Await {$g=(State).workspace.gallery;return $g.total -eq 131 -and -not $g.loading -and $g.thumbnailActive -eq 0 -and $g.thumbnailQueue -eq 0} 'generated gallery';[System.Windows.Forms.Cursor]::Position=[System.Drawing.Point]::new(900,500);Settle;Click 'ThemeLight';$initial=(State).material
  $hostWindow.SetWarm($true);Settle;[LumaOwnedCapture]::Capture($hwnd,$process.Id,$hostWindow.Handle,(Join-Path $out 'acrylic-warm.png'))
  $hostWindow.SetWarm($false);Settle;[LumaOwnedCapture]::Capture($hwnd,$process.Id,$hostWindow.Handle,(Join-Path $out 'acrylic-cool.png'))
- Click 'MaterialToggle';Await {-not (State).material.requested} 'solid';$hostWindow.SetWarm($true);Settle;[LumaOwnedCapture]::Capture($hwnd,$process.Id,$hostWindow.Handle,(Join-Path $out 'solid-warm.png'))
+ SetMaterial 'Solid';$hostWindow.SetWarm($true);Settle;[LumaOwnedCapture]::Capture($hwnd,$process.Id,$hostWindow.Handle,(Join-Path $out 'solid-warm.png'))
  $hostWindow.SetWarm($false);Settle;[LumaOwnedCapture]::Capture($hwnd,$process.Id,$hostWindow.Handle,(Join-Path $out 'solid-cool.png'))
  $glass=[LumaOwnedCapture]::Difference((Join-Path $out 'acrylic-warm.png'),(Join-Path $out 'acrylic-cool.png'),16,140,12,220)
  $solid=[LumaOwnedCapture]::Difference((Join-Path $out 'solid-warm.png'),(Join-Path $out 'solid-cool.png'),16,140,12,220)
  $sheet=[LumaOwnedCapture]::Difference((Join-Path $out 'acrylic-warm.png'),(Join-Path $out 'acrylic-cool.png'),450,585,240,10)
- Click 'MaterialToggle';Click 'ThemeDark';$hostWindow.SetWarm($true);Settle;[LumaOwnedCapture]::Capture($hwnd,$process.Id,$hostWindow.Handle,(Join-Path $out 'dark-warm.png'));$hostWindow.SetWarm($false);Settle;[LumaOwnedCapture]::Capture($hwnd,$process.Id,$hostWindow.Handle,(Join-Path $out 'dark-cool.png'))
+ SetMaterial 'Acrylic';Click 'ThemeDark';$hostWindow.SetWarm($true);Settle;[LumaOwnedCapture]::Capture($hwnd,$process.Id,$hostWindow.Handle,(Join-Path $out 'dark-warm.png'));$hostWindow.SetWarm($false);Settle;[LumaOwnedCapture]::Capture($hwnd,$process.Id,$hostWindow.Handle,(Join-Path $out 'dark-cool.png'))
  $dark=[LumaOwnedCapture]::Difference((Join-Path $out 'dark-warm.png'),(Join-Path $out 'dark-cool.png'),16,140,12,220)
  $titleGlass=[LumaOwnedCapture]::Difference((Join-Path $out 'acrylic-warm.png'),(Join-Path $out 'acrylic-cool.png'),300,18,100,8)
  $titleSolid=[LumaOwnedCapture]::Difference((Join-Path $out 'solid-warm.png'),(Join-Path $out 'solid-cool.png'),300,18,100,8)

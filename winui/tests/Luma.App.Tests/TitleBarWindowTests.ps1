@@ -2,6 +2,7 @@ param([Parameter(Mandatory=$true)][string]$Executable,[Parameter(Mandatory=$true
 $ErrorActionPreference='Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName UIAutomationTypes
+. (Join-Path $PSScriptRoot 'MaterialAutomation.ps1')
 Add-Type -TypeDefinition @'
 using System;using System.Runtime.InteropServices;
 public static class ChromeNative {
@@ -36,7 +37,7 @@ try{
  Check ($null -ne (Find 'LumaTitleBar')) 'real title control'
  Check ((([ChromeNative]::GetWindowLongPtr($hwnd,-16).ToInt64()) -band 0xC0000) -eq 0xC0000) 'system menu and resize frame preserved'
  Click 'NavSettings';Click 'ThemeDark';Await {(State).actualTheme -eq 'Dark'} 'dark';Click 'ThemeLight';Await {(State).actualTheme -eq 'Light'} 'light'
- Click 'MaterialToggle';Await {-not (State).material.requested} 'solid';Check ((State).material.nativeLayers -eq 0) 'title and panes fall back together';Click 'MaterialToggle';Await {(State).material.requested} 'material';if((State).material.acrylicRequested){Check ((State).material.nativeLayers -eq 1) 'one continuous native window backdrop'}
+ Select-LumaBackgroundMaterial $root $process.Id 'Solid';Await {(State).material.material -eq 'Solid'} 'solid';Check ((State).material.nativeLayers -eq 0) 'title and panes fall back together';Select-LumaBackgroundMaterial $root $process.Id 'Acrylic';Await {(State).material.material -eq 'Acrylic'} 'acrylic';if((State).material.acrylicRequested){Check ((State).material.nativeLayers -eq 1) 'one continuous native window backdrop'}
  [ChromeNative]::SetWindowPos($hwnd,[IntPtr](-1),0,0,1000,650,0x10)|Out-Null;Await {(State).windowWidth -eq 1000 -and (State).windowHeight -eq 650} 'positioned'
  $rect=(Find 'LumaTitleBar').Current.BoundingRectangle;$x=[int]($rect.Left+$rect.Width*.5);$y=[int]($rect.Top+$rect.Height*.5)
  Check ([ChromeNative]::OwnPoint($process.Id,$x,$y)) 'drag starts in own title';[ChromeNative]::SetForegroundWindow($hwnd)|Out-Null;[ChromeNative]::Move($x,$y);Start-Sleep -Milliseconds 60

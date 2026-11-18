@@ -135,6 +135,7 @@ public sealed partial class GalleryView:UserControl,IDisposable
             bool loading=_model.Loading||_catalogReloading;Images.IsEnabled=Rows.IsEnabled=!_catalogReloading;
             Ring.IsActive=loading;Ring.Visibility=loading?Visibility.Visible:Visibility.Collapsed;
             MessagePanel.Visibility=loading||_model.Items.Count==0?Visibility.Visible:Visibility.Collapsed;
+            EmptyArt.Visibility=!loading&&_model.Total==0&&_model.Error.Length==0?Visibility.Visible:Visibility.Collapsed;
             Message.Text=loading?"读取中":_model.Error.Length>0?ErrorText(_model.Error):_model.Total==0?"没有图片":"";
             DetailsButton.IsEnabled=_inspector||_model.Current is not null;
             if(!ReferenceEquals(_shownDetail,_model.Detail))
@@ -173,7 +174,7 @@ public sealed partial class GalleryView:UserControl,IDisposable
         ToolTipService.SetToolTip(DetailsButton,_inspector?"关闭图片信息 (Alt+Enter)":"图片信息 (Alt+Enter)");
         if(!_listMode&&Images.ItemsPanelRoot is ItemsWrapGrid panel){double width=Math.Max(180,ImagesPanel.ActualWidth);int columns=Math.Max(1,(int)(width/(_densityFactor<1?168:240)));panel.ItemWidth=Math.Floor((width-12)/columns);double chrome=22*_scale+48;double available=Math.Max(40,ImagesPanel.ActualHeight-chrome-8);double height=Math.Min(available,Math.Clamp((panel.ItemWidth-24)*(_densityFactor<1?.57:.72),64,_densityFactor<1?180:280));panel.ItemHeight=height+chrome;foreach(var tile in _tiles)tile.ImageHeight=height;}
         foreach(var tile in _tiles)tile.RowHeight=(_densityFactor<1?68:92)*Math.Sqrt(_scale);
-        if(ViewButton.Content is FontIcon viewIcon)viewIcon.Glyph=_listMode?"\uE80A":"\uE8FD";AutomationProperties.SetName(ViewButton,_listMode?"网格视图":"列表视图");ToolTipService.SetToolTip(ViewButton,_listMode?"网格视图":"列表视图");
+        LineIcons.SetKind(ViewModeIcon,_listMode?LineGlyph.Grid:LineGlyph.List);AutomationProperties.SetName(ViewButton,_listMode?"网格视图":"列表视图");ToolTipService.SetToolTip(ViewButton,_listMode?"网格视图":"列表视图");
     }
     private void ContainerChanging(ListViewBase sender,ContainerContentChangingEventArgs e)
     {

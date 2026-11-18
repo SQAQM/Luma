@@ -30,7 +30,7 @@ public sealed partial class ManagementView
    Check(ModelControlScroll.Visibility==Visibility.Visible&&Math.Abs(ModelControlScroll.ActualHeight-height)<1,"toolbar geometry remains stable");
    ModelCards.SelectedItems.Clear();await Task.Delay(300);
    Check(!_modelInspector,"clearing selection stays in browser");
-   Check(ModelPager.Children.OfType<Button>().All(button=>button.Content is FontIcon),"header actions are icon-only");
+   Check(ModelPager.Children.OfType<Button>().All(button=>button.Content is ContentPresenter { ContentTemplate: not null }),"header actions are icon-only");
    object? dropdown=null;
    if(_rootChoice is not null){
     _rootChoice.IsDropDownOpen=true;await Task.Delay(500);Check(_rootChoice.IsDropDownOpen,"native dropdown opens");

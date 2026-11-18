@@ -11,7 +11,13 @@
    <SolidColorBrush x:Key="ScrollBarTrackFillPointerOver" Color="#18FFFFFF" />
    <SolidColorBrush x:Key="ScrollBarTrackStroke" Color="Transparent" />
    <SolidColorBrush x:Key="ScrollBarTrackStrokePointerOver" Color="Transparent" />
-   <SolidColorBrush x:Key="LumaMaterialTint" Color="#22F0F4F8" />
+   <SolidColorBrush x:Key="LumaMaterialTint" Color="#F0F4F8" />
+   <SolidColorBrush x:Key="LumaFrostedTint" Color="#F0EBDF" />
+   <LinearGradientBrush x:Key="LumaLiquidTint" StartPoint="0,0" EndPoint="1,1">
+    <GradientStop Color="#C4E4FD" Offset="0"/>
+    <GradientStop Color="#F5FAFF" Offset=".50"/>
+    <GradientStop Color="#C9DEE9" Offset="1"/>
+   </LinearGradientBrush>
    <AcrylicBrush x:Key="LumaControlFill" TintColor="#FFFFFF" TintOpacity="0.72" TintLuminosityOpacity="0.9" FallbackColor="#FAFBFD" AlwaysUseFallback="True" />
    <SolidColorBrush x:Key="LumaCanvas" Color="#F1F2F4" />
    <SolidColorBrush x:Key="LumaSurface" Color="#FFFFFF" />
@@ -74,7 +80,13 @@
    <SolidColorBrush x:Key="CheckBoxForegroundUnchecked" Color="#F2F4F7" />
    <SolidColorBrush x:Key="CheckBoxForegroundChecked" Color="#F2F4F7" />
    <SolidColorBrush x:Key="CheckBoxForegroundIndeterminate" Color="#F2F4F7" />
-   <SolidColorBrush x:Key="LumaMaterialTint" Color="#28232A34" />
+   <SolidColorBrush x:Key="LumaMaterialTint" Color="#232A34" />
+   <SolidColorBrush x:Key="LumaFrostedTint" Color="#38312B" />
+   <LinearGradientBrush x:Key="LumaLiquidTint" StartPoint="0,0" EndPoint="1,1">
+    <GradientStop Color="#254962" Offset="0"/>
+    <GradientStop Color="#202B3B" Offset=".50"/>
+    <GradientStop Color="#18252F" Offset="1"/>
+   </LinearGradientBrush>
    <AcrylicBrush x:Key="LumaControlFill" TintColor="#242B36" TintOpacity="0.74" TintLuminosityOpacity="0.72" FallbackColor="#242B34" AlwaysUseFallback="True" />
    <SolidColorBrush x:Key="LumaCanvas" Color="#191C20" />
    <SolidColorBrush x:Key="LumaSurface" Color="#202329" />

@@ -45,9 +45,8 @@ public sealed partial class MainWindow : Window
         Shell.ConfigureStorage(options.DataDirectory,options.StorageRoot,_engine);
         _chrome=new Services.WindowChrome(this,Chrome,ChromeArea,ChromeTint,Shell.ResolveThemeBrush);
         Shell.ThemeColors=Surface.Resources.MergedDictionaries[0];
-        _materials=new Services.MaterialService(DispatcherQueue,this,Surface,plan=>{WindowTint.Background=Shell.ResolveThemeBrush(plan.UseAcrylic?"LumaMaterialTint":"LumaCanvas");Shell.ApplyMaterialPlan(plan);_chrome.ApplyMaterial(plan);});
+        _materials=new Services.MaterialService(DispatcherQueue,this,Surface,WindowTint,plan=>{Shell.RefreshAppearance();_chrome.ApplyMaterial(plan);});
         _materials.Changed+=UpdateState;
-        Shell.ActualThemeChanged+=(_,_)=>UpdateState();
         Shell.ConfigureDiagnostics(options.Diagnostics,options.ThumbnailPressure,options.MetadataFailureOnce);
         ContentHost.Children.Add(Shell);
         Title = "Luma · 图片管理";
@@ -60,7 +59,7 @@ public sealed partial class MainWindow : Window
         if (File.Exists(icon)) AppWindow.SetIcon(icon);
         var saved=_preferences.Load();_normalWidth=saved.Width;_normalHeight=saved.Height;_restoreMaximized=saved.Maximized;
         AppWindow.Resize(new SizeInt32(_normalWidth,_normalHeight));
-        Shell.RestorePreferences(saved.Theme,saved.ReduceMotion);Shell.RestoreMaterialPreference(saved.UseMaterials);
+        Shell.RestorePreferences(saved.Theme,saved.ReduceMotion);Shell.RestoreMaterialPreferences(saved.SelectedMaterial,saved.BackgroundTransparency);
         AppWindow.Changed+=(_,_)=>{if(AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p&&p.State==Microsoft.UI.Windowing.OverlappedPresenterState.Restored){_normalWidth=AppWindow.Size.Width;_normalHeight=AppWindow.Size.Height;}};
         Shell.Changed += () => { _theme = Shell.Theme; UpdateState(); };
         if(_options.Capture){var snapshot=new Microsoft.UI.Xaml.Input.KeyboardAccelerator{Key=Windows.System.VirtualKey.F12};snapshot.Invoked+=(_,e)=>{e.Handled=true;UpdateState();};Surface.KeyboardAccelerators.Add(snapshot);}
@@ -85,7 +84,7 @@ public sealed partial class MainWindow : Window
         if (_closed || _closePending) return;
         _closePending = true;
         await Shell.PrepareStorageCloseAsync();
-        try{_preferences.Save(new(_normalWidth,_normalHeight,AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p&&p.State==Microsoft.UI.Windowing.OverlappedPresenterState.Maximized,Shell.Theme,Shell.ReduceMotionPreference,Shell.MaterialsRequested));}catch(Exception error) when(error is IOException or UnauthorizedAccessException or Luma.Core.Engine.EngineRpcException){}
+        try{_preferences.Save(new(_normalWidth,_normalHeight,AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p&&p.State==Microsoft.UI.Windowing.OverlappedPresenterState.Maximized,Shell.Theme,Shell.ReduceMotionPreference,Shell.Material!=Luma.Core.Design.BackgroundMaterial.Solid,Shell.Material.ToString(),Shell.BackgroundTransparency));}catch(Exception error) when(error is IOException or UnauthorizedAccessException or Luma.Core.Engine.EngineRpcException){}
         await _engine.StopAsync(closing: true);
         if (_engine.IsAlive) { _closePending = false; return; }
         _allowClose = true;
@@ -109,6 +108,8 @@ public sealed partial class MainWindow : Window
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_WINDOW_PERF_UI_TEST")=="1")_=VerifyWindowPerformanceUi();
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_FILMSTRIP_PERF_UI_TEST")=="1")_=Shell.VerifyFilmstripPerformanceUi(_options.DataDirectory,CaptureVerificationFrame);
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_VIEWER_GLASS_UI_TEST")=="1")_=Shell.VerifyViewerGlassUi(_options.DataDirectory,CaptureVerificationFrame);
+        if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_APPEARANCE_UI_TEST")=="1")
+            _=Shell.VerifyAppearanceUi(_options.DataDirectory,Surface,WindowTint,Chrome,()=>SystemBackdrop,CaptureVerificationFrame);
     }
     private async void PickImage()
     {
@@ -152,13 +153,16 @@ public sealed partial class MainWindow : Window
     private void UpdateState()
     {
         if (!_ready || _closed) return;
-        // Backdrop configuration follows the XamlRoot theme, not a nested page's override.
-        Surface.RequestedTheme=Shell.RequestedTheme;
-        _materials.Apply(Shell.MaterialsRequested,Shell.ActualTheme,Shell.ReduceMotionPreference);
+        var effectiveTheme=Shell.EffectiveTheme;
+        if(Surface.RequestedTheme!=effectiveTheme)
+        {
+            Surface.RequestedTheme=effectiveTheme;
+            int dark=effectiveTheme==ElementTheme.Dark?1:0;
+            _=DwmSetWindowAttribute(_hwnd,20,ref dark,sizeof(int));
+        }
+        _materials.Apply(Shell.Material,Shell.BackgroundTransparency,effectiveTheme,Shell.ReduceMotionPreference);
         _chrome.Refresh();
         GetWindowRect(_hwnd, out var rectangle);
-        int dark = Shell.ActualTheme == ElementTheme.Dark ? 1 : 0;
-        _ = DwmSetWindowAttribute(_hwnd, 20, ref dark, sizeof(int));
         _revision++;
         WriteState();
         if (_options.Capture) _ = CaptureAsync();

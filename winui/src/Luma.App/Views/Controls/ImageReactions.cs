@@ -1,3 +1,4 @@
+using Luma.Preview.Services;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
@@ -7,7 +8,7 @@ using Microsoft.UI.Xaml.Media;
 
 namespace Luma.Preview.Views.Controls;
 
-// Symbols beneath a photo, with ordinary button keyboard/automation behavior.
+// Reactions beneath a photo, with ordinary button keyboard/automation behavior.
 public sealed class ImageReactions : StackPanel
 {
     public static readonly DependencyProperty FavoriteProperty = DependencyProperty.Register(nameof(Favorite), typeof(bool), typeof(ImageReactions), new PropertyMetadata(false, RefreshChanged));
@@ -43,22 +44,30 @@ public sealed class ImageReactions : StackPanel
     }
     private void Refresh()
     {
-        Configure(_heart, Favorite ? "♥" : "♡", Favorite ? "LumaHeartSymbol" : "LumaReactionSymbol", Favorite ? "取消收藏" : "收藏", IdPrefix.StartsWith("Gallery") ? IdPrefix.Replace("Gallery", "GalleryHeart") : IdPrefix + "Heart");
+        Configure(_heart, Favorite ? LineGlyph.HeartSelected : LineGlyph.Heart, Favorite ? "LumaHeartSymbol" : "LumaReactionSymbol", Favorite ? "取消收藏" : "收藏", IdPrefix.StartsWith("Gallery") ? IdPrefix.Replace("Gallery", "GalleryHeart") : IdPrefix + "Heart");
         for (int i = 0; i < _stars.Length; i++)
         {
             int value = i + 1;
             string id = IdPrefix.StartsWith("Gallery") ? IdPrefix.Replace("Gallery", "GalleryStar") + "_" + value : IdPrefix + "Star_" + value;
-            Configure(_stars[i], Rating >= value ? "★" : "☆", Rating >= value ? "LumaStarSymbol" : "LumaReactionSymbol", Rating == value ? $"取消{value}星评分" : $"评为{value}星", id);
+            Configure(_stars[i], Rating >= value ? LineGlyph.StarSelected : LineGlyph.Star, Rating >= value ? "LumaStarSymbol" : "LumaReactionSymbol", Rating == value ? $"取消{value}星评分" : $"评为{value}星", id);
             AutomationProperties.SetItemStatus(_stars[i], Rating >= value ? "已选" : "未选");
         }
         AutomationProperties.SetItemStatus(_heart, Favorite ? "已收藏" : "未收藏");
     }
-    private void Configure(Button button, string symbol, string style, string label, string id)
+    private void Configure(Button button, LineGlyph glyph, string style, string label, string id)
     {
         button.Style = (Style)Application.Current.Resources["LumaReaction"];
         button.IsEnabled = CanEdit;
-        if (button.Content is not TextBlock text) { text = new TextBlock(); button.Content = text; }
-        text.Text = symbol; text.Style = (Style)Application.Current.Resources[style];
+        if (button.Content is ContentPresenter icon)
+        {
+            LineIcons.SetKind(icon, glyph);
+        }
+        else
+        {
+            icon = LineIcons.Create(glyph);
+            button.Content = icon;
+        }
+        icon.Style = (Style)Application.Current.Resources[style];
         AutomationProperties.SetName(button, label); AutomationProperties.SetAutomationId(button, id);
         ToolTipService.SetToolTip(button, CanEdit ? label : "当前图片只读或正在保存");
     }

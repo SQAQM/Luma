@@ -1,7 +1,7 @@
 param(
  [Parameter(Mandatory=$true)][string]$Executable,
  [Parameter(Mandatory=$true)][string]$OutputDirectory,
- [ValidateSet('Release','Model','Viewer','WindowPerf','FilmstripPerf','Media','ViewerGlass')][string]$Scenario='Model',
+ [ValidateSet('Release','Model','Viewer','WindowPerf','FilmstripPerf','Media','ViewerGlass','Appearance')][string]$Scenario='Model',
  [ValidateSet(100,150)][int]$TextScale=100,
  [int]$Width=1000,[int]$Height=650
 )
@@ -20,6 +20,7 @@ $cases=@{
  FilmstripPerf=@('LUMA_FILMSTRIP_PERF_UI_TEST','filmstrip-perf-ui-report.json','passed_filmstrip_perf_ui')
  Media=@('LUMA_MEDIA_UI_TEST','media-ui-report.json','passed_media_ui')
  ViewerGlass=@('LUMA_VIEWER_GLASS_UI_TEST','viewer-glass-ui-report.json','passed_viewer_glass_ui')
+ Appearance=@('LUMA_APPEARANCE_UI_TEST','appearance-ui-report.json','passed_native_appearance')
 }
 $case=$cases[$Scenario];$data=Join-Path $output 'native-profile'
 if($Scenario -eq 'Media'){

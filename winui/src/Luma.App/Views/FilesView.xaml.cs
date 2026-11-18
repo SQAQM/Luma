@@ -238,7 +238,7 @@ public sealed partial class FilesView:UserControl,IDisposable
   _ruleKind=Choice("规则类型","FilesRuleKind",new[]{"模型","内容类别","提示词解析词","画师","格式"});_ruleKind.SelectedIndex=0;
   _ruleName=Input("分类名称","FilesRuleName");_ruleMatch=Input("匹配内容","FilesRuleMatch");_ruleDestination=Input("目标目录","FilesRuleDestination");_ruleEnabled=new CheckBox{Content="启用",IsChecked=true,FontSize=14*_scale};Setup.Children.Add(_ruleEnabled);
   RuleActions.Children.Add(Button("新增","FilesRuleNew",()=>{RulesList.SelectedItem=null;_ruleId=null;_ruleName.Text=_ruleMatch.Text=_ruleDestination.Text="";_ruleKind.SelectedIndex=0;_ruleEnabled.IsChecked=true;Update();return Task.CompletedTask;}));RuleActions.Children.Add(Button("保存","FilesRuleSave",SaveRule,true));RuleActions.Children.Add(Button("移除","FilesRuleRemove",RemoveRule,true));
-  var next=Button("下一页规则","FilesRuleNext",NextRules);next.Style=(Style)Application.Current.Resources["LumaViewerIcon"];next.Content=new FontIcon{Glyph="\uE76C",FontSize=15};AutomationProperties.SetName(next,"下一页规则");RulesPager.Children.Add(next);
+  var next=Button("下一页规则","FilesRuleNext",NextRules);next.Style=(Style)Application.Current.Resources["LumaViewerIcon"];next.Content=LineIcons.Create(LineGlyph.Right);AutomationProperties.SetName(next,"下一页规则");RulesPager.Children.Add(next);
  }
  private static string RuleKindName(string kind)=>kind switch{"model"=>"模型","content_tag"=>"内容类别","tag"=>"提示词解析词","artist"=>"画师","format"=>"格式",_=>kind};
  private void RuleSelected(object sender,SelectionChangedEventArgs args)

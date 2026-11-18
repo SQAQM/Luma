@@ -57,9 +57,9 @@
       </Flyout>
      </Button.Flyout>
     </Button>
-    <Button x:Name="ViewButton" Click="ViewClicked" Style="{StaticResource LumaViewerIcon}" AutomationProperties.AutomationId="GalleryViewMode" AutomationProperties.Name="列表视图" ToolTipService.ToolTip="列表视图"><FontIcon Glyph="&#xE8FD;" FontSize="16"/></Button>
-    <Button x:Name="DetailsButton" Click="DetailsClicked" Style="{StaticResource LumaViewerIcon}" AutomationProperties.AutomationId="GalleryDetails" AutomationProperties.Name="图片信息 (Alt+Enter)" ToolTipService.ToolTip="图片信息 (Alt+Enter)"><FontIcon Glyph="&#xE946;" FontSize="16"/></Button>
-    <Button x:Name="RefreshButton" Click="RefreshOrCancelClicked" Style="{StaticResource LumaViewerIcon}" AutomationProperties.AutomationId="GalleryRefresh" AutomationProperties.Name="刷新" ToolTipService.ToolTip="刷新"><FontIcon x:Name="RefreshIcon" Glyph="&#xE72C;" FontSize="16"/></Button>
+    <Button x:Name="ViewButton" Click="ViewClicked" Style="{StaticResource LumaViewerIcon}" AutomationProperties.AutomationId="GalleryViewMode" AutomationProperties.Name="列表视图" ToolTipService.ToolTip="列表视图"><ContentPresenter x:Name="ViewModeIcon" Content="Icon" ContentTemplate="{StaticResource LumaIconList}" Style="{StaticResource LumaLineIcon}"/></Button>
+    <Button x:Name="DetailsButton" Click="DetailsClicked" Style="{StaticResource LumaViewerIcon}" AutomationProperties.AutomationId="GalleryDetails" AutomationProperties.Name="图片信息 (Alt+Enter)" ToolTipService.ToolTip="图片信息 (Alt+Enter)"><ContentPresenter Content="Icon" ContentTemplate="{StaticResource LumaIconInfo}" Style="{StaticResource LumaLineIcon}"/></Button>
+    <Button x:Name="RefreshButton" Click="RefreshOrCancelClicked" Style="{StaticResource LumaViewerIcon}" AutomationProperties.AutomationId="GalleryRefresh" AutomationProperties.Name="刷新" ToolTipService.ToolTip="刷新"><ContentPresenter x:Name="RefreshIcon" Content="Icon" ContentTemplate="{StaticResource LumaIconRefresh}" Style="{StaticResource LumaLineIcon}"/></Button>
    </controls:TagChipPanel>
   </ScrollViewer>
   <Grid x:Name="Body" Grid.Row="2" ColumnSpacing="16">
@@ -86,7 +86,7 @@
       </Grid>
      </DataTemplate></ListView.ItemTemplate>
     </ListView>
-    <StackPanel x:Name="MessagePanel" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" MaxWidth="400"><ProgressRing x:Name="Ring" Width="28" Height="28"/><TextBlock x:Name="Message" TextWrapping="Wrap" Style="{StaticResource LumaBody}" AutomationProperties.AutomationId="GalleryMessage"/></StackPanel>
+    <StackPanel x:Name="MessagePanel" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12" MaxWidth="400"><ProgressRing x:Name="Ring" Width="28" Height="28"/><Viewbox x:Name="EmptyArt" Width="40" Height="40" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed"><ContentPresenter Content="Icon" ContentTemplate="{StaticResource LumaIconGalleryStack}" Style="{StaticResource LumaLineIcon}" Foreground="{ThemeResource LumaSecondary}"/></Viewbox><TextBlock x:Name="Message" TextAlignment="Center" TextWrapping="Wrap" Style="{StaticResource LumaBody}" AutomationProperties.AutomationId="GalleryMessage"/></StackPanel>
    </Grid>
    <Grid x:Name="Inspector" Grid.Column="1" Visibility="Collapsed" RowSpacing="10">
     <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>

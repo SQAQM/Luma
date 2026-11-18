@@ -8,7 +8,14 @@
     <StackPanel x:Name="Preferences" Grid.Row="1" Spacing="12">
      <TextBlock Text="外观" Style="{StaticResource LumaHeading}" FontSize="20"/>
      <StackPanel Orientation="Horizontal" Spacing="4"><Button Width="86" MinWidth="0" Padding="10,6" x:Name="LightButton" Content="浅色" Tag="Light" Click="ThemeClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="ThemeLight" AutomationProperties.Name="浅色主题" ToolTipService.ToolTip="浅色主题"/><Button Width="86" MinWidth="0" Padding="10,6" x:Name="DarkButton" Content="深色" Tag="Dark" Click="ThemeClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="ThemeDark" AutomationProperties.Name="深色主题" ToolTipService.ToolTip="深色主题"/><Button Width="104" MinWidth="0" Padding="10,6" x:Name="SystemButton" Content="跟随系统" Tag="System" Click="ThemeClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="ThemeSystem" AutomationProperties.Name="跟随系统主题" ToolTipService.ToolTip="跟随系统主题"/></StackPanel>
-     <Button x:Name="MaterialButton" Content="透明玻璃" HorizontalAlignment="Left" Click="MaterialClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="MaterialToggle" AutomationProperties.Name="透明材质" ToolTipService.ToolTip="透明材质"/><CheckBox x:Name="ReduceMotion" Content="减少动态" Checked="MotionChanged" Unchecked="MotionChanged" AutomationProperties.AutomationId="ReduceMotion"/>
+     <ComboBox x:Name="MaterialPicker" Header="背景材质" MinWidth="184" HorizontalAlignment="Left" SelectionChanged="MaterialChanged" AutomationProperties.AutomationId="BackgroundMaterial" AutomationProperties.Name="背景材质">
+      <ComboBoxItem Content="亚克力"/>
+      <ComboBoxItem Content="磨砂玻璃"/>
+      <ComboBoxItem Content="液态玻璃"/>
+      <ComboBoxItem Content="实色"/>
+     </ComboBox>
+     <Slider x:Name="TransparencySlider" Header="背景透明度 85%" Minimum="0" Maximum="100" Value="85" StepFrequency="1" SnapsTo="StepValues" Width="248" HorizontalAlignment="Left" Foreground="{ThemeResource LumaAccent}" ValueChanged="TransparencyChanged" AutomationProperties.AutomationId="BackgroundTransparency" AutomationProperties.Name="背景透明度"/>
+     <CheckBox x:Name="ReduceMotion" Content="减少动态" Checked="MotionChanged" Unchecked="MotionChanged" AutomationProperties.AutomationId="ReduceMotion"/>
     </StackPanel><StackPanel x:Name="SettingsNavigation" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>
    </Grid></Grid>
   </Border>
@@ -21,7 +28,7 @@
     <views:GalleryView x:Name="LiveGallery" Visibility="Collapsed"/>
     <views:ManagementView x:Name="Management" Visibility="Collapsed"/>
     <views:FilesView x:Name="Files" Visibility="Collapsed"/>
-    <StackPanel x:Name="StatePanel" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="480" Spacing="16"><FontIcon x:Name="StateIcon" Glyph="&#xE8B7;" FontSize="40" Foreground="{ThemeResource LumaAccent}"/><StackPanel x:Name="WelcomeActions" Spacing="8" HorizontalAlignment="Center"/><ProgressRing x:Name="LoadingRing" Width="32" Height="32" IsActive="False"/><TextBlock x:Name="StateTitle" Style="{StaticResource LumaHeading}" FontSize="22" TextAlignment="Center"/><TextBlock x:Name="StateDescription" Visibility="Collapsed" Style="{StaticResource LumaBody}" TextAlignment="Center"/><Button x:Name="StateAction" HorizontalAlignment="Center" Click="StateActionClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="StateAction"/></StackPanel>
+    <StackPanel x:Name="StatePanel" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="480" Spacing="16"><Viewbox x:Name="StateIcon" Width="46" Height="46" HorizontalAlignment="Center" VerticalAlignment="Center"><ContentPresenter x:Name="StateGlyph" Content="Icon" ContentTemplate="{StaticResource LumaIconGalleryStack}" Style="{StaticResource LumaLineIcon}" Foreground="{ThemeResource LumaAccent}"/></Viewbox><StackPanel x:Name="WelcomeActions" Spacing="8" HorizontalAlignment="Center"/><ProgressRing x:Name="LoadingRing" Width="32" Height="32" IsActive="False"/><TextBlock x:Name="StateTitle" Style="{StaticResource LumaHeading}" FontSize="22" TextAlignment="Center"/><TextBlock x:Name="StateDescription" Visibility="Collapsed" Style="{StaticResource LumaBody}" TextAlignment="Center"/><Button x:Name="StateAction" HorizontalAlignment="Center" Click="StateActionClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="StateAction"/></StackPanel>
    </Grid>
    <Grid x:Name="Footer" Grid.Row="2" ColumnSpacing="12"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="Feedback" VerticalAlignment="Center" Style="{StaticResource LumaCaption}" AutomationProperties.AutomationId="Feedback"/></Grid>
   </Grid>

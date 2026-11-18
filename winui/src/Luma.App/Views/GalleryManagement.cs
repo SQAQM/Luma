@@ -1,5 +1,6 @@
 using Luma.Core.Gallery;
 using Luma.Core.Management;
+using Luma.Preview.Services;
 using Luma.Preview.Views.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
@@ -62,7 +63,7 @@ public sealed partial class GalleryView
  {
   bool canCancel=_model?.Loading==true||_galleryJob.CanCancel;
   string label=_galleryJob.CanCancel?"取消图像任务":canCancel?"取消加载":"刷新";
-  RefreshIcon.Glyph=canCancel?"\uE711":"\uE72C";
+  LineIcons.SetKind(RefreshIcon,canCancel?LineGlyph.Cancel:LineGlyph.Refresh);
   AutomationProperties.SetName(RefreshButton,label);
   ToolTipService.SetToolTip(RefreshButton,label);
   bool paging=!_annotationWriting&&!_catalogReloading;

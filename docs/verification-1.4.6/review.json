@@ -1,0 +1,4 @@
+{
+  "result": "passed_visual_contrast_followup",
+  "scope": "Blind reviewer considered synthetic view frames without context. Final native XAML captures show different translucent source treatments for all three presets, with approximately 13.8 average red-channel levels between frosted and liquid on a text-free region. Captures do not include content behind the OS window."
+}
