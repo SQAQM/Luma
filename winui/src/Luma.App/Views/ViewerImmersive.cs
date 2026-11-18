@@ -14,6 +14,30 @@ public sealed partial class ViewerView
     private MenuFlyout? _contextMenu;
     private bool? _appliedFullscreen;
     private bool _applyingImmersiveLayout;
+    private DispatcherQueueTimer _copyNoticeTimer = null!;
+    private bool CanSplitInfo => ActualWidth >= 740;
+
+    private void InitializeViewerFeedback()
+    {
+        _copyNoticeTimer = DispatcherQueue.CreateTimer();
+        _copyNoticeTimer.Interval = TimeSpan.FromSeconds(2);
+        _copyNoticeTimer.IsRepeating = false;
+        _copyNoticeTimer.Tick += (_, _) =>
+        {
+            if (Feedback.Text is "已复制" or "已复制路径") Feedback.Text = "";
+        };
+        Feedback.RegisterPropertyChangedCallback(TextBlock.TextProperty, (_, _) => UpdateFeedbackVisibility());
+    }
+
+    private void ShowCopyNotice(string text)
+    {
+        Feedback.Text = text;
+        _copyNoticeTimer.Stop();
+        _copyNoticeTimer.Start();
+    }
+
+    private void UpdateFeedbackVisibility() => FeedbackSurface.Visibility =
+        IsOpen && _controlsVisible && Feedback.Text.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
 
     private void InitializeImmersive()
     {
@@ -114,15 +138,24 @@ public sealed partial class ViewerView
             // Only an explicit information-panel change allocates stage space.
             // Idle chrome and the filmstrip are overlays in both viewing modes;
             // hiding them must never resize/refit the decoded image.
-            double infoInset = immersive && _info ? InfoColumn.Width.Value : 0;
-            double dockWidth = ActualWidth - (immersive ? infoInset : _info && ActualWidth >= 1000 ? 340 : 0);
-            DockCommands.Orientation = dockWidth < 480 ? Orientation.Vertical : Orientation.Horizontal;
+            bool splitInfo = _info && CanSplitInfo;
+            bool showDock = _controlsVisible && (!_info || splitInfo);
+            double infoInset = immersive && splitInfo ? InfoColumn.Width.Value : 0;
+            double dockWidth = ActualWidth - (splitInfo ? InfoColumn.Width.Value : 0);
+            bool inlineDock = dockWidth >= 652;
+            Grid.SetRow(DockOptions, inlineDock ? 0 : 1);
+            Grid.SetColumn(DockOptions, inlineDock ? 1 : 0);
+            Grid.SetColumnSpan(DockOptions, inlineDock ? 1 : 2);
+            Grid.SetColumnSpan(DockTools, inlineDock ? 1 : 2);
+            DockOptions.Orientation = dockWidth >= 330 ? Orientation.Horizontal : Orientation.Vertical;
             BottomChrome.Margin = new Thickness(12, 0, 12 + infoInset, 12);
             Info.Margin = new Thickness(0, Math.Max(68, Header.ActualHeight + 20), 12, 12);
-            Header.Visibility = ToolDock.Visibility = ReactionsHost.Visibility = _controlsVisible ? Visibility.Visible : Visibility.Collapsed;
-            Feedback.Margin = new Thickness(16, 8, 16 + infoInset, Math.Max(112, BottomChrome.ActualHeight + 22));
-            Feedback.Visibility = _controlsVisible ? Visibility.Visible : Visibility.Collapsed;
-            var filmVisibility = _film && _controlsVisible ? Visibility.Visible : Visibility.Collapsed;
+            Header.Visibility = _controlsVisible ? Visibility.Visible : Visibility.Collapsed;
+            ToolDock.Visibility = showDock ? Visibility.Visible : Visibility.Collapsed;
+            if (!showDock && Sort.IsDropDownOpen) Sort.IsDropDownOpen = false;
+            FeedbackSurface.Margin = new Thickness(16, 8, 16, showDock ? BottomChrome.ActualHeight + 22 : 16);
+            UpdateFeedbackVisibility();
+            var filmVisibility = _film && showDock ? Visibility.Visible : Visibility.Collapsed;
             if (Filmstrip.Visibility != filmVisibility) Filmstrip.Visibility = filmVisibility;
             FilmstripSurface.Visibility = filmVisibility;
         }

@@ -100,6 +100,8 @@ public sealed partial class ViewerView
   Rect normalStage = Bounds(Stage);
   check(Math.Abs(Stage.ActualHeight - ActualHeight) < .1 && Math.Abs(Stage.ActualWidth - ActualWidth) < .1,
    "ordinary image stage uses the full viewer without reserved chrome rows");
+  check(Inside(DockOptions)&&Separate(Bounds(DockOptions),Bounds(DockTools)),"dock command groups stay separate at the current width");
+  if(ActualWidth>=652)check(Math.Abs(Bounds(DockOptions).Top-Bounds(DockTools).Top)<8&&ToolDock.ActualHeight<54,"ordinary controls use one slim row");
   VisibleChrome("ordinary"); Sample("ordinary"); await capture("ordinary");
 
   FilmToggleClicked(FilmToggle, new RoutedEventArgs()); await Settle();
@@ -112,9 +114,17 @@ public sealed partial class ViewerView
   ToggleInfo(); await Settle();
   check(Info.Visibility == Visibility.Visible && Inside(Info), "information toggle opens a visible bounded panel");
   check(Separate(Bounds(Header), Bounds(Info)), "information panel stays below the filename and command groups");
+  check(Prompt.Visibility==Visibility.Collapsed&&Negative.Visibility==Visibility.Collapsed&&CopyNegative.Visibility==Visibility.Collapsed,
+   "absent prompt data leaves headings without empty scroll regions or copy buttons");
+  if(CanSplitInfo)check(StageContainer.Visibility==Visibility.Visible&&Bounds(Stage).Width>360,"medium window keeps the image beside its information");
   if (StageContainer.Visibility == Visibility.Visible)
    check(Separate(Bounds(ToolDock), Bounds(Info)), "wide information panel does not cover dock controls");
   else check(StageColumn.Width.Value == 0, "narrow information panel keeps its explicit replacement layout");
+  if(!CanSplitInfo)
+  {
+   check(ShowViewerFileActions(Info)&&_contextMenu?.Items.Count==3,"narrow information pane can open the shared file menu");
+   CloseOverlay();await Settle();
+  }
   Sample("information"); await capture("information");
   ToggleInfo(); await Settle();
   check(Same(normalStage, Bounds(Stage)), "closing information restores the ordinary stage bounds");
@@ -132,9 +142,20 @@ public sealed partial class ViewerView
   Sort.IsDropDownOpen = false; Focus(FocusState.Programmatic); await Settle();
   FilmToggleClicked(FilmToggle, new RoutedEventArgs()); ToggleInfo(); await Settle();
   Rect fullscreenStage = Bounds(Stage); double zoom = _viewport.Scale, panX = _viewport.X, panY = _viewport.Y; int turns = _viewport.Turns;
-  check(Inside(Info) && Inside(Filmstrip), "fullscreen information and filmstrip stay onscreen");
-  check(Separate(Bounds(Info), Bounds(ToolDock)) && Separate(Bounds(Info), Bounds(FilmstripSurface)), "fullscreen information and bottom overlays do not overlap");
-  VisibleChrome("fullscreen"); Sample("fullscreen-visible"); await capture("fullscreen-visible");
+  check(Inside(Info),"fullscreen information stays onscreen");
+  if(CanSplitInfo)
+  {
+   check(Inside(Filmstrip)&&Separate(Bounds(Info),Bounds(ToolDock))&&Separate(Bounds(Info),Bounds(FilmstripSurface)),"fullscreen information and bottom overlays do not overlap");
+   VisibleChrome("fullscreen");
+  }
+  else
+  {
+   check(ToolDock.Visibility==Visibility.Collapsed&&Filmstrip.Visibility==Visibility.Collapsed,"narrow fullscreen information does not obscure focusable dock controls");
+   ShowCopyNotice("已复制");await Settle();
+   check(FeedbackSurface.Visibility==Visibility.Visible&&Inside(FeedbackSurface),"copy feedback is visible over the narrow information panel");
+   Feedback.Text="";
+  }
+  Sample("fullscreen-visible"); await capture("fullscreen-visible");
   // Pointer/programmatic button focus is returned to the viewer before hiding.
   var idleEvents=new List<object>();var idleClock=System.Diagnostics.Stopwatch.StartNew();
   void TraceIdle(string kind){if(idleEvents.Count<64)idleEvents.Add(new{kind,ms=idleClock.ElapsedMilliseconds,visible=_controlsVisible,focus=FocusManager.GetFocusedElement(XamlRoot)?.GetType().Name,rootFocus=FocusState.ToString(),timer=_idle.IsRunning});}
@@ -152,7 +173,7 @@ public sealed partial class ViewerView
    "fullscreen auto-hide preserves stage geometry, fit, pan and rotation");
   Sample("fullscreen-hidden"); await capture("fullscreen-hidden");
   RestoreControls(); await Settle();
-  check(_controlsVisible && Info.Visibility == Visibility.Visible && Filmstrip.Visibility == Visibility.Visible && Same(fullscreenStage, Bounds(Stage)),
+  check(_controlsVisible && Info.Visibility == Visibility.Visible && Filmstrip.Visibility == (CanSplitInfo?Visibility.Visible:Visibility.Collapsed) && Same(fullscreenStage, Bounds(Stage)),
    "restoring controls preserves the same image geometry and panel choices");
   SetFullscreen(false); await Settle();
   check(!_info && !_film && Same(normalStage, Bounds(Stage)), "leaving fullscreen restores saved ordinary panel choices");

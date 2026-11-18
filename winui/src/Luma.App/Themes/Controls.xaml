@@ -436,8 +436,8 @@
  </Style>
  <Style x:Key="LumaReactionSymbol" TargetType="TextBlock">
   <Setter Property="FontFamily" Value="Segoe UI Symbol" />
-  <Setter Property="FontSize" Value="19" />
-  <Setter Property="Foreground" Value="{ThemeResource LumaSecondary}" />
+  <Setter Property="FontSize" Value="22" />
+  <Setter Property="Foreground" Value="{ThemeResource LumaText}" />
  </Style>
  <Style x:Key="LumaHeartSymbol" TargetType="TextBlock" BasedOn="{StaticResource LumaReactionSymbol}">
   <Setter Property="Foreground" Value="{ThemeResource LumaHeart}" />

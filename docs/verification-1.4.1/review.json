@@ -1,0 +1,14 @@
+{
+  "result": "passed_source_and_frame_review",
+  "findingsAddressed": [
+    "Narrow information pane and file title now expose the shared native context menu.",
+    "Gallery return restores full row visibility with the smallest scroll movement.",
+    "Model labels sit directly below their covers, and known categories are displayed on the cover.",
+    "Information toggle shows an active state."
+  ],
+  "frameNotes": [
+    "The compact synthetic directory case deliberately caps the management pane at 620 DIP. Its offset is test geometry.",
+    "The filmstrip still overlays the image when explicitly enabled. It can be closed independently."
+  ],
+  "scope": "Context-free review of synthetic frames, independent static review, and final native reports."
+}

@@ -232,7 +232,9 @@ public sealed partial class ShellView : UserControl, IDisposable
             bool managedSurface=managed||fileManaged||storage;
             bool welcome=!live&&!managedSurface;
             Grid.SetRow(Footer,managedSurface||live?0:2);Feedback.Visibility=managedSurface||live?Visibility.Collapsed:Visibility.Visible;
-            ScopeNote.Visibility=live||managedSurface?Visibility.Collapsed:Visibility.Visible;PageTitle.FontSize=(live||managedSurface?20:28)*_scale;Workspace.Padding=live||managedSurface?new Thickness(20,12,20,12):new Thickness(24);Workspace.RowSpacing=live||managedSurface?10:16;
+            ScopeNote.Visibility=live||managedSurface?Visibility.Collapsed:Visibility.Visible;PageTitle.FontSize=(live||managedSurface?20:28)*_scale;Workspace.Padding=live||managedSurface?new Thickness(20,12,20,12):new Thickness(24);
+            Workspace.RowSpacing=live||managedSurface?0:16;
+            PageBody.Margin=live||managedSurface?new Thickness(0,10,0,0):new Thickness(0);
             LiveGallery.Visibility=live?Visibility.Visible:Visibility.Collapsed;LiveGallery.SetActive(live&&!_viewer.IsOpen);
             StatePanel.Visibility=Visibility.Collapsed;
             WelcomeActions.Children.Clear();WelcomeActions.Visibility=Visibility.Collapsed;LoadingRing.IsActive=false;LoadingRing.Visibility=Visibility.Collapsed;StateIcon.Visibility=Visibility.Visible;

@@ -66,6 +66,7 @@ public sealed partial class ManagementView
   if(e.Item is not ManagementRow row)return;
   if(e.InRecycleQueue){_coverVisible.Remove(row);return;}
   AutomationProperties.SetAutomationId(e.ItemContainer,"ManageModelCard"+N(row.Value,"id"));AutomationProperties.SetName(e.ItemContainer,row.Name+"，"+row.Meta);QueueModelCover(row);
+  if(ModelCards.ItemsPanelRoot is ItemsWrapGrid panel&&!ReferenceEquals(_sizedModelPanel,panel))QueueModelGridLayout();
   if(e.ItemContainer.ContextFlyout is null){var container=e.ItemContainer;var menu=new MenuFlyout();foreach(var action in new[]{("所在位置","select"),("复制路径","copy")}){var item=new MenuFlyoutItem{Text=action.Item1};item.Click+=async(_,_)=>{if(container.Content is ManagementRow current)await ModelFileAction(action.Item2,current.Value);};menu.Items.Add(item);}e.ItemContainer.ContextFlyout=menu;}
  }
  private void QueueModelCover(ManagementRow row)
@@ -95,25 +96,75 @@ public sealed partial class ManagementView
  private void ResumeModelCovers(){if(!_visible||_page!="Models")return;foreach(var row in ModelCards.Items.OfType<ManagementRow>())if(ModelCards.ContainerFromItem(row)is not null)QueueModelCover(row);}
  private void ResetModelCovers(){_coverEpoch++;_coverReads.Cancel();_coverReads.Dispose();_coverReads=new();_coverQueue.Clear();_coverVisible.Clear();_coverRequested.Clear();_coverActive=_coverCompleted=_coverFailed=0;foreach(var row in ModelCards.Items.OfType<ManagementRow>())row.Cover=null;}
  private double LinkedModelHeight()=>Math.Clamp((Body.ActualHeight>0?Body.ActualHeight:172)-8,64,164);
+ private void InitializeManagementLayout()
+ {
+  void UpdateStatusVisibility()=>StatusHost.Visibility=Status.Text.Length>0||Resolve.Visibility==Visibility.Visible?Visibility.Visible:Visibility.Collapsed;
+  Status.RegisterPropertyChangedCallback(TextBlock.TextProperty,(_,_)=>UpdateStatusVisibility());
+  Resolve.RegisterPropertyChangedCallback(VisibilityProperty,(_,_)=>UpdateStatusVisibility());
+  ModelCards.SizeChanged+=(_,_)=>QueueModelGridLayout();
+  ModelCards.Loaded+=(_,_)=>QueueModelGridLayout();
+ }
+ private ItemsWrapGrid? _sizedModelPanel;
+ private bool _modelGridLayoutQueued;
+ private void QueueModelGridLayout()
+ {
+  if(_modelGridLayoutQueued||_disposed)return;
+  _modelGridLayoutQueued=DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low,()=>{
+   _modelGridLayoutQueued=false;
+   if(_page!="Models"||ModelCards.Visibility!=Visibility.Visible||ModelCards.ItemsPanelRoot is not ItemsWrapGrid panel)return;
+   double width=ModelCards.ActualWidth;
+   for(DependencyObject? node=panel;node is not null;node=Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(node))
+    if(node is ScrollViewer scroll&&scroll.ViewportWidth>0){width=Math.Min(width,scroll.ViewportWidth);break;}
+   if(width<2)return;
+   _sizedModelPanel=panel;
+   bool compact=width<438||ActualHeight<466;
+   var template=(DataTemplate)Resources[compact?"CompactModelTemplate":"ModelTemplate"];
+   if(!ReferenceEquals(ModelCards.ItemTemplate,template))ModelCards.ItemTemplate=template;
+   double preferred=compact?210+56*(_scale-1):170+94*(_scale-1);
+   int columns=Math.Clamp((int)((width-2)/preferred),1,7);
+   double cellWidth=Math.Floor((width-2)/columns);
+   double coverHeight=Math.Clamp(cellWidth*.48,82,108);
+   double cellHeight=compact?Math.Max(72,Math.Ceiling(50*_scale)+12):coverHeight+16+Math.Ceiling(36*_scale);
+   if(panel.MaximumRowsOrColumns!=columns)panel.MaximumRowsOrColumns=columns;
+   if(panel.ItemWidth!=cellWidth)panel.ItemWidth=cellWidth;
+   if(panel.ItemHeight!=cellHeight)panel.ItemHeight=cellHeight;
+   foreach(var row in ModelCards.Items.OfType<ManagementRow>())row.CoverHeight=coverHeight;
+  });
+ }
+ private void LayoutModelToolbar()
+ {
+  if(_rootChoice is null||_modelSearch is not { Parent: Grid } search||_modelToolbarActions is not{} actions)return;
+  double available=ActualWidth;
+  if(available<=0)return;
+  var label=new TextBlock{Text=_rootChoice.SelectedItem?.ToString()??"全部目录",FontSize=_rootChoice.FontSize,FontFamily=_rootChoice.FontFamily};
+  label.Measure(new(double.PositiveInfinity,double.PositiveInfinity));
+  double rootWidth=Math.Min(available,Math.Clamp(label.DesiredSize.Width+52,134,260));
+  _rootChoice.Width=rootWidth;
+  double actionWidth=-8;
+  foreach(var child in actions.Children){
+   child.Measure(new(double.PositiveInfinity,double.PositiveInfinity));actionWidth+=child.DesiredSize.Width+8;
+  }
+  actionWidth=Math.Ceiling(actionWidth)+1;
+  bool searchBelow=available<rootWidth+120+16;
+  bool actionsBelow=searchBelow||available<rootWidth+120+actionWidth+16;
+  Grid.SetColumnSpan(_rootChoice,searchBelow?3:1);
+  Grid.SetColumn(search,searchBelow?0:1);Grid.SetColumnSpan(search,searchBelow?3:actionsBelow?2:1);
+  Grid.SetRow(search,searchBelow?1:0);search.Margin=searchBelow?new(0,6,0,0):new(0);
+  Grid.SetColumn(actions,actionsBelow?0:2);Grid.SetColumnSpan(actions,actionsBelow?3:1);
+  Grid.SetRow(actions,searchBelow?2:actionsBelow?1:0);actions.Margin=actionsBelow?new(0,6,0,0):new(0);
+  actions.Width=Math.Min(actionWidth,available);
+ }
  private void LayoutModels()
  {
   bool compact=ActualWidth<680;bool details=_modelInspector&&(Selected is not null||_sub.Length>0);
-  if(_rootChoice is not null){
-   var label=new TextBlock{Text="全部目录",FontSize=_rootChoice.FontSize,FontFamily=_rootChoice.FontFamily};label.Measure(new(double.PositiveInfinity,double.PositiveInfinity));double minimum=label.DesiredSize.Width+52;
-   label.Text=_rootChoice.SelectedItem?.ToString()??"全部目录";label.Measure(new(double.PositiveInfinity,double.PositiveInfinity));
-   double available=Math.Max(0,(ModelControlScroll.ActualWidth>0?ModelControlScroll.ActualWidth:ActualWidth)-16);
-   double width=Math.Min(available,Math.Clamp(Math.Max(minimum,label.DesiredSize.Width+52),compact?112:160,compact?260:320));_rootChoice.MinWidth=width;_rootChoice.Width=width;
-  }
-  if(_modelSearch is not null)_modelSearch.Width=compact?148:160;
-  var template=(DataTemplate)Resources[compact?"CompactModelTemplate":"ModelTemplate"];if(!ReferenceEquals(ModelCards.ItemTemplate,template))ModelCards.ItemTemplate=template;
-  if(_modelProgressRow is not null)_modelProgressRow.Visibility=Visibility.Visible;
+  LayoutModelToolbar();
   ModelControlScroll.Visibility=Visibility.Visible;
   ModelEmpty.Visibility=_models.Length==0&&!details?Visibility.Visible:Visibility.Collapsed;
   RecordList.Visibility=Visibility.Collapsed;ModelCards.Visibility=compact&&details?Visibility.Collapsed:Visibility.Visible;FormScroll.Visibility=details?Visibility.Visible:Visibility.Collapsed;FormScrollEdge.Visibility=Visibility.Collapsed;
   ListColumn.Width=details&&!compact?new(_models.Length==1?Math.Min(240,ActualWidth*.32):Math.Max(180,ActualWidth-Math.Clamp(ActualWidth*.4,270,360)-18)):new(1,GridUnitType.Star);
   ListRow.Height=new(1,GridUnitType.Star);FormRow.Height=new(0);Grid.SetColumnSpan(ModelCards,details&&!compact?1:2);Grid.SetRow(FormScroll,0);Grid.SetColumn(FormScroll,compact?0:1);Grid.SetColumnSpan(FormScroll,compact?2:1);
   ModelControlScroll.MaxHeight=Math.Clamp(ActualHeight*.43,100,248);
-  double height=Math.Clamp(Body.ActualHeight-72*_scale,76,168);foreach(var row in ModelCards.Items.OfType<ManagementRow>())row.CoverHeight=height;
+  QueueModelGridLayout();
   if(_linkedHost is not null)foreach(var grid in _linkedHost.Children.OfType<GridView>()){grid.Height=LinkedModelHeight();foreach(var tile in grid.Items.OfType<GalleryTile>())tile.ImageHeight=Math.Clamp(grid.Height-12*_scale-30,24,96);}
  }
 }

@@ -69,7 +69,7 @@ public sealed class ImageReactions : StackPanel
 // returns, then reject requests for collapsed, detached or no-longer-focused UI.
 internal static class ScrollFocus
 {
-    internal static void Request(FrameworkElement target)
+    internal static void Request(FrameworkElement target, bool center = true)
     {
         var root = target.XamlRoot;
         var scroll = VisibleScrollAncestor(target);
@@ -82,7 +82,9 @@ internal static class ScrollFocus
                  focused is not null; focused = VisualTreeHelper.GetParent(focused))
             {
                 if (!ReferenceEquals(focused, target)) continue;
-                target.StartBringIntoView(new BringIntoViewOptions { AnimationDesired = false, VerticalAlignmentRatio = .5 });
+                var options = new BringIntoViewOptions { AnimationDesired = false };
+                if (center) options.VerticalAlignmentRatio = .5;
+                target.StartBringIntoView(options);
                 return;
             }
         });

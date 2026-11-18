@@ -12,6 +12,7 @@ public sealed partial class ManagementView
  private readonly HashSet<Button> _modelButtons=[];
  private ModelDirectoryAdd? _modelAdd;
  private TextBox? _modelSearch;
+ private TagChipPanel? _modelToolbarActions;
  private long _modelTotal,_formRevision;private TextBlock? _modelProgress;private FrameworkElement? _modelProgressRow;private Button? _modelStop;private Microsoft.UI.Dispatching.DispatcherQueueTimer? _modelSearchTimer;
  private static string ModelSize(long bytes)=>bytes>=1073741824?$"{bytes/1073741824d:0.##} GiB":bytes>=1048576?$"{bytes/1048576d:0.#} MiB":$"{bytes:N0} B";
  private static bool ModelJob(JsonElement j)=>S(j,"kind") is "model_scan" or "model_sync" or "model_links" or "model_info_cleanup" or "model_info_restore" or "reclassify_models" or "civitai_image_lookup";
@@ -90,7 +91,14 @@ public sealed partial class ManagementView
   }
  }
  private void UpdateModelPolling(){if(_visible&&_page=="Models"&&_jobs.Any(j=>ModelJob(j)&&ActiveJob(j)))_poll.Start();else if(_page=="Models")_poll.Stop();UpdateModelProgress();}
- private void UpdateModelProgress(){if(_modelProgress is null)return;var job=_jobs.FirstOrDefault(j=>ModelJob(j)&&ActiveJob(j));_modelProgress.Text=job.ValueKind==JsonValueKind.Object?JobText(job).Replace('\n',' '):"";if(_modelProgressRow is not null)_modelProgressRow.Visibility=Visibility.Visible;if(_modelStop is not null)_modelStop.Visibility=job.ValueKind==JsonValueKind.Object?Visibility.Visible:Visibility.Collapsed;}
+ private void UpdateModelProgress()
+ {
+  if(_modelProgress is null||_modelProgressRow is null)return;
+  var job=_jobs.FirstOrDefault(j=>ModelJob(j)&&ActiveJob(j));
+  bool active=job.ValueKind==JsonValueKind.Object;
+  _modelProgress.Text=active?JobText(job).Replace('\n',' '):"";
+  _modelProgressRow.Visibility=active?Visibility.Visible:Visibility.Collapsed;
+ }
  private async Task PollModelJobs()
  {
   if(_api is null||!_loads.TryPoll())return;long gen=_generation;bool refresh=false;
@@ -106,26 +114,35 @@ public sealed partial class ManagementView
   Actions.Children.Clear();Actions.Visibility=Visibility.Collapsed;ModelControlScroll.Visibility=Visibility.Visible;ModelPager.Visibility=Visibility.Visible;
   // Query results replace the cards, not the editor the user is still typing in.
   // Retaining the native control also retains caret, selection and IME state.
-  if(_modelSearch?.Parent is TagChipPanel existing&&ModelControls.Children.Contains(existing)){UpdateModelRootChoice();BuildModelFilters();UpdateModelProgress();return;}
+  if(_modelSearch?.Parent is Grid existing&&ModelControls.Children.Contains(existing)){UpdateModelRootChoice();BuildModelFilters();UpdateModelProgress();return;}
   ModelControls.Children.Clear();ModelPager.Children.Clear();foreach(var button in _modelButtons){_writes.Remove(button);_enabledWhen.Remove(button);}_modelButtons.Clear();
   Button Tool(string title,string id,Func<Task> action,bool write=false,Func<bool>? when=null){var b=Button(title,id,action,write,when);_modelButtons.Add(b);return b;}
   Button Icon(string title,string id,string glyph,Func<Task> action,bool write=false,Func<bool>? when=null){var b=Tool(title,id,action,write,when);b.Style=(Style)Application.Current.Resources["LumaViewerIcon"];b.Content=new FontIcon{Glyph=glyph,FontSize=15};AutomationProperties.SetName(b,title);return b;}
-  var folders=new TagChipPanel();bool compact=ActualWidth<680;_rootChoice=new ComboBox{FontSize=14*_scale};AutomationProperties.SetAutomationId(_rootChoice,"ManageModelRoots");AutomationProperties.SetName(_rootChoice,"模型目录");UpdateModelRootChoice();folders.Children.Add(_rootChoice);
+  var folders=new Grid{ColumnSpacing=8};
+  folders.ColumnDefinitions.Add(new(){Width=GridLength.Auto});
+  folders.ColumnDefinitions.Add(new(){Width=new(1,GridUnitType.Star)});
+  folders.ColumnDefinitions.Add(new(){Width=GridLength.Auto});
+  for(int i=0;i<3;i++)folders.RowDefinitions.Add(new(){Height=GridLength.Auto});
+  _rootChoice=new ComboBox{FontSize=14*_scale,HorizontalAlignment=HorizontalAlignment.Left};AutomationProperties.SetAutomationId(_rootChoice,"ManageModelRoots");AutomationProperties.SetName(_rootChoice,"模型目录");UpdateModelRootChoice();folders.Children.Add(_rootChoice);
   _rootChoice.SelectionChanged+=(_,_)=>{if(_setting||_rootChoice.SelectedIndex<0)return;long? root=_rootChoice.SelectedIndex<_roots.Length?N(_roots[_rootChoice.SelectedIndex],"id"):null;if(root==_rootId)return;_modelInspector=false;Invalidate();_rootId=root;_cursor=null;_history.Clear();Records.IsEnabled=false;long gen=_generation;DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low,()=>{if(gen==_generation&&_visible&&_page=="Models")_=RefreshPage();});};
-  var search=new TextBox{Text=_query,PlaceholderText="搜索模型",FontSize=14*_scale,MaxLength=1024,Width=compact?148:160};_modelSearch=search;AutomationProperties.SetAutomationId(search,"ManageModelSearch");AutomationProperties.SetName(search,"搜索文件名或模型名称");ToolTipService.SetToolTip(search,_query.Length>0?_query:"搜索文件名或模型名称");folders.Children.Add(search);
+  var search=new TextBox{Text=_query,PlaceholderText="搜索模型",FontSize=14*_scale,MaxLength=1024,MinWidth=0};_modelSearch=search;AutomationProperties.SetAutomationId(search,"ManageModelSearch");AutomationProperties.SetName(search,"搜索文件名或模型名称");ToolTipService.SetToolTip(search,_query.Length>0?_query:"搜索文件名或模型名称");Grid.SetColumn(search,1);folders.Children.Add(search);
   if(_modelSearchTimer is null){_modelSearchTimer=DispatcherQueue.CreateTimer();_modelSearchTimer.Interval=TimeSpan.FromMilliseconds(250);_modelSearchTimer.IsRepeating=false;_modelSearchTimer.Tick+=async(_,_)=>await SearchModels();}
   search.KeyDown+=async(_,e)=>{if(e.Key==Windows.System.VirtualKey.Enter){e.Handled=true;await SearchModels();}};
   search.TextChanged+=(_,_)=>{ToolTipService.SetToolTip(search,search.Text.Length>0?search.Text:"搜索文件名或模型名称");if(!_setting&&search.Text.Trim()!=_query){_modelSearchTimer.Stop();_modelSearchTimer.Start();}};
-  folders.Children.Add(Tool("添加目录","ManagePickModels",PickAndAddModelRoot,true,()=>!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
-  folders.Children.Add(Tool("补全资料","ManageFetchModelInfo",FetchModelInformation,true,()=>_models.Length>0&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
-  folders.Children.Add(Tool("整理资料","ManageCleanupModelInfo",CleanupModelInformation,true,()=>!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
-  folders.Children.Add(Icon("移除目录","ManageRemoveModelRoot","\uE74D",RemoveModelRoot,true,()=>_rootId is not null&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
+  var actions=new TagChipPanel{HorizontalAlignment=HorizontalAlignment.Left};
+  _modelToolbarActions=actions;
+  actions.Children.Add(Tool("添加目录","ManagePickModels",PickAndAddModelRoot,true,()=>!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
+  actions.Children.Add(Tool("补全资料","ManageFetchModelInfo",FetchModelInformation,true,()=>_models.Length>0&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
+  var tidy=Tool("整理","ManageCleanupModelInfo",CleanupModelInformation,true,()=>!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j)));
+  AutomationProperties.SetName(tidy,"整理资料");ToolTipService.SetToolTip(tidy,"整理资料");actions.Children.Add(tidy);
+  actions.Children.Add(Icon("移除目录","ManageRemoveModelRoot","\uE74D",RemoveModelRoot,true,()=>_rootId is not null&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j))));
+  Grid.SetColumn(actions,2);folders.Children.Add(actions);
   ModelPager.Children.Add(Icon("刷新","ManageRefresh","\uE72C",async()=>{if(_rootId is long id&&!_jobs.Any(j=>ModelJob(j)&&ActiveJob(j)))await Write("models.scan",new{rootId=id},false);await RefreshFromStart();},true));
   ModelControls.Children.Add(folders);
   var previous=Icon("上一页","ManageModelPrevious","\uE76B",()=>ChangeModelPage(false),when:()=>CanChangeModelPage&&_history.Count>0);ModelPager.Children.Add(previous);
   var next=Icon("下一页","ManageModelNext","\uE76C",()=>ChangeModelPage(true),when:()=>CanChangeModelPage&&_next is not null);ModelPager.Children.Add(next);BuildModelFilters();
-  var progressRow=new Grid{Height=28,ColumnSpacing=8};progressRow.ColumnDefinitions.Add(new(){Width=new(1,GridUnitType.Star)});progressRow.ColumnDefinitions.Add(new(){Width=new(64)});
-  _modelProgress=Text("");_modelProgress.FontSize=12*_scale;_modelProgress.MaxLines=1;_modelProgress.TextTrimming=TextTrimming.CharacterEllipsis;AutomationProperties.SetAutomationId(_modelProgress,"ManageModelProgress");progressRow.Children.Add(_modelProgress);
+  var progressRow=new Grid{ColumnSpacing=8};progressRow.ColumnDefinitions.Add(new(){Width=new(1,GridUnitType.Star)});progressRow.ColumnDefinitions.Add(new(){Width=GridLength.Auto});
+  _modelProgress=Text("");_modelProgress.FontSize=12*_scale;_modelProgress.VerticalAlignment=VerticalAlignment.Center;_modelProgress.MaxLines=1;_modelProgress.TextTrimming=TextTrimming.CharacterEllipsis;AutomationProperties.SetAutomationId(_modelProgress,"ManageModelProgress");progressRow.Children.Add(_modelProgress);
   _modelStop=Tool("停止","ManageCancelModelTask",()=>{var task=_jobs.FirstOrDefault(j=>ModelJob(j)&&ActiveJob(j));return task.ValueKind==JsonValueKind.Object?Write("job.cancel",new{jobId=S(task,"id")},false):Task.CompletedTask;},true,()=>_jobs.Any(j=>ModelJob(j)&&ActiveJob(j)));Grid.SetColumn(_modelStop,1);progressRow.Children.Add(_modelStop);_modelProgressRow=progressRow;ModelControls.Children.Add(progressRow);UpdateModelProgress();
  }
  private void UpdateModelRootChoice()

@@ -10,7 +10,7 @@ public sealed partial class ViewerView:UserControl,IDisposable
  private bool _sync,_info,_disposed,_drag,_actualRequested;private Point _last;private string _mode="standard";private double _scale=1;
  private int _pressCount,_moveCount,_releaseCount;private string _pointerKind="";private bool _leftPressed,_captureAccepted;
  private readonly string[] _sorts=["name","name_desc","newest","oldest","modified_desc","modified_asc","size_desc","size_asc","resolution_desc","resolution_asc","rating_desc","rating_asc"];
- private readonly string[] _sortNames=["名称 A–Z","名称 Z–A","最新添加","最早添加","最近修改","最早修改","大小从大到小","大小从小到大","分辨率从高到低","分辨率从低到高","评分从高到低","评分从低到高"];
+ private readonly string[] _sortNames=["名称 A–Z","名称 Z–A","最新添加","最早添加","最近修改","最早修改","大小降序","大小升序","分辨率降序","分辨率升序","评分降序","评分升序"];
  private readonly Microsoft.UI.Dispatching.DispatcherQueueTimer _heartbeat;private readonly Stopwatch _clock=new();private readonly List<double> _stalls=[];private object? _lastMetrics;private double _maxHeartbeat;private long _heartbeatCount;
  public bool IsOpen=>Visibility==Visibility.Visible;public bool Fullscreen{get;private set;}
  internal bool MetadataFailureOnce{get;set;}
@@ -18,17 +18,21 @@ public sealed partial class ViewerView:UserControl,IDisposable
  public object Snapshot=>new{open=IsOpen,fullscreen=Fullscreen,immersive=Fullscreen,controlsVisible=_controlsVisible,slideshowPlaying=_playback.Playing,mediaPlaying=_media.Playing,mediaFrame=_media.Index,mediaFrames=_media.Count,currentFavorite=_favorite,currentRating=_rating,annotationWriting=_annotationWriting,viewportWidth=ActualWidth,viewportHeight=ActualHeight,stageWidth=Stage.ActualWidth,stageHeight=Stage.ActualHeight,filmstripVisible=Filmstrip.Visibility==Visibility.Visible,input=new{pressed=_pressCount,moved=_moveCount,released=_releaseCount,kind=_pointerKind,leftPressed=_leftPressed,captured=_captureAccepted,dragging=_drag},currentId=_model?.Current?.Id,displayedId=_images?.Frame?.Item.Id,neighborCount=_model?.Window.Count??0,previousId=_model?.PreviousId,nextId=_model?.NextId,total=_model?.Total??0,infoVisible=_info,zoom=_viewport.Scale,panX=_viewport.X,panY=_viewport.Y,rotation=_viewport.Turns,isFit=_viewport.IsFit,kind=_images?.Frame?.Asset.Kind,mode=_mode,decodedBytes=_images?.Bytes??0,cacheCount=_images?.CacheCount??0,detailError=_model?.DetailError??"",promptLength=_model?.Detail?.Prompt.Length??0,negativeLength=_model?.Detail?.NegativePrompt.Length??0,lastCopyLength=_shell.LastCopyLength,lastAction=_shell.LastAction,error=_images?.Error??_model?.Error??"",metrics=Metrics()};
  private object? Metrics()=>_images is null?_lastMetrics:new{latenciesMs=_images.Latencies.ToArray(),heartbeatIntervalsMs=_stalls.ToArray(),maxHeartbeatMs=_maxHeartbeat,heartbeatCount=_heartbeatCount,completed=_images.Completed,cacheHits=_images.CacheHits,discarded=_images.Discarded,decodedBytes=_images.Bytes};
  public ViewerView(){InitializeComponent();Visibility=Visibility.Collapsed;Pixels.Clip=new RectangleGeometry();
-  InitializeImmersive();InitializePlayback();InitializeMedia();Reactions.ChangeRequested+=ChangeAnnotation;
+  InitializeImmersive();InitializePlayback();InitializeMedia();InitializeViewerFeedback();Reactions.ChangeRequested+=ChangeAnnotation;
   GotFocus+=(_,e)=>{if(e.OriginalSource is Button button)Controls.ScrollFocus.Request(button);};
   Sort.ItemsSource=_sortNames;Filmstrip.ItemsSource=_tiles;SizeChanged+=(_,_)=>LayoutInfo();
   Header.SizeChanged+=(_,_)=>LayoutImmersive();BottomChrome.SizeChanged+=(_,_)=>LayoutImmersive();
   _heartbeat=DispatcherQueue.CreateTimer();_heartbeat.Interval=TimeSpan.FromMilliseconds(40);_heartbeat.Tick+=(_,_)=>{double ms=_clock.Elapsed.TotalMilliseconds;_clock.Restart();_maxHeartbeat=Math.Max(_maxHeartbeat,ms);_heartbeatCount++;if(_stalls.Count>=512)_stalls.RemoveAt(0);_stalls.Add(ms);};
   AddKey(VirtualKey.Left,()=>Navigate(-1));AddKey(VirtualKey.Right,()=>Navigate(1));AddKey(VirtualKey.F11,()=>FullscreenRequested?.Invoke(!Fullscreen));AddKey(VirtualKey.Escape,()=>{if(Fullscreen)FullscreenRequested?.Invoke(false);else CloseViewer();});
   AddKey(VirtualKey.PageUp,()=>StepMedia(-1));AddKey(VirtualKey.PageDown,()=>StepMedia(1));AddKey(VirtualKey.Space,TogglePlayback);AddKey(VirtualKey.Number0,Fit);AddKey(VirtualKey.Number1,()=>Actual());AddKey(VirtualKey.I,()=>ToggleInfo());
-  Stage.RightTapped+=(_,e)=>{PausePlayback();if(!IsOpen||_model?.Detail is not{} detail)return;RestoreControls();var menu=new MenuFlyout();_contextMenu=menu;menu.Closed+=(_,_)=>{if(ReferenceEquals(_contextMenu,menu))_contextMenu=null;RestartIdle();};foreach(var pair in new[]{("所在位置","select"),("打开原图","open"),("复制路径","copy")}){var item=new MenuFlyoutItem{Text=pair.Item1};item.Click+=async(_,_)=>await FileAction(pair.Item2,detail);menu.Items.Add(item);}menu.ShowAt(Stage,e.GetPosition(Stage));e.Handled=true;};
+  foreach(var anchor in new FrameworkElement[]{Stage,HeaderMetadata,Info})
+   anchor.RightTapped+=(_,e)=>e.Handled=ShowViewerFileActions(anchor,e.GetPosition(anchor));
+  var fileMenu=new KeyboardAccelerator{Key=VirtualKey.F10,Modifiers=VirtualKeyModifiers.Shift};
+  fileMenu.Invoked+=(_,e)=>e.Handled=ShowViewerFileActions(HeaderMetadata);
+  KeyboardAccelerators.Add(fileMenu);
  }
  private void AddKey(VirtualKey key,Action action){var shortcut=new KeyboardAccelerator{Key=key};shortcut.Invoked+=(_,e)=>{if(!IsOpen)return;RestoreControls();if(key==VirtualKey.Escape&&CloseOverlay()){e.Handled=true;return;}if(key==VirtualKey.Escape&&(_playback.Playing||_media.Playing)){PausePlayback();e.Handled=true;return;}if(key==VirtualKey.Space&&FocusManager.GetFocusedElement(XamlRoot) is Microsoft.UI.Xaml.Controls.Primitives.ButtonBase)return;var focus=FocusManager.GetFocusedElement(XamlRoot);bool global=key is VirtualKey.F11 or VirtualKey.Escape;if(!global&&(focus is TextBox||focus is ComboBox||focus is TextBlock{IsTextSelectionEnabled:true}))return;action();e.Handled=true;};KeyboardAccelerators.Add(shortcut);}
- internal void Configure(double scale){_scale=scale;InfoTitle.FontSize=PositiveLabel.FontSize=NegativeLabel.FontSize=MetadataError.FontSize=14*scale;InfoTitle.FontWeight=Microsoft.UI.Text.FontWeights.SemiBold;ModelName.FontSize=12*scale;foreach(var button in new[]{CopyPrompt,CopyNegative,RetryDetails,OpenOriginal,CopyPath})button.FontSize=14*scale;LayoutInfo();}
+ internal void Configure(double scale){_scale=scale;InfoTitle.FontSize=16*scale;PositiveLabel.FontSize=NegativeLabel.FontSize=MetadataError.FontSize=14*scale;InfoTitle.FontWeight=Microsoft.UI.Text.FontWeights.SemiBold;ModelName.FontSize=12*scale;RetryDetails.FontSize=14*scale;LayoutInfo();}
  internal async void Open(EngineClient client,string data,GalleryItem item,Dictionary<string,object?> filters,bool diagnostics){
   if(_disposed)return;Release();_shell=new(diagnostics);_mode="standard";_actualRequested=false;_info=false;_film=false;Feedback.Text="";Filmstrip.Visibility=Visibility.Collapsed;_stalls.Clear();_maxHeartbeat=0;_heartbeatCount=0;_lastMetrics=null;_shownFrame=null;_shownDetail=null;_shownWindow=null;
   IViewerApi api=new ViewerApi(client);if(MetadataFailureOnce){api=new MetadataFailureOnceApi(api);MetadataFailureOnce=false;}_model=new(api);_images=new(client,data);_thumbs=new(client,data);_model.Changed+=Update;_images.Changed+=ImageChanged;_thumbs.Changed+=ThumbChanged;
@@ -38,7 +42,7 @@ public sealed partial class ViewerView:UserControl,IDisposable
  private void ThumbChanged(){if(IsOpen)Changed?.Invoke();}
  private void Update(){
   if(!IsOpen||_model is null)return;
-  SyncPlayback();OpenOriginal.IsEnabled=CopyPath.IsEnabled=_model.Detail is not null;SyncAnnotations();
+  SyncPlayback();SyncAnnotations();
   MetadataError.Visibility=RetryDetails.Visibility=_model.DetailError.Length>0?Visibility.Visible:Visibility.Collapsed;if(_model.DetailError.Length>0)Feedback.Text="生成信息读取失败，打开信息栏可重试。";
   if(_model.Current is{} current){FileName.Text=current.Name;ToolTipService.SetToolTip(FileName,current.Name);_images?.Show(current,_mode,_model.Window,CurrentMediaFrame);}
   else{Picture.Source=null;FileName.Text="当前范围没有图片";}
@@ -49,8 +53,14 @@ public sealed partial class ViewerView:UserControl,IDisposable
    finally{_sync=false;}
   }
   if(_info&&!ReferenceEquals(_shownDetail,_model.Detail)){
-   _shownDetail=_model.Detail;Prompt.ItemsSource=TextChunkRow.Create(_shownDetail?.Prompt??"",_scale);Negative.ItemsSource=TextChunkRow.Create(_shownDetail?.NegativePrompt??"",_scale);CopyPrompt.IsEnabled=(_shownDetail?.Prompt.Length??0)>0;CopyNegative.IsEnabled=(_shownDetail?.NegativePrompt.Length??0)>0;ModelName.Text=_shownDetail is null?"":$"{_shownDetail.Width} × {_shownDetail.Height} · {_shownDetail.Family}\n{_shownDetail.Model}";Tags.Children.Clear();
+   _shownDetail=_model.Detail;
+   SetPromptSection(Prompt,CopyPrompt,_shownDetail?.Prompt??"");
+   SetPromptSection(Negative,CopyNegative,_shownDetail?.NegativePrompt??"");
+   ModelName.Text=_shownDetail is null?"":string.Join(" · ",new[]{_shownDetail.Family,_shownDetail.Model}.Where(value=>value is not ("" or "Unknown" or "未知")).Distinct());
+   ModelName.Visibility=ModelName.Text.Length>0?Visibility.Visible:Visibility.Collapsed;
+   Tags.Children.Clear();
    if(_shownDetail is not null)foreach(var tag in _shownDetail.Tags){var button=new Button{Content=tag.Name,IsEnabled=tag.Effective,Style=(Style)Application.Current.Resources["LumaChip"],FontSize=12*_scale};button.Click+=(_,_)=>{TagRequested?.Invoke(tag.Id);CloseViewer();};Tags.Children.Add(button);}
+   Tags.Visibility=Tags.Children.Count>0?Visibility.Visible:Visibility.Collapsed;
   }
   if(_model.Error!="")Feedback.Text="浏览范围载入失败，可返回图库后刷新。";
   Changed?.Invoke();
@@ -66,20 +76,22 @@ public sealed partial class ViewerView:UserControl,IDisposable
   Progress.IsActive=_images.Loading;Progress.Visibility=_images.Loading?Visibility.Visible:Visibility.Collapsed;
   LoadingBadge.Visibility=frame is null||_images.Error!=""?Visibility.Visible:Visibility.Collapsed;RetryButton.Visibility=_images.Error!=""?Visibility.Visible:Visibility.Collapsed;
   StageMessage.Text=_images.Error!=""?(_images.Error=="not_found"?"文件离线或已移走":"无法显示图片，请重试或打开原图") :"正在读取图片";
-  ImageNote.Text=frame is null?"":$"{frame.Asset.SourceWidth} × {frame.Asset.SourceHeight} · "+(frame.Asset.Kind=="original"?"原始像素":frame.Asset.Kind=="compatibility"?"1200px兼容预览":"标准预览");if(!same||_images.Error.Length>0)Changed?.Invoke();
+  ImageNote.Text=frame is null?"":$"{frame.Asset.SourceWidth} × {frame.Asset.SourceHeight}"+(frame.Asset.Kind=="original"?" · 原始像素":frame.Asset.Kind=="compatibility"?" · 兼容预览":"");if(!same||_images.Error.Length>0)Changed?.Invoke();
  }
  private void StageResized(object sender,SizeChangedEventArgs e){_viewport.Resize(Stage.ActualWidth,Stage.ActualHeight);Pixels.Clip=new RectangleGeometry{Rect=new Rect(0,0,Stage.ActualWidth,Stage.ActualHeight)};ApplyTransform();}
  private void ApplyTransform(bool notify=true){Canvas.SetLeft(Picture,(_viewport.Width-_viewport.ImageWidth)/2);Canvas.SetTop(Picture,(_viewport.Height-_viewport.ImageHeight)/2);Transform.ScaleX=Transform.ScaleY=_viewport.Scale;Transform.Rotation=_viewport.Turns*90;Transform.TranslateX=_viewport.X;Transform.TranslateY=_viewport.Y;ZoomText.Text=$"{_viewport.Scale*100*(XamlRoot?.RasterizationScale??1):0}%";if(notify)Changed?.Invoke();}
  private void LayoutInfo()
  {
   if(Body is null)return;
-  bool wide=ActualWidth>=1000;
+  bool wide=CanSplitInfo;
   string label=_info?"关闭图片信息 (I)":"图片信息 (I)";
   AutomationProperties.SetName(InfoToggle,label);ToolTipService.SetToolTip(InfoToggle,label);
+  AutomationProperties.SetItemStatus(InfoToggle,_info?"已展开":"");
+  InfoActiveMark.Visibility=_info?Visibility.Visible:Visibility.Collapsed;
   Info.Visibility=_info&&_controlsVisible?Visibility.Visible:Visibility.Collapsed;
   StageContainer.Visibility=_info&&!wide&&!Fullscreen?Visibility.Collapsed:Visibility.Visible;
   StageColumn.Width=_info&&!wide&&!Fullscreen?new GridLength(0):new GridLength(1,GridUnitType.Star);
-  InfoColumn.Width=!_info?new GridLength(0):Fullscreen?new GridLength(Math.Min(340,Math.Max(0,ActualWidth))):wide?new GridLength(340):new GridLength(1,GridUnitType.Star);
+  InfoColumn.Width=!_info?new GridLength(0):wide?new GridLength(Math.Clamp(ActualWidth*.34,272,352)):new GridLength(1,GridUnitType.Star);
   LayoutImmersive();
  }
  private void FilmToggleClicked(object s,RoutedEventArgs e){PausePlayback();_film=!_film;RestoreControls();LayoutImmersive();AutomationProperties.SetItemStatus(FilmToggle,_film?"已展开":"已收起");Changed?.Invoke();}
@@ -102,10 +114,31 @@ public sealed partial class ViewerView:UserControl,IDisposable
  private void SortChanged(object s,SelectionChangedEventArgs e){PausePlayback();if(!_sync&&IsOpen&&Sort.SelectedIndex>=0)_=_model?.SetSortAsync(_sorts[Sort.SelectedIndex]);}
  private void CopyPromptClicked(object s,RoutedEventArgs e)=>CopyText(false);private void CopyNegativeClicked(object s,RoutedEventArgs e)=>CopyText(true);
  private async void RetryDetailsClicked(object s,RoutedEventArgs e){if(_model is not{} model)return;string? identity=model.Current?.Identity;Feedback.Text="正在重试生成信息…";await model.RetryDetailAsync();if(!IsOpen||!ReferenceEquals(_model,model)||model.Current?.Identity!=identity)return;if(model.Detail is not null)Feedback.Text="生成信息已恢复。";Changed?.Invoke();}
- private void CopyText(bool negative){if(!IsOpen||_model?.Detail is not{} detail||_model.Current?.Id!=detail.Id||_model.Current.Identity!=detail.Identity)return;string text=negative?detail.NegativePrompt:detail.Prompt;if(text.Length==0)return;try{_shell.Copy(text,negative?"negative":"prompt");Feedback.Text="已复制";}catch(Exception){Feedback.Text="复制失败，请重试。";}Changed?.Invoke();}
- private async void FileClicked(object s,RoutedEventArgs e){if(_model?.Detail is{} detail)await FileAction((string)((Button)s).Tag,detail);}
- private async Task FileAction(string action,GalleryDetail detail){if(!IsOpen||_model?.Current?.Identity!=detail.Identity)return;try{await _shell.ExecuteAsync(action,detail);if(IsOpen)Feedback.Text=action=="copy"?"已复制路径":"已请求系统打开";}catch(Exception){if(IsOpen)Feedback.Text="文件操作失败，请检查文件是否在线。";}Changed?.Invoke();}
+ private void CopyText(bool negative){if(!IsOpen||_model?.Detail is not{} detail||_model.Current?.Id!=detail.Id||_model.Current.Identity!=detail.Identity)return;string text=negative?detail.NegativePrompt:detail.Prompt;if(text.Length==0)return;try{_shell.Copy(text,negative?"negative":"prompt");ShowCopyNotice("已复制");}catch(Exception){Feedback.Text="复制失败，请重试。";}Changed?.Invoke();}
+ private void SetPromptSection(ListView list,Button copy,string text)
+ {
+  list.ItemsSource=TextChunkRow.Create(text,_scale);
+  list.Visibility=copy.Visibility=text.Length>0?Visibility.Visible:Visibility.Collapsed;
+ }
+ private bool ShowViewerFileActions(FrameworkElement anchor,Point? point=null)
+ {
+  if(!IsOpen||_model?.Detail is not{} detail)return false;
+  PausePlayback();RestoreControls();
+  _contextMenu?.Hide();
+  var menu=new MenuFlyout();
+  _contextMenu=menu;
+  menu.Closed+=(_,_)=>{if(ReferenceEquals(_contextMenu,menu))_contextMenu=null;RestartIdle();};
+  foreach(var (label,action) in new[]{("所在位置","select"),("打开原图","open"),("复制路径","copy")})
+  {
+   var item=new MenuFlyoutItem{Text=label};
+   item.Click+=async(_,_)=>await FileAction(action,detail);
+   menu.Items.Add(item);
+  }
+  if(point is{} position)menu.ShowAt(anchor,position);else menu.ShowAt(anchor);
+  return true;
+ }
+ private async Task FileAction(string action,GalleryDetail detail){if(!IsOpen||_model?.Current?.Identity!=detail.Identity)return;try{await _shell.ExecuteAsync(action,detail);if(IsOpen&&action=="copy")ShowCopyNotice("已复制路径");}catch(Exception){if(IsOpen)Feedback.Text="文件操作失败，请检查文件是否在线。";}Changed?.Invoke();}
  public void CloseViewer(){if(!IsOpen)return;var current=_model?.Current;if(Fullscreen)FullscreenRequested?.Invoke(false);Visibility=Visibility.Collapsed;_lastMetrics=Metrics();Release();BackRequested?.Invoke(current);Changed?.Invoke();}
- private void Release(){PausePlayback();_media.Reset();MediaPager.Visibility=Visibility.Collapsed;_idle.Stop();_pressedPointers.Clear();_manipulating=false;_contextMenu?.Hide();_contextMenu=null;Sort.IsDropDownOpen=false;_annotationGeneration++;_annotationWriting=false;_annotationEdits.Clear();_annotationFeedbackFor=null;_favorite=false;_rating=0;_heartbeat.Stop();_clock.Stop();_model?.Dispose();_model=null;_images?.Dispose();_images=null;_thumbs?.Dispose();_thumbs=null;Picture.Source=null;_shownFrame=null;_shownDetail=null;_shownWindow=null;_tiles.Clear();Prompt.ItemsSource=Negative.ItemsSource=null;ModelName.Text="";Tags.Children.Clear();_drag=false;Stage.ReleasePointerCaptures();_idle.Stop();}
+ private void Release(){PausePlayback();_media.Reset();MediaPager.Visibility=Visibility.Collapsed;_idle.Stop();_pressedPointers.Clear();_manipulating=false;_contextMenu?.Hide();_contextMenu=null;Sort.IsDropDownOpen=false;_annotationGeneration++;_annotationWriting=false;_annotationEdits.Clear();_annotationFeedbackFor=null;_favorite=false;_rating=0;_heartbeat.Stop();_clock.Stop();_model?.Dispose();_model=null;_images?.Dispose();_images=null;_thumbs?.Dispose();_thumbs=null;Picture.Source=null;_shownFrame=null;_shownDetail=null;_shownWindow=null;_tiles.Clear();_copyNoticeTimer.Stop();Feedback.Text="";SetPromptSection(Prompt,CopyPrompt,"");SetPromptSection(Negative,CopyNegative,"");ModelName.Text="";ModelName.Visibility=Tags.Visibility=Visibility.Collapsed;Tags.Children.Clear();_drag=false;Stage.ReleasePointerCaptures();_idle.Stop();}
  public void Dispose(){if(_disposed)return;_disposed=true;Release();SetManagement(null);}
 }

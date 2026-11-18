@@ -22,7 +22,12 @@ public sealed partial class ShellView
   try{
    Navigate(WorkspacePage.Models);await Until(()=>_engine?.Connected==true&&_managementState is not null);
    string models=Path.Combine(directory,"model-usability-fixtures","演示目录");Directory.CreateDirectory(models);
-   for(int i=0;i<67;i++)await File.WriteAllTextAsync(Path.Combine(models,$"fixture-{i:000}.safetensors"),$"inert model fixture {i}");
+   for(int i=0;i<67;i++)
+   {
+    string stem=$"fixture-{i:000}"+(i==9?"-Aurora-Character-Portrait-Detail-XL":"");
+    await File.WriteAllTextAsync(Path.Combine(models,stem+".safetensors"),$"inert model fixture {i}");
+    if(i<4)await SyntheticPng(Path.Combine(models,stem+".preview.png"),i+2);
+   }
    var api=new ManagementApi(_engine!.Client!);
    var added=await api.WriteAsync("models.add",new{path=models},Guid.NewGuid().ToString("N"),CancellationToken.None);
    long root=added.GetProperty("id").GetInt64();
@@ -127,6 +132,16 @@ public sealed partial class ManagementView
    Check(_modelSearch!.Text==""&&_query==""&&_modelTotal==67,"a changed management page must retain the normal cleared-search behavior");
   });
   await Reset();
+  await Case("idle model layout uses the available grid width and reclaims the inactive task row",async()=>{
+   UpdateLayout();await Until(()=>ModelCards.ItemsPanelRoot is ItemsWrapGrid{ItemWidth: >0}&&_modelProgressRow is not null);
+   var panel=(ItemsWrapGrid)ModelCards.ItemsPanelRoot;
+   double used=panel.ItemWidth*panel.MaximumRowsOrColumns;
+   Check(_modelProgressRow!.Visibility==Visibility.Collapsed,"inactive task row is consuming space");
+   Check(used<=ModelCards.ActualWidth+1&&ModelCards.ActualWidth-used<=20,"model columns leave an unused strip or overflow");
+   var first=ModelCards.Items.OfType<ManagementRow>().First();
+   Check(first.CardTitle=="fixture-000"&&first.Label=="fixture-000.safetensors","card title must be concise while retaining its real filename");
+   await capture("grid-wide");
+  });
   await Case("all directories label fits the compact toolbar at the configured text scale",async()=>{
    double previous=MaxWidth;try{
     MaxWidth=620;UpdateLayout();LayoutModels();UpdateLayout();await Task.Delay(100);

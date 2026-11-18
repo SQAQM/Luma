@@ -55,7 +55,8 @@ public sealed partial class GalleryView:UserControl,IDisposable
         {
             if(_disposed||!_active||!ReferenceEquals(_model,model)||!ReferenceEquals(ActiveImages,images)||model.Generation!=generation||model.Current?.Id!=original.Id||model.Current?.Identity!=original.Identity||!ReferenceEquals(images.SelectedItem,tile)||!ReferenceEquals(FocusManager.GetFocusedElement(XamlRoot),returnFocus))return;
             images.UpdateLayout();
-            if(images.ContainerFromItem(tile) is Control container&&container.IsLoaded&&container.Visibility==Visibility.Visible)container.Focus(FocusState.Keyboard);
+            if(images.ContainerFromItem(tile) is Control container&&container.IsLoaded&&container.Visibility==Visibility.Visible&&container.Focus(FocusState.Keyboard))
+                Controls.ScrollFocus.Request(container, center: false);
         });
     }
     internal void FilterContent(long tag){_tag=tag;ChangeScope();}
