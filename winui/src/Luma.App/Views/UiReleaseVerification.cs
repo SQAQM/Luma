@@ -79,12 +79,13 @@ public sealed partial class ShellView
    UpdateLayout();
    Check(Rail.BorderThickness==new Thickness(0)&&SettingsNavigation.Children.Count==1&&Element<Button>(this,"OpenImage") is null,
     "sidebar has no divider or extra button next to Settings");
-   Check(_navigation.Values.All(button=>{
+   Check(Rail.ActualWidth<=88.5&&_navigation.Values.All(button=>{
     if(button.Content is not StackPanel label||label.ActualWidth<1)return false;
     var b=Bounds(button);var c=Bounds(label);
-    return Math.Abs((b.Left+b.Right)-(c.Left+c.Right))<2&&
+    return Math.Abs(b.Width-b.Height)<1&&Math.Abs((b.Left+b.Right)-(c.Left+c.Right))<2&&
+     Math.Abs((b.Top+b.Bottom)-(c.Top+c.Bottom))<2&&label.Orientation==Orientation.Vertical&&
      Services.DropdownLayout.Find<Border>(button,"GlassShine") is{Opacity:>0};
-   }),"all sidebar labels are centered in rectangular glass buttons");
+   }),"all sidebar items use centered square glass tiles in a rail at most 88 DIP wide");
    var draft=await Wait<Button>("FilesGenerate");Check(!draft.IsEnabled,"classification waits for a concrete destination and scope");
    await CaptureNamed("workspace-classification");
    await Files.VerifyClassificationUi(Check,directory);await CaptureNamed("workspace-rules");

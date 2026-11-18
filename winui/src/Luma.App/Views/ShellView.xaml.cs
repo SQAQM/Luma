@@ -117,9 +117,9 @@ public sealed partial class ShellView : UserControl, IDisposable
         InitializationPhase = "shell_navigation";
         foreach (var page in Enum.GetValues<WorkspacePage>())
         {
-            var label = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, VerticalAlignment = VerticalAlignment.Center };
-            label.Children.Add(new FontIcon { Glyph = Icons[(int)page], FontSize = 16 });
-            label.Children.Add(new TextBlock { Text = Names[(int)page], VerticalAlignment = VerticalAlignment.Center });
+            var label = new StackPanel { Spacing = 3, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+            label.Children.Add(new FontIcon { Glyph = Icons[(int)page], FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center });
+            label.Children.Add(new TextBlock { Text = Names[(int)page], FontSize=13, HorizontalAlignment = HorizontalAlignment.Center });
             var button = new Button { Content = label, Style = (Style)ResourcesOrApp("LumaRailButton"), Tag = page };
             AutomationProperties.SetAutomationId(button, "Nav" + page);
             AutomationProperties.SetName(button, Names[(int)page]);
@@ -149,13 +149,23 @@ public sealed partial class ShellView : UserControl, IDisposable
     public void Configure(int textScale, string layout)
     {
         _scale = textScale / 100.0;
-        if(layout!="Top")RailColumn.Width=new GridLength(_scale>1?140:126);
+        double tileSize=_scale>1?68:56;
+        if(layout!="Top")RailColumn.Width=new GridLength(tileSize+20);
         RailContent.Padding=new Thickness(10,12,10,12);
         LiveGallery.Configure(_scale,_diagnostics);
         Management.Configure(_scale);Files.Configure(_scale,_diagnostics);Management.SetDiagnostics(_diagnostics);
         _viewer.Configure(_scale);_viewer.SetMediaReducedMotion(Reduced);
         _layout = layout;
         ScaleTree(this);ScaleTree(Preferences);if(Preferences.Children.FirstOrDefault() is TextBlock appearanceHeading)appearanceHeading.FontSize=20*_scale;
+        foreach(var button in _navigation.Values)
+        {
+            button.Width=button.Height=tileSize;
+            if(button.Content is StackPanel label&&label.Children[0] is FontIcon icon&&label.Children[1] is TextBlock text)
+            {
+                icon.FontSize=_scale>1?22:20;
+                text.FontSize=13*_scale;
+            }
+        }
         _storage.ConfigureScale(_scale);
         StateTitle.FontSize = 22 * _scale;
         if (layout == "Top")
@@ -168,6 +178,7 @@ public sealed partial class ShellView : UserControl, IDisposable
             RailContent.Children.Remove(SettingsNavigation);
             Grid.SetRow(SettingsNavigation,0);
             SettingsNavigation.Orientation=Orientation.Horizontal;
+            Navigation.HorizontalAlignment=SettingsNavigation.HorizontalAlignment=HorizontalAlignment.Left;
             var top = new Grid { RowSpacing = 12, Padding = new Thickness(16,8,16,8) };
             top.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); top.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             top.Children.Add(SettingsNavigation); Grid.SetRow(Navigation, 1); top.Children.Add(Navigation); RailHost.Children.Remove(RailContent);RailHost.Children.Add(top);
