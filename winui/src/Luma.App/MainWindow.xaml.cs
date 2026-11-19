@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Luma.Core.Management;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.Json;
@@ -21,6 +22,12 @@ public sealed partial class MainWindow : Window
     private readonly Services.EngineSession _engine;
     private readonly Services.MaterialService _materials;
     private readonly Services.WindowChrome _chrome;
+    private readonly Services.AppearanceColors _colors;
+    private readonly SolidColorBrush _customCanvas = new();
+    private ImageBrush? _wallpaper;
+    private string? _wallpaperPath;
+    private int _wallpaperRequest;
+    private readonly AccessibilitySettings _visualAccessibility = new();
     private bool _closePending, _allowClose;
     private readonly SubclassCallback _settingsCallback;
     private readonly bool _settingsHook;
@@ -33,7 +40,7 @@ public sealed partial class MainWindow : Window
     private readonly Luma.Core.Management.UiPreferences _preferences;
     private int _normalWidth=1000,_normalHeight=650;private bool _restoreMaximized;
 
-    internal MainWindow(PreviewOptions options)
+    internal MainWindow(PreviewOptions options,WindowAppearance? inheritedAppearance=null)
     {
         _options = options;
         _preferences=new(options.DataDirectory);
@@ -43,8 +50,9 @@ public sealed partial class MainWindow : Window
         _engine = new Services.EngineSession(options.DataDirectory,options.Diagnostics);
         Shell.AttachEngine(_engine);
         Shell.ConfigureStorage(options.DataDirectory,options.StorageRoot,_engine);
-        _chrome=new Services.WindowChrome(this,Chrome,ChromeArea,ChromeTint,Shell.ResolveThemeBrush);
+        _chrome=new Services.WindowChrome(this,Chrome,ChromeArea,Shell.ResolveThemeBrush);
         Shell.ThemeColors=Surface.Resources.MergedDictionaries[0];
+        _colors=options.OpenFile is null?new(Surface.Resources,Application.Current.Resources):new(Surface.Resources);
         _materials=new Services.MaterialService(DispatcherQueue,this,Surface,WindowTint,plan=>{Shell.RefreshAppearance();_chrome.ApplyMaterial(plan);});
         _materials.Changed+=UpdateState;
         Shell.ConfigureDiagnostics(options.Diagnostics,options.ThumbnailPressure,options.MetadataFailureOnce);
@@ -59,12 +67,13 @@ public sealed partial class MainWindow : Window
         if (File.Exists(icon)) AppWindow.SetIcon(icon);
         var saved=_preferences.Load();_normalWidth=saved.Width;_normalHeight=saved.Height;_restoreMaximized=saved.Maximized;
         AppWindow.Resize(new SizeInt32(_normalWidth,_normalHeight));
-        Shell.RestorePreferences(saved.Theme,saved.ReduceMotion);Shell.RestoreMaterialPreferences(saved.SelectedMaterial,saved.BackgroundTransparency);
+        Shell.RestorePreferences(saved.Theme,saved.ReduceMotion);Shell.RestoreMaterialPreferences(saved.SelectedMaterial,saved.BackgroundTransparency,inheritedAppearance??saved.CustomAppearance);
         AppWindow.Changed+=(_,_)=>{if(AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p&&p.State==Microsoft.UI.Windowing.OverlappedPresenterState.Restored){_normalWidth=AppWindow.Size.Width;_normalHeight=AppWindow.Size.Height;}};
         Shell.Changed += () => { _theme = Shell.Theme; UpdateState(); };
         if(_options.Capture){var snapshot=new Microsoft.UI.Xaml.Input.KeyboardAccelerator{Key=Windows.System.VirtualKey.F12};snapshot.Invoked+=(_,e)=>{e.Handled=true;UpdateState();};Surface.KeyboardAccelerators.Add(snapshot);}
         Shell.CloseRequested += RequestClose;
         Shell.OpenFileRequested+=PickImage;
+        Shell.WallpaperRequested+=PickWallpaper;
         Shell.FullscreenRequested += value => {
             try{AppWindow.SetPresenter(value?Microsoft.UI.Windowing.AppWindowPresenterKind.FullScreen:Microsoft.UI.Windowing.AppWindowPresenterKind.Default);Shell.SetFullscreen(AppWindow.Presenter.Kind==Microsoft.UI.Windowing.AppWindowPresenterKind.FullScreen);}
             catch(Exception){Shell.SetFullscreen(AppWindow.Presenter.Kind==Microsoft.UI.Windowing.AppWindowPresenterKind.FullScreen);}
@@ -84,7 +93,7 @@ public sealed partial class MainWindow : Window
         if (_closed || _closePending) return;
         _closePending = true;
         await Shell.PrepareStorageCloseAsync();
-        try{_preferences.Save(new(_normalWidth,_normalHeight,AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p&&p.State==Microsoft.UI.Windowing.OverlappedPresenterState.Maximized,Shell.Theme,Shell.ReduceMotionPreference,Shell.Material!=Luma.Core.Design.BackgroundMaterial.Solid,Shell.Material.ToString(),Shell.BackgroundTransparency));}catch(Exception error) when(error is IOException or UnauthorizedAccessException or Luma.Core.Engine.EngineRpcException){}
+        try{_preferences.Save(new(_normalWidth,_normalHeight,AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter p&&p.State==Microsoft.UI.Windowing.OverlappedPresenterState.Maximized,Shell.Theme,Shell.ReduceMotionPreference,Shell.Material!=Luma.Core.Design.BackgroundMaterial.Solid,Shell.Material.ToString(),Shell.BackgroundTransparency,Shell.CustomAppearance));}catch(Exception error) when(error is IOException or UnauthorizedAccessException or Luma.Core.Engine.EngineRpcException){}
         await _engine.StopAsync(closing: true);
         if (_engine.IsAlive) { _closePending = false; return; }
         _allowClose = true;
@@ -109,7 +118,7 @@ public sealed partial class MainWindow : Window
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_FILMSTRIP_PERF_UI_TEST")=="1")_=Shell.VerifyFilmstripPerformanceUi(_options.DataDirectory,CaptureVerificationFrame);
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_VIEWER_GLASS_UI_TEST")=="1")_=Shell.VerifyViewerGlassUi(_options.DataDirectory,CaptureVerificationFrame);
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_APPEARANCE_UI_TEST")=="1")
-            _=Shell.VerifyAppearanceUi(_options.DataDirectory,Surface,WindowTint,Chrome,()=>_materials.RenderMode,CaptureVerificationFrame);
+            _=Shell.VerifyAppearanceUi(_options.DataDirectory,Surface,WindowTint,Chrome,()=>_materials.RenderMode,SetWindowWallpaper,CaptureVerificationFrame);
     }
     private async void PickImage()
     {
@@ -127,7 +136,7 @@ public sealed partial class MainWindow : Window
                     if(_fileWindow is null)
                     {
                         string profile=Path.Combine(_options.StorageRoot,"file-window");Luma.Core.Management.PreviewProfile.Open(profile,false);
-                        _fileWindow=new MainWindow(_options with{DataDirectory=profile,OpenFile=result.Path,Diagnostics=false,Capture=false});
+                        _fileWindow=new MainWindow(_options with{DataDirectory=profile,OpenFile=result.Path,Diagnostics=false,Capture=false},Shell.CustomAppearance);
                         _fileWindow.Closed+=(_,_)=>_fileWindow=null;
                     }
                     else await _fileWindow._engine.OpenFileAsync(result.Path);
@@ -160,7 +169,8 @@ public sealed partial class MainWindow : Window
             int dark=effectiveTheme==ElementTheme.Dark?1:0;
             _=DwmSetWindowAttribute(_hwnd,20,ref dark,sizeof(int));
         }
-        _materials.Apply(Shell.Material,Shell.BackgroundTransparency,effectiveTheme,Shell.ReduceMotionPreference);
+        if(_colors.Apply(Shell.CustomAppearance.TextColor))Shell.RefreshAppearance();
+        _materials.Apply(Shell.Material,Shell.BackgroundTransparency,effectiveTheme,Shell.ReduceMotionPreference,CustomWindowBackground());
         _chrome.Refresh();
         GetWindowRect(_hwnd, out var rectangle);
         _revision++;

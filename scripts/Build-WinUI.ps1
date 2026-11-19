@@ -1,6 +1,6 @@
 param(
-    [string]$OutputDirectory='release/Luma-native-1.4.7',
-    [string]$EngineDirectory='release/Engine-1.4.7/engine',
+    [string]$OutputDirectory='release/Luma-native-1.4.8',
+    [string]$EngineDirectory='release/Engine-1.4.8/engine',
     [string]$CrtDirectory='C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Redist/MSVC/14.44.35112/x64/Microsoft.VC143.CRT',
     [string]$CrtVersion='14.44.35211.0'
 )
@@ -75,6 +75,6 @@ Copy-Item -LiteralPath (Join-Path $workspace 'packaging/NSIS-COPYING.txt') -Dest
 Copy-Item -LiteralPath (Join-Path $workspace 'packaging/LENSO-MOTION-LICENSE.txt') -Destination (Join-Path $licenseRoot 'LENSO-MOTION-LICENSE.txt')
 Copy-Item -LiteralPath (Join-Path $workspace 'winui/src/Luma.App/packages.lock.json') -Destination (Join-Path $target 'packages.lock.json')
 $sourceSnapshot | Set-Content -LiteralPath (Join-Path $target 'build-source-snapshot.json') -Encoding UTF8
-Copy-Item -LiteralPath (Join-Path $workspace 'docs/WINUI_1.4.7_PACKAGE.txt') -Destination (Join-Path $target 'README.txt')
+Copy-Item -LiteralPath (Join-Path $workspace 'docs/WINUI_1.4.8_PACKAGE.txt') -Destination (Join-Path $target 'README.txt')
 & (Join-Path $PSScriptRoot 'Audit-WinUI.ps1') -BundleDirectory $target -CrtVersion $CrtVersion
 Write-Output ('WINUI_PUBLISHED '+$target)

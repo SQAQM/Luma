@@ -1,4 +1,5 @@
 using Luma.Core.Design;
+using Luma.Core.Management;
 using Luma.Preview.Services;
 using Luma.Preview.ViewModels;
 using Microsoft.UI.Xaml;
@@ -89,17 +90,21 @@ public sealed partial class ShellView : UserControl, IDisposable
     internal ElementTheme EffectiveTheme=>_theme switch{"Dark"=>ElementTheme.Dark,"Light"=>ElementTheme.Light,_=>_systemTheme};
     internal Brush ResolveThemeBrush(string key)=>Brush(key);
     internal ResourceDictionary? ThemeColors{get;set;}
-    internal void RestoreMaterialPreferences(BackgroundMaterial material,int transparency)
+    internal void RestoreMaterialPreferences(BackgroundMaterial material,int transparency,WindowAppearance? appearance=null)
     {
         _restoringAppearance=true;
+        CustomAppearance=WindowAppearance.Normalize(appearance);
         Material=material;BackgroundTransparency=MaterialPolicy.NormalizeTransparency(transparency);
-        MaterialPicker.SelectedIndex=(int)material;TransparencySlider.Value=BackgroundTransparency;
-        UpdateMaterialControls();_restoringAppearance=false;
+        MaterialPicker.SelectedIndex=CustomAppearance.Background switch{"Color"=>4,"Image"=>5,_=>(int)material};TransparencySlider.Value=BackgroundTransparency;
+        UpdateMaterialControls();SyncAppearanceColors();_restoringAppearance=false;
     }
     private void MaterialChanged(object sender,SelectionChangedEventArgs e)
     {
         if(_restoringAppearance||MaterialPicker.SelectedIndex<0)return;
-        Material=(BackgroundMaterial)MaterialPicker.SelectedIndex;UpdateMaterialControls();Changed?.Invoke();
+        int index=MaterialPicker.SelectedIndex;
+        if(index<4)Material=(BackgroundMaterial)index;
+        CustomAppearance=CustomAppearance with{Background=index switch{4=>"Color",5=>"Image",_=>"Material"}};
+        UpdateMaterialControls();Changed?.Invoke();
     }
     private void TransparencyChanged(object sender,Microsoft.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e)
     {
@@ -110,14 +115,17 @@ public sealed partial class ShellView : UserControl, IDisposable
     private void UpdateMaterialControls()
     {
         TransparencySlider.Header=$"背景透明度 {BackgroundTransparency}%";
-        TransparencySlider.IsEnabled=Material!=BackgroundMaterial.Solid;
+        TransparencySlider.Visibility=CustomAppearance.Background=="Material"?Visibility.Visible:Visibility.Collapsed;
+        TransparencySlider.IsEnabled=CustomAppearance.Background=="Material"&&Material!=BackgroundMaterial.Solid;
+        BackgroundColorButton.Visibility=CustomAppearance.Background=="Color"?Visibility.Visible:Visibility.Collapsed;
+        WallpaperButton.Visibility=CustomAppearance.Background=="Image"?Visibility.Visible:Visibility.Collapsed;
     }
     internal bool ReduceMotionPreference=>ReduceMotion.IsChecked==true;
     internal void RestorePreferences(string theme,bool reduce){Management.CurrentTheme=theme;Management.CurrentReducedMotion=reduce;_theme=theme;ReduceMotion.IsChecked=reduce;UpdateThemeButtons();}
     internal void RefreshAppearance()
     {
         RailTint.Background=Brush("LumaSidebar");
-        UpdateThemeButtons();UpdateNavigationLooks();
+        UpdateThemeButtons();UpdateNavigationLooks();SyncAppearanceColors();
     }
     public string Layout => _layout;
     public object Snapshot => new { gallery = LiveGallery.Snapshot, viewer = _viewer.Snapshot, management=Management.Snapshot,files=Files.Snapshot,storage=_storage.Snapshot, page = Page, mode = Mode, queryLength = _model.Current.Query.Length, sort = _model.Current.Sort, selectedId = _model.Current.SelectedId, reducedMotion = Reduced, animationMilliseconds = Reduced ? 0 : 120, pageOpacity = PageBody.Opacity, layout = _layout, motionEventAttached = _motionEventAttached, contrastEventAttached = _contrastEventAttached, preferenceChecks = _preferenceChecks };
@@ -128,6 +136,7 @@ public sealed partial class ShellView : UserControl, IDisposable
 
     public ShellView()
     {
+        _restoringAppearance = true;
         InitializationPhase = "shell_xaml";
         InitializeComponent();
         _systemTheme=ReadSystemTheme();

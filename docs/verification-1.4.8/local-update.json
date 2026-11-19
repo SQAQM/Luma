@@ -1,0 +1,21 @@
+{
+  "result": "passed_manifest_owned_program_update",
+  "oldVersion": "1.4.7",
+  "newVersion": "1.4.8",
+  "writeProgramFiles": 737,
+  "obsoleteProgramFiles": 0,
+  "dataAccessed": false,
+  "unknownFilesPreserved": true,
+  "setup": {
+    "requestedExecutionLevel": "asInvoker",
+    "name": "Luma-1.4.8-Setup-x64.exe",
+    "bytes": 94472220,
+    "sha256": "9456d0449ca9137c97439fa41ae51626e22508a05c88c067d75d158e50060665"
+  },
+  "portable": {
+    "name": "Luma-1.4.8-Portable-x64.zip",
+    "bytes": 132568974,
+    "sha256": "75a387c04e9fe6151b321d3455617efca8128cd396d89efff0a677fff6eb3e57",
+    "crcAndEntriesVerified": true
+  }
+}

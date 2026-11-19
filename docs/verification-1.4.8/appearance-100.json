@@ -1,0 +1,86 @@
+{
+  "result": "passed_native_appearance",
+  "checks": [
+    {
+      "name": "Dark to Follow System (Light) paints matching text on every sampled frame without another click",
+      "passed": true
+    },
+    {
+      "name": "Light to Follow System (Dark) paints matching text on every sampled frame without another click",
+      "passed": true
+    },
+    {
+      "name": "settings exposes four materials, two custom backgrounds and a 0–100 transparency slider",
+      "passed": true
+    },
+    {
+      "name": "Acrylic zero percent uses solid background",
+      "passed": true
+    },
+    {
+      "name": "Acrylic intermediate transparency uses the matching compositor path",
+      "passed": true
+    },
+    {
+      "name": "Acrylic maximum transparency clears blur, tint and pane backgrounds without dimming content",
+      "passed": true
+    },
+    {
+      "name": "Frosted zero percent uses solid background",
+      "passed": true
+    },
+    {
+      "name": "Frosted intermediate transparency uses the matching compositor path",
+      "passed": true
+    },
+    {
+      "name": "Frosted maximum transparency clears blur, tint and pane backgrounds without dimming content",
+      "passed": true
+    },
+    {
+      "name": "Liquid zero percent uses solid background",
+      "passed": true
+    },
+    {
+      "name": "Liquid intermediate transparency uses the matching compositor path",
+      "passed": true
+    },
+    {
+      "name": "Liquid maximum transparency clears blur, tint and pane backgrounds without dimming content",
+      "passed": true
+    },
+    {
+      "name": "solid switches off the layer and retains the previous transparency",
+      "passed": true
+    },
+    {
+      "name": "changing presets preserves a usable slider",
+      "passed": true
+    },
+    {
+      "name": "custom font color repaints headings, title and native dropdown immediately",
+      "passed": true
+    },
+    {
+      "name": "reset restores the theme foreground",
+      "passed": true
+    },
+    {
+      "name": "custom background color fills the window and replaces the material controls",
+      "passed": true
+    },
+    {
+      "name": "chosen image decodes and covers the window without stretching",
+      "passed": true
+    },
+    {
+      "name": "return to material restores the previous transparency",
+      "passed": true
+    },
+    {
+      "name": "settings dropdowns and numeric fields share the same glass fill and radius",
+      "passed": true
+    }
+  ],
+  "scope": "synthetic profile on Windows 10 build 19045"
+}

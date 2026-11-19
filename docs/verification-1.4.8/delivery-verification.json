@@ -1,0 +1,420 @@
+{
+  "result": "passed_local_native_candidate_only",
+  "version": "1.4.8",
+  "sourceInputs": 302,
+  "engineInputs": 102,
+  "payloadFiles": 737,
+  "engineModules": 746,
+  "setup": {
+    "requestedExecutionLevel": "asInvoker",
+    "name": "Luma-1.4.8-Setup-x64.exe",
+    "bytes": 94472220,
+    "sha256": "9456d0449ca9137c97439fa41ae51626e22508a05c88c067d75d158e50060665"
+  },
+  "portable": {
+    "name": "Luma-1.4.8-Portable-x64.zip",
+    "bytes": 132568974,
+    "sha256": "75a387c04e9fe6151b321d3455617efca8128cd396d89efff0a677fff6eb3e57",
+    "crcAndEntriesVerified": true
+  },
+  "evidence": {
+    "docs/verification-1.4.8/appearance-100.json": {
+      "sha256": "dee5196a5a6e62d4a707e6ea7d4aed49603193c587225e5384ff6bdb17ee72c8",
+      "result": "passed_native_appearance",
+      "checks": [
+        {
+          "name": "Dark to Follow System (Light) paints matching text on every sampled frame without another click",
+          "passed": true
+        },
+        {
+          "name": "Light to Follow System (Dark) paints matching text on every sampled frame without another click",
+          "passed": true
+        },
+        {
+          "name": "settings exposes four materials, two custom backgrounds and a 0–100 transparency slider",
+          "passed": true
+        },
+        {
+          "name": "Acrylic zero percent uses solid background",
+          "passed": true
+        },
+        {
+          "name": "Acrylic intermediate transparency uses the matching compositor path",
+          "passed": true
+        },
+        {
+          "name": "Acrylic maximum transparency clears blur, tint and pane backgrounds without dimming content",
+          "passed": true
+        },
+        {
+          "name": "Frosted zero percent uses solid background",
+          "passed": true
+        },
+        {
+          "name": "Frosted intermediate transparency uses the matching compositor path",
+          "passed": true
+        },
+        {
+          "name": "Frosted maximum transparency clears blur, tint and pane backgrounds without dimming content",
+          "passed": true
+        },
+        {
+          "name": "Liquid zero percent uses solid background",
+          "passed": true
+        },
+        {
+          "name": "Liquid intermediate transparency uses the matching compositor path",
+          "passed": true
+        },
+        {
+          "name": "Liquid maximum transparency clears blur, tint and pane backgrounds without dimming content",
+          "passed": true
+        },
+        {
+          "name": "solid switches off the layer and retains the previous transparency",
+          "passed": true
+        },
+        {
+          "name": "changing presets preserves a usable slider",
+          "passed": true
+        },
+        {
+          "name": "custom font color repaints headings, title and native dropdown immediately",
+          "passed": true
+        },
+        {
+          "name": "reset restores the theme foreground",
+          "passed": true
+        },
+        {
+          "name": "custom background color fills the window and replaces the material controls",
+          "passed": true
+        },
+        {
+          "name": "chosen image decodes and covers the window without stretching",
+          "passed": true
+        },
+        {
+          "name": "return to material restores the previous transparency",
+          "passed": true
+        },
+        {
+          "name": "settings dropdowns and numeric fields share the same glass fill and radius",
+          "passed": true
+        }
+      ]
+    },
+    "docs/verification-1.4.8/appearance-150.json": {
+      "sha256": "dee5196a5a6e62d4a707e6ea7d4aed49603193c587225e5384ff6bdb17ee72c8",
+      "result": "passed_native_appearance",
+      "checks": [
+        {
+          "name": "Dark to Follow System (Light) paints matching text on every sampled frame without another click",
+          "passed": true
+        },
+        {
+          "name": "Light to Follow System (Dark) paints matching text on every sampled frame without another click",
+          "passed": true
+        },
+        {
+          "name": "settings exposes four materials, two custom backgrounds and a 0–100 transparency slider",
+          "passed": true
+        },
+        {
+          "name": "Acrylic zero percent uses solid background",
+          "passed": true
+        },
+        {
+          "name": "Acrylic intermediate transparency uses the matching compositor path",
+          "passed": true
+        },
+        {
+          "name": "Acrylic maximum transparency clears blur, tint and pane backgrounds without dimming content",
+          "passed": true
+        },
+        {
+          "name": "Frosted zero percent uses solid background",
+          "passed": true
+        },
+        {
+          "name": "Frosted intermediate transparency uses the matching compositor path",
+          "passed": true
+        },
+        {
+          "name": "Frosted maximum transparency clears blur, tint and pane backgrounds without dimming content",
+          "passed": true
+        },
+        {
+          "name": "Liquid zero percent uses solid background",
+          "passed": true
+        },
+        {
+          "name": "Liquid intermediate transparency uses the matching compositor path",
+          "passed": true
+        },
+        {
+          "name": "Liquid maximum transparency clears blur, tint and pane backgrounds without dimming content",
+          "passed": true
+        },
+        {
+          "name": "solid switches off the layer and retains the previous transparency",
+          "passed": true
+        },
+        {
+          "name": "changing presets preserves a usable slider",
+          "passed": true
+        },
+        {
+          "name": "custom font color repaints headings, title and native dropdown immediately",
+          "passed": true
+        },
+        {
+          "name": "reset restores the theme foreground",
+          "passed": true
+        },
+        {
+          "name": "custom background color fills the window and replaces the material controls",
+          "passed": true
+        },
+        {
+          "name": "chosen image decodes and covers the window without stretching",
+          "passed": true
+        },
+        {
+          "name": "return to material restores the previous transparency",
+          "passed": true
+        },
+        {
+          "name": "settings dropdowns and numeric fields share the same glass fill and radius",
+          "passed": true
+        }
+      ]
+    },
+    "docs/verification-1.4.8/release-150.json": {
+      "sha256": "2879f94db68bf899a96b582729333216d1c27e437421f6c89b47e0a900011878",
+      "result": "passed_native_release_ui",
+      "checks": [
+        {
+          "name": "model search and directory heights match",
+          "passed": true
+        },
+        {
+          "name": "dropdown position and field text ready synchronously on open",
+          "passed": true
+        },
+        {
+          "name": "captured native rendering frames",
+          "passed": true
+        },
+        {
+          "name": "all sampled open frames keep panel below and field visible",
+          "passed": true
+        },
+        {
+          "name": "credential and preference fields share left edge",
+          "passed": true
+        },
+        {
+          "name": "credential and preference fields share width",
+          "passed": true
+        },
+        {
+          "name": "lower settings action scrolls fully into view",
+          "passed": true
+        },
+        {
+          "name": "settings has no duplicate refresh or data navigation",
+          "passed": true
+        },
+        {
+          "name": "navigation and workspace share the native material without a separate opaque frame",
+          "passed": true
+        },
+        {
+          "name": "sidebar has no divider or extra button next to Settings",
+          "passed": true
+        },
+        {
+          "name": "all sidebar items use centered square glass tiles in a rail at most 88 DIP wide",
+          "passed": true
+        },
+        {
+          "name": "classification waits for a concrete destination and scope",
+          "passed": true
+        },
+        {
+          "name": "restoring preview fields preserves review identity",
+          "passed": true
+        },
+        {
+          "name": "classification rule list exists",
+          "passed": true
+        },
+        {
+          "name": "rule list uses main content area",
+          "passed": true
+        },
+        {
+          "name": "rule list fills available height",
+          "passed": true
+        },
+        {
+          "name": "rule selection fills editor",
+          "passed": true
+        },
+        {
+          "name": "rule mode hides unrelated file preview actions",
+          "passed": true
+        },
+        {
+          "name": "rule mode hides file path tools",
+          "passed": true
+        },
+        {
+          "name": "rule editing actions remain fully visible outside scroll area",
+          "passed": true
+        },
+        {
+          "name": "small desktop classification keeps full-height columns",
+          "passed": true
+        },
+        {
+          "name": "compact classification stacks without overlap",
+          "passed": true
+        },
+        {
+          "name": "compact rule list remains visible",
+          "passed": true
+        },
+        {
+          "name": "a direct duplicate scan keeps results in cleanup",
+          "passed": true
+        },
+        {
+          "name": "duplicate members display exactly one keeper from the engine flag",
+          "passed": true
+        },
+        {
+          "name": "group selection reflects the saved engine flags",
+          "passed": true
+        },
+        {
+          "name": "duplicate preview stays non-destructive and reaches the explicit confirmation",
+          "passed": true
+        },
+        {
+          "name": "preview and confirm share one action slot",
+          "passed": true
+        },
+        {
+          "name": "cleanup review shows its saved scope without an unrelated scan selector",
+          "passed": true
+        },
+        {
+          "name": "cleanup preview leads with filenames and retains full paths for inspection",
+          "passed": true
+        },
+        {
+          "name": "changing workspaces cannot carry a cleanup preview into classification",
+          "passed": true
+        },
+        {
+          "name": "gallery search and sorting heights match",
+          "passed": true
+        },
+        {
+          "name": "input height is at least 36",
+          "passed": true
+        },
+        {
+          "name": "gallery filter opens from its native button",
+          "passed": true
+        },
+        {
+          "name": "gallery filter opens below its button when there is room",
+          "passed": true
+        },
+        {
+          "name": "open gallery filter keeps the gallery viewport and toolbar fixed",
+          "passed": true
+        },
+        {
+          "name": "all five gallery filter categories are in the same panel",
+          "passed": true
+        },
+        {
+          "name": "gallery filter exposes one popup with a direct category reset",
+          "passed": true
+        },
+        {
+          "name": "changing gallery filter category keeps its input and candidates in place",
+          "passed": true
+        },
+        {
+          "name": "gallery filter offers the indexed PNG format",
+          "passed": true
+        },
+        {
+          "name": "choosing a candidate applies it and closes the gallery filter",
+          "passed": true
+        },
+        {
+          "name": "applied gallery values remain visible when reopening the panel",
+          "passed": true
+        },
+        {
+          "name": "gallery uses one tool row and omits the pager for one page",
+          "passed": true
+        },
+        {
+          "name": "idle gallery keeps one refresh slot and no abandoned cancel action",
+          "passed": true
+        },
+        {
+          "name": "opening image actions preserves the selected image",
+          "passed": true
+        },
+        {
+          "name": "selected image context menu opens",
+          "passed": true
+        },
+        {
+          "name": "image metadata commands exist only once in the context menu",
+          "passed": true
+        },
+        {
+          "name": "sidebar navigation carries the selected image and loads correction state automatically",
+          "passed": true
+        },
+        {
+          "name": "the tag editor keeps Save visible alongside its options at large text scale",
+          "passed": true
+        },
+        {
+          "name": "one tag action applies the chosen label with its selection snapshot",
+          "passed": true
+        },
+        {
+          "name": "restore automatic removes the manual override for the same selection",
+          "passed": true
+        },
+        {
+          "name": "tag definitions have no image correction controls without a selection",
+          "passed": true
+        }
+      ]
+    },
+    "docs/verification-1.4.8/frozen-runtime.json": {
+      "sha256": "763407631e9a98d7618155152ccd75396bc08317d1d8b4bf3b5e7b1344391c1e",
+      "result": "passed_frozen_runtime_selfcheck",
+      "checks": null
+    },
+    "docs/verification-1.4.8/top-strip.json": {
+      "sha256": "dbf5f230ffe4ab59040f62d0cf820bcbbc2dcdf3e92e47319939c727a4a41a01",
+      "result": "passed",
+      "checks": null
+    }
+  },
+  "verifierSha256": "18a505c5066411f6284e955836d539368afdb4734e0fc6f087e33a94cd80520c",
+  "scope": "immutable payload and supplied local synthetic evidence; no production-capacity or real-library claim"
+}

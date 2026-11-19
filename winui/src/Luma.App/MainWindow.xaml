@@ -4,7 +4,6 @@
   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
   <Border x:Name="WindowTint" Grid.RowSpan="2" Background="{ThemeResource LumaCanvas}" IsHitTestVisible="False"/>
   <Grid x:Name="ChromeArea" Background="Transparent">
-   <Border x:Name="ChromeTint" Background="{ThemeResource LumaCanvas}" IsHitTestVisible="False"/>
    <TitleBar x:Name="Chrome" Title="Luma" Foreground="{ThemeResource LumaText}" Background="Transparent" AutomationProperties.AutomationId="LumaTitleBar">
     <TitleBar.IconSource><FontIconSource FontFamily="Segoe MDL2 Assets" Glyph="&#xE91B;" Foreground="{ThemeResource LumaAccent}"/></TitleBar.IconSource>
    </TitleBar>

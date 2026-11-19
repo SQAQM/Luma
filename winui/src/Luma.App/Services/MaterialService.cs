@@ -29,6 +29,7 @@ internal sealed class MaterialService:IDisposable
  private int _transparency=MaterialPolicy.DefaultTransparency;
  private ElementTheme _theme;
  private MaterialPlan? _plan;
+ private Brush? _customBackground;
  public event Action? Changed;
  public MaterialService(DispatcherQueue dispatcher,Window window,FrameworkElement root,Border wash,Action<MaterialPlan> applyChrome)
  {
@@ -43,22 +44,23 @@ internal sealed class MaterialService:IDisposable
   appearance="system_managed",renderMode=_renderMode,hostEffectFailed=_hostFailed,clearFailed=_clearFailed,effectError=_effectError,
   blurAmount=_renderMode=="HostEffect"?BackgroundLook.For(_material).Blur:0,
   failed=_failed,effectsEventHooked=_effectsHook,contrastEventHooked=_contrastHook,disposed=_disposed};
- public void Apply(BackgroundMaterial material,int transparency,ElementTheme theme,bool reduceMotion=false)
+ public void Apply(BackgroundMaterial material,int transparency,ElementTheme theme,bool reduceMotion=false,Brush? customBackground=null)
  {
   if(_disposed)return;
   _reduceMotion=reduceMotion;
   if(_root.XamlRoot is{} xamlRoot){bool motion=!reduceMotion&&_settings.AnimationsEnabled&&!_accessibility.HighContrast;GlassButtonEffects.SetPolicy(xamlRoot,motion);GlassSurfaceEffects.SetPolicy(xamlRoot,motion,!_accessibility.HighContrast);}
-  var plan=MaterialPolicy.Choose(material!=BackgroundMaterial.Solid,_settings.AdvancedEffectsEnabled,_accessibility.HighContrast,(_supported||!_clearFailed)&&!_failed);
-  bool appearanceChanged=plan!=_plan||_theme!=theme||_material!=material;
+  var plan=MaterialPolicy.Choose(customBackground is null&&material!=BackgroundMaterial.Solid,_settings.AdvancedEffectsEnabled,_accessibility.HighContrast,(_supported||!_clearFailed)&&!_failed);
+  bool appearanceChanged=plan!=_plan||_theme!=theme||_material!=material||!ReferenceEquals(_customBackground,customBackground);
   bool transparencyChanged=_transparency!=transparency;
-  _material=material;_transparency=transparency;_theme=theme;
+  _material=material;_transparency=transparency;_theme=theme;_customBackground=customBackground;
   if(!appearanceChanged&&!transparencyChanged)return;
   var look=BackgroundLook.For(material);
   string render=SelectBackdrop(plan,look,transparency);
   bool renderChanged=_renderMode!=render;
   _renderMode=render;
   bool transparentBackground=render!="Solid";
-  bool glassDetails=plan.UseAcrylic&&transparency>0;
+  bool paintedBackground=customBackground is not null&&plan.Reason!="high_contrast";
+  bool glassDetails=plan.UseAcrylic&&transparency>0||paintedBackground&&_settings.AdvancedEffectsEnabled;
   if(renderChanged)appearanceChanged=true;
   if(appearanceChanged)
   {
@@ -68,7 +70,7 @@ internal sealed class MaterialService:IDisposable
    var canvas=(SolidColorBrush)palette["LumaCanvas"];
    _plan=plan;
    ApplyBrushes(look,glassDetails);
-   _wash.Background=transparentBackground?(Brush)palette[material switch
+   _wash.Background=paintedBackground?customBackground:transparentBackground?(Brush)palette[material switch
    {
     BackgroundMaterial.Frosted=>"LumaFrostedTint",
     BackgroundMaterial.Liquid=>"LumaLiquidTint",
@@ -78,7 +80,7 @@ internal sealed class MaterialService:IDisposable
   }
   double wash=MaterialPolicy.BackgroundWash(transparency);
   _wash.Opacity=transparentBackground?wash+(1-wash)*look.Coat*MaterialPolicy.EffectWeight(transparency):1;
-  var paneLevel=transparentBackground?Math.Min(1,wash/.15)*look.PaneWeight:-1;
+  var paneLevel=transparentBackground?Math.Min(1,wash/.15)*look.PaneWeight:paintedBackground?1:-1;
   if(paneLevel!=_paneLevel)
   {
    _paneLevel=paneLevel;
@@ -152,7 +154,7 @@ internal sealed class MaterialService:IDisposable
  }
  private void EffectsChanged(UISettings sender,object args)=>QueueRefresh();
  private void ContrastChanged(AccessibilitySettings sender,object args)=>QueueRefresh();
- private void QueueRefresh()=>_dispatcher.TryEnqueue(()=>{if(!_disposed){Apply(_material,_transparency,_theme,_reduceMotion);Changed?.Invoke();}});
+ private void QueueRefresh()=>_dispatcher.TryEnqueue(()=>{if(!_disposed){Apply(_material,_transparency,_theme,_reduceMotion,_customBackground);Changed?.Invoke();}});
  public void Dispose()
  {
   if(_disposed)return;_disposed=true;

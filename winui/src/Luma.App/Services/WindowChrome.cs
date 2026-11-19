@@ -10,24 +10,43 @@ namespace Luma.Preview.Services;
 // XAML supplies the material and identity; Windows retains caption controls/hit testing.
 internal sealed class WindowChrome
 {
+ private const int DwmNcRenderingPolicy=2,DwmBorderColor=34;
+ private const uint DwmUseWindowStyle=0,DwmDisableNcRendering=1,DwmDefaultColor=0xffffffff,DwmNoBorderColor=0xfffffffe;
  private readonly Window _window;
  private readonly Grid _area;
- private readonly Border _tint;
  private readonly Func<string,Brush> _brush;
  private bool _highContrast,_colorFailure;
  private (Windows.UI.Color? Foreground,Windows.UI.Color? Inactive,Windows.UI.Color? Hover)? _captionColors;
  public bool Supported{get;private set;}
  public bool HighContrast=>_highContrast;
  internal long CaptionColorWrites{get;private set;}
- public WindowChrome(Window window,TitleBar title,Grid area,Border tint,Func<string,Brush> brush)
+ public WindowChrome(Window window,TitleBar title,Grid area,Func<string,Brush> brush)
  {
-  _window=window;_area=area;_tint=tint;_brush=brush;
+  _window=window;_area=area;_brush=brush;
   try{Supported=AppWindowTitleBar.IsCustomizationSupported();if(Supported){window.ExtendsContentIntoTitleBar=true;window.SetTitleBar(title);}}
   catch(Exception e) when(e is System.Runtime.InteropServices.COMException or NotSupportedException){Supported=false;window.ExtendsContentIntoTitleBar=false;}
   Refresh();
  }
  public object Snapshot=>new{supported=Supported,extended=_window.ExtendsContentIntoTitleBar,visible=_area.Visibility==Visibility.Visible,height=_area.Visibility==Visibility.Visible?_area.ActualHeight:0,captionRightInset=_window.AppWindow.TitleBar.RightInset,captionLeftInset=_window.AppWindow.TitleBar.LeftInset,colorFailure=_colorFailure};
- public void ApplyMaterial(MaterialPlan plan){bool changed=_highContrast!=(plan.Reason=="high_contrast");_highContrast=plan.Reason=="high_contrast";_tint.Background=new SolidColorBrush(Colors.Transparent);uint border=_highContrast?0xffffffff:0xfffffffe;var hwnd=WinRT.Interop.WindowNative.GetWindowHandle(_window);_ = DwmSetWindowAttribute(hwnd,34,ref border,4);if(changed)SetWindowPos(hwnd,0,0,0,0,0,0x37);Refresh();}
+ public void ApplyMaterial(MaterialPlan plan)
+ {
+  bool changed=_highContrast!=(plan.Reason=="high_contrast");
+  _highContrast=plan.Reason=="high_contrast";
+  var hwnd=WinRT.Interop.WindowNative.GetWindowHandle(_window);
+  if(Supported&&OperatingSystem.IsWindowsVersionAtLeast(10,0,22000))
+  {
+   uint border=_highContrast?DwmDefaultColor:DwmNoBorderColor;
+   _=DwmSetWindowAttribute(hwnd,DwmBorderColor,ref border,sizeof(uint));
+  }
+  else if(Supported)
+  {
+   // Windows 10 draws its non-client line above the transparent WinUI bridge.
+   uint renderingPolicy=_highContrast?DwmUseWindowStyle:DwmDisableNcRendering;
+   _=DwmSetWindowAttribute(hwnd,DwmNcRenderingPolicy,ref renderingPolicy,sizeof(uint));
+  }
+  if(changed)SetWindowPos(hwnd,0,0,0,0,0,0x37);
+  Refresh();
+ }
  [System.Runtime.InteropServices.DllImport("dwmapi.dll")]private static extern int DwmSetWindowAttribute(nint h,int attribute,ref uint value,int size);
  [System.Runtime.InteropServices.DllImport("user32.dll")]private static extern bool SetWindowPos(nint h,nint after,int x,int y,int width,int height,uint flags);
  public void Refresh()

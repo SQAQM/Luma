@@ -1,0 +1,18 @@
+{
+  "result": "appearance_not_verified",
+  "scope": "First four physical rows and window body over owned synthetic stripes on Windows 10 build 19045",
+  "samples": {
+    "Acrylic-100": {
+      "titleStripRgbError": 31.752604166666668,
+      "bodyRgbError": 0.0
+    },
+    "Frosted-100": {
+      "titleStripRgbError": 31.752604166666668,
+      "bodyRgbError": 0.0
+    },
+    "Liquid-100": {
+      "titleStripRgbError": 31.752604166666668,
+      "bodyRgbError": 0.0
+    }
+  }
+}

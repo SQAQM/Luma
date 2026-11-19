@@ -19,6 +19,13 @@ internal static class MaterialTests
   var disabled=new WindowPreferences(UseMaterials:false);var roundTrip=JsonSerializer.Deserialize<WindowPreferences>(JsonSerializer.Serialize(disabled));
   Check(roundTrip is{UseMaterials:false},"solid preference round trip");
   Check(old.SelectedMaterial==BackgroundMaterial.Acrylic&&old.BackgroundTransparency==85,"existing glass profile keeps its default look");
+  Check(old.CustomAppearance==new WindowAppearance(),"older window settings retain the system text and material");
+  var painted=new WindowPreferences(Appearance:new("Color","#abcdef","#142638"));
+  var restored=JsonSerializer.Deserialize<WindowPreferences>(JsonSerializer.Serialize(painted))!.CustomAppearance;
+  Check(restored is { Background:"Color", TextColor:"#ABCDEF", BackgroundColor:"#142638" },"custom colors survive restart and normalize");
+  var path=Path.Combine(Path.GetTempPath(),"luma-fixture.png");
+  Check(WindowAppearance.Normalize(new("Image",null,null,path)).ImagePath==path,"chosen background path is retained");
+  Check(WindowAppearance.Normalize(new("Image","#xyz",null,"../some-image.jpg"))==new WindowAppearance(),"malformed colors and relative background paths fall back");
   Check(roundTrip?.SelectedMaterial==BackgroundMaterial.Solid,"existing solid profile maps to solid");
   var customized=new WindowPreferences(Material:"Liquid",BackgroundTransparency:72);
   Check(JsonSerializer.Deserialize<WindowPreferences>(JsonSerializer.Serialize(customized)) is

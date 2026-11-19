@@ -286,8 +286,8 @@
     <Setter Property="Padding" Value="12,6,0,6" />
     <Setter Property="MaxDropDownHeight" Value="504" />
     <Setter Property="Foreground" Value="{ThemeResource LumaText}" />
-    <Setter Property="Background" Value="{ThemeResource LumaSelectionFieldBackground}" />
-    <Setter Property="BorderBrush" Value="{ThemeResource LumaSelectionFieldStroke}" />
+    <Setter Property="Background" Value="{ThemeResource LumaSurface}" />
+    <Setter Property="BorderBrush" Value="{ThemeResource LumaStroke}" />
     <Setter Property="BorderThickness" Value="0.5" />
     <Setter Property="TabNavigation" Value="Once" />
     <Setter Property="TextBoxStyle" Value="{StaticResource LumaGlassComboBoxTextBox}" />

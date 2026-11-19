@@ -434,12 +434,6 @@
   <Setter Property="Foreground" Value="{ThemeResource LumaText}" />
   <Setter Property="Background" Value="{ThemeResource LumaSurface}" />
  </Style>
- <Style TargetType="ComboBox">
-  <Setter Property="Background" Value="{ThemeResource LumaSurface}" />
-  <Setter Property="Foreground" Value="{ThemeResource LumaText}" />
-  <Setter Property="BorderBrush" Value="{ThemeResource LumaStroke}" />
-  <Setter Property="CornerRadius" Value="8" />
- </Style>
  <Style TargetType="CheckBox">
   <Setter Property="Foreground" Value="{ThemeResource LumaText}" />
   <Setter Property="CornerRadius" Value="6" />

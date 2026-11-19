@@ -8,12 +8,39 @@
     <StackPanel x:Name="Preferences" Grid.Row="1" Spacing="12">
      <TextBlock Text="外观" Style="{StaticResource LumaHeading}" FontSize="20"/>
      <StackPanel Orientation="Horizontal" Spacing="4"><Button Width="86" MinWidth="0" Padding="10,6" x:Name="LightButton" Content="浅色" Tag="Light" Click="ThemeClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="ThemeLight" AutomationProperties.Name="浅色主题" ToolTipService.ToolTip="浅色主题"/><Button Width="86" MinWidth="0" Padding="10,6" x:Name="DarkButton" Content="深色" Tag="Dark" Click="ThemeClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="ThemeDark" AutomationProperties.Name="深色主题" ToolTipService.ToolTip="深色主题"/><Button Width="104" MinWidth="0" Padding="10,6" x:Name="SystemButton" Content="跟随系统" Tag="System" Click="ThemeClicked" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="ThemeSystem" AutomationProperties.Name="跟随系统主题" ToolTipService.ToolTip="跟随系统主题"/></StackPanel>
-     <ComboBox x:Name="MaterialPicker" Header="背景材质" MinWidth="184" HorizontalAlignment="Left" SelectionChanged="MaterialChanged" AutomationProperties.AutomationId="BackgroundMaterial" AutomationProperties.Name="背景材质">
+     <StackPanel Spacing="5">
+      <TextBlock Text="文字颜色" Style="{StaticResource LumaBody}"/>
+      <StackPanel Orientation="Horizontal" Spacing="6">
+       <Button Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="AppearanceTextColor" AutomationProperties.Name="选择文字颜色">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+         <Border x:Name="TextSwatch" Width="16" Height="16" CornerRadius="4" BorderThickness="0.5" BorderBrush="{ThemeResource LumaStroke}"/>
+         <TextBlock x:Name="TextColorLabel" Text="主题默认" VerticalAlignment="Center"/>
+        </StackPanel>
+        <Button.Flyout>
+         <Flyout Placement="Bottom"><ColorPicker x:Name="TextColorPicker" AutomationProperties.Name="文字颜色" IsHexInputVisible="True" IsAlphaEnabled="False" ColorChanged="TextColorChanged"/></Flyout>
+        </Button.Flyout>
+       </Button>
+       <Button x:Name="ResetTextColor" Content="恢复默认" Style="{StaticResource LumaButton}" Click="ResetTextColorClicked" AutomationProperties.AutomationId="AppearanceResetTextColor"/>
+      </StackPanel>
+     </StackPanel>
+     <ComboBox x:Name="MaterialPicker" Header="背景" MinWidth="0" HorizontalAlignment="Stretch" SelectionChanged="MaterialChanged" AutomationProperties.AutomationId="BackgroundMaterial" AutomationProperties.Name="背景">
       <ComboBoxItem Content="亚克力"/>
       <ComboBoxItem Content="磨砂玻璃"/>
       <ComboBoxItem Content="液态玻璃"/>
       <ComboBoxItem Content="实色"/>
+      <ComboBoxItem Content="自定义颜色"/>
+      <ComboBoxItem Content="自定义图片"/>
      </ComboBox>
+     <Button x:Name="BackgroundColorButton" Visibility="Collapsed" HorizontalAlignment="Left" Style="{StaticResource LumaButton}" AutomationProperties.AutomationId="AppearanceBackgroundColor" AutomationProperties.Name="选择背景颜色">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+       <Border x:Name="BackgroundSwatch" Width="16" Height="16" CornerRadius="4" BorderThickness="0.5" BorderBrush="{ThemeResource LumaStroke}"/>
+       <TextBlock x:Name="BackgroundColorLabel" Text="选择颜色" VerticalAlignment="Center"/>
+      </StackPanel>
+      <Button.Flyout>
+       <Flyout Placement="Bottom"><ColorPicker x:Name="BackgroundColorPicker" AutomationProperties.Name="背景颜色" IsHexInputVisible="True" IsAlphaEnabled="False" ColorChanged="BackgroundColorChanged"/></Flyout>
+      </Button.Flyout>
+     </Button>
+     <Button x:Name="WallpaperButton" Content="选择图片" Visibility="Collapsed" HorizontalAlignment="Left" MaxWidth="380" Style="{StaticResource LumaButton}" Click="PickWallpaperClicked" AutomationProperties.AutomationId="AppearanceWallpaper" AutomationProperties.Name="选择背景图片"/>
      <Slider x:Name="TransparencySlider" Header="背景透明度 85%" Minimum="0" Maximum="100" Value="85" StepFrequency="1" SnapsTo="StepValues" Width="248" HorizontalAlignment="Left" Foreground="{ThemeResource LumaAccent}" ValueChanged="TransparencyChanged" AutomationProperties.AutomationId="BackgroundTransparency" AutomationProperties.Name="背景透明度"/>
      <CheckBox x:Name="ReduceMotion" Content="减少动态" Checked="MotionChanged" Unchecked="MotionChanged" AutomationProperties.AutomationId="ReduceMotion"/>
     </StackPanel><StackPanel x:Name="SettingsNavigation" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Bottom"/>

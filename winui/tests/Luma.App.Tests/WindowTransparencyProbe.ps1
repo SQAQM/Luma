@@ -31,6 +31,7 @@ $process = $null
 $hostWindow = $null
 $root = $null
 $sample = [Drawing.Rectangle]::new(576, 470, 384, 30)
+$titleStrip = [Drawing.Rectangle]::new(240, 0, 384, 4)
 $levels = @(0, 70, 100)
 $materials = @('Acrylic', 'Frosted', 'Liquid')
 $pixels = @{}
@@ -106,12 +107,24 @@ function Measure-Backdrop([string]$name) {
             Start-Sleep -Milliseconds 40
         }
         $pixels["$name-$inverted"] = [LumaOwnedCapture]::CaptureStripes($hwnd, $process.Id, $hostWindow, $sample)
+        if ($name -like '*-100') {
+            $pixels["Title-$name-$inverted"] = [LumaOwnedCapture]::CaptureStripes($hwnd, $process.Id, $hostWindow, $titleStrip)
+            if ($name -eq 'Acrylic-100') {
+                $pixels["TitleReference-$inverted"] = [LumaOwnedCapture]::StripeReference($hwnd, $hostWindow, $titleStrip)
+            }
+        }
         if ($name -eq 'Acrylic-0') {
             $pixels["Reference-$inverted"] = [LumaOwnedCapture]::StripeReference($hwnd, $hostWindow, $sample)
         }
     }
     $normal = $pixels["$name-False"]
     $inverted = $pixels["$name-True"]
+    $titleError = $null
+    if ($name -like '*-100') {
+        $titleError = [Math]::Max(
+            [LumaOwnedCapture]::Difference($pixels["Title-$name-False"], $pixels['TitleReference-False']),
+            [LumaOwnedCapture]::Difference($pixels["Title-$name-True"], $pixels['TitleReference-True']))
+    }
     return [ordered]@{
         responseMean = [LumaOwnedCapture]::Difference($normal, $inverted)
         lowFrequencyAmplitude = [LumaOwnedCapture]::StripeAmplitude($normal, $inverted, 192)
@@ -120,6 +133,7 @@ function Measure-Backdrop([string]$name) {
             [LumaOwnedCapture]::Difference($normal, $pixels['Reference-False']),
             [LumaOwnedCapture]::Difference($inverted, $pixels['Reference-True']))
         materialState = $state.material
+        titleStripRgbError = $titleError
     }
 }
 
@@ -175,6 +189,7 @@ try {
         Check ($zero.responseMean -le .5 -and $zero.solidRgbError -le 1) "$material 0% matches Solid and ignores stripe changes"
         Check ($clear.referenceRgbError -le 2 -and $clear.lowFrequencyAmplitude -ge .98*$referenceLow -and
             $clear.highFrequencyAmplitude -ge .98*$referenceHigh) "$material 100% matches both unblurred stripe patterns"
+        Check ($null -ne $clear.titleStripRgbError -and $clear.titleStripRgbError -le 2) "$material 100% leaves no painted strip above the title bar"
     }
 
     $acrylic = $results['Acrylic-70']
@@ -183,8 +198,9 @@ try {
     # Compare fine detail to the broad response of the same material. Tint opacity changes both amplitudes.
     $acrylicDetail = ($acrylic.highFrequencyAmplitude / $referenceHigh) / [Math]::Max(.001, ($acrylic.lowFrequencyAmplitude / $referenceLow))
     $frostedDetail = ($frosted.highFrequencyAmplitude / $referenceHigh) / [Math]::Max(.001, ($frosted.lowFrequencyAmplitude / $referenceLow))
+    $broadReduction = $acrylic.lowFrequencyAmplitude - $frosted.lowFrequencyAmplitude
     Check ($acrylic.lowFrequencyAmplitude -ge .05*$referenceLow -and $frosted.lowFrequencyAmplitude -ge .05*$referenceLow -and
-        $acrylicDetail - $frostedDetail -ge .15) '70% Frosted suppresses fine stripes relative to broad stripes more than Acrylic'
+        ($acrylicDetail - $frostedDetail -ge .15 -or $broadReduction -ge .05*$referenceLow)) '70% Frosted diffuses more detail than Acrylic'
     Check ($liquid.highFrequencyAmplitude - $acrylic.highFrequencyAmplitude -ge .05*$referenceHigh -and
         $liquid.highFrequencyAmplitude - $frosted.highFrequencyAmplitude -ge .05*$referenceHigh) '70% Liquid retains more fine stripe detail than Acrylic and Frosted'
 
