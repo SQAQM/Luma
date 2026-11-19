@@ -1,0 +1,80 @@
+{
+  "result": "passed_build_file_cleanup",
+  "removedBytes": 3135574634,
+  "emptyBuildDirectories": [
+    {
+      "name": "release/Engine-1.4.7",
+      "files": 0
+    },
+    {
+      "name": "release/Luma-1.4.7",
+      "files": 0
+    },
+    {
+      "name": "release/Luma-1.4.7-signoff",
+      "files": 2
+    },
+    {
+      "name": "release/Luma-native-1.4.7",
+      "files": 737
+    },
+    {
+      "name": "release/Luma-native-1.4.7-final",
+      "files": 737
+    },
+    {
+      "name": "release/Luma-native-1.4.7-signoff",
+      "files": 1
+    },
+    {
+      "name": "build/winui-stage8-release/delivery-Luma-1.4.7",
+      "files": 739
+    },
+    {
+      "name": "build/winui-stage8-release/delivery-Luma-1.4.7-signoff",
+      "files": 739
+    },
+    {
+      "name": "build/winui-stage8-release/engine-build-07f2516f754543c58f76e4d41525638b",
+      "files": 17
+    },
+    {
+      "name": "build/ui-1.4.7",
+      "files": 459
+    },
+    {
+      "name": "build/window-transparency-146-control",
+      "files": 734
+    },
+    {
+      "name": "winui/src/Luma.App/bin",
+      "files": 541
+    },
+    {
+      "name": "winui/src/Luma.App/obj",
+      "files": 124
+    },
+    {
+      "name": "winui/src/Luma.Core/bin",
+      "files": 6
+    },
+    {
+      "name": "winui/src/Luma.Core/obj",
+      "files": 31
+    },
+    {
+      "name": "winui/tests/Luma.Core.Tests/bin",
+      "files": 8
+    },
+    {
+      "name": "winui/tests/Luma.Core.Tests/obj",
+      "files": 22
+    }
+  ],
+  "keptPackages": [
+    "Luma-1.4.7-Setup-x64.exe",
+    "Luma-1.4.7-Portable-x64.zip"
+  ],
+  "installedVersion": "1.4.7.0",
+  "userDataAccessed": false
+}
