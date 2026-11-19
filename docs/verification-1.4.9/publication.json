@@ -1,0 +1,30 @@
+{
+  "result": "passed_public_native_release",
+  "tag": "v1.4.9",
+  "commit": "4bf762eb06e33dedb29fb2d0ee2435b30caa1d5e",
+  "url": "https://github.com/SQAQM/Luma/releases/tag/v1.4.9",
+  "workflows": [
+    {
+      "id": 44491368150,
+      "conclusion": "success",
+      "url": "https://github.com/SQAQM/Luma/actions/runs/44491368150"
+    },
+    {
+      "id": 44491368089,
+      "conclusion": "success",
+      "url": "https://github.com/SQAQM/Luma/actions/runs/44491368089"
+    }
+  ],
+  "packages": [
+    {
+      "name": "Luma-1.4.9-Setup-x64.exe",
+      "url": "https://github.com/SQAQM/Luma/releases/download/v1.4.9/Luma-1.4.9-Setup-x64.exe",
+      "sha256": "202f56792d9a41f1fab96734bfbd4fab88c3379e01f9d22656a111aa987f6e31"
+    },
+    {
+      "name": "Luma-1.4.9-Portable-x64.zip",
+      "url": "https://github.com/SQAQM/Luma/releases/download/v1.4.9/Luma-1.4.9-Portable-x64.zip",
+      "sha256": "73df7345e62a8d656ca773a7b6af882d2bcc08753d67d53bf99915309a528bfc"
+    }
+  ]
+}

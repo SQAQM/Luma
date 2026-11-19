@@ -1,0 +1,64 @@
+{
+  "result": "passed_build_file_cleanup",
+  "removedBytes": 1776712303,
+  "emptyBuildDirectories": [
+    {
+      "name": "release/Engine-1.4.9",
+      "files": 157
+    },
+    {
+      "name": "release/Luma-1.4.9",
+      "files": 4
+    },
+    {
+      "name": "release/Luma-native-1.4.9-dev",
+      "files": 538
+    },
+    {
+      "name": "release/Luma-native-1.4.9-qa",
+      "files": 737
+    },
+    {
+      "name": "build/winui-stage8-release/delivery-Luma-1.4.9",
+      "files": 739
+    },
+    {
+      "name": "build/winui-stage8-release/engine-build-bec6d3ef1fd0452fba2d5757c525645c",
+      "files": 17
+    },
+    {
+      "name": "build/ui-1.4.9",
+      "files": 198
+    },
+    {
+      "name": "winui/src/Luma.App/bin",
+      "files": 541
+    },
+    {
+      "name": "winui/src/Luma.App/obj",
+      "files": 123
+    },
+    {
+      "name": "winui/src/Luma.Core/bin",
+      "files": 6
+    },
+    {
+      "name": "winui/src/Luma.Core/obj",
+      "files": 31
+    },
+    {
+      "name": "winui/tests/Luma.Core.Tests/bin",
+      "files": 8
+    },
+    {
+      "name": "winui/tests/Luma.Core.Tests/obj",
+      "files": 22
+    }
+  ],
+  "keptPackages": [
+    "Luma-1.4.9-Setup-x64.exe",
+    "Luma-1.4.9-Portable-x64.zip"
+  ],
+  "installedVersion": "1.4.9.0",
+  "userDataAccessed": false
+}
