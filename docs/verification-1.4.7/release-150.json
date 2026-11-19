@@ -1,0 +1,6 @@
+{
+  "result": "passed_native_release_ui",
+  "checks": 52,
+  "textScale": 150,
+  "scope": "isolated synthetic WinUI profile on Windows 10 build 19045"
+}

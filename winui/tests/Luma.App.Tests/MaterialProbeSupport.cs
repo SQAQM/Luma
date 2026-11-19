@@ -8,17 +8,35 @@ using System.Windows.Forms;
 public sealed class LumaPatternHost:Form
 {
  public bool Warm=true;
+ int stripePhase;
  public LumaPatternHost(){FormBorderStyle=FormBorderStyle.None;ShowInTaskbar=false;TopMost=true;StartPosition=FormStartPosition.Manual;Bounds=new Rectangle(-128,-128,1800,1300);Text="Luma synthetic material probe";DoubleBuffered=true;}
  protected override bool ShowWithoutActivation {get{return true;}}
  protected override CreateParams CreateParams {get{var p=base.CreateParams;p.ExStyle|=0x08000000;return p;}}
  protected override void OnPaint(PaintEventArgs e)
  {
+  if(stripePhase!=0)
+  {
+   using(var brush=new SolidBrush(Color.Black))
+    for(int x=e.ClipRectangle.Left;x<e.ClipRectangle.Right;x++)
+    {
+     brush.Color=StripeColor(x);
+     e.Graphics.FillRectangle(brush,x,e.ClipRectangle.Top,1,e.ClipRectangle.Height);
+    }
+   return;
+  }
   var a=Warm?Color.FromArgb(218,99,69):Color.FromArgb(30,121,185);var b=Warm?Color.FromArgb(115,57,102):Color.FromArgb(25,49,106);
   using(var fill=new LinearGradientBrush(ClientRectangle,a,b,35)){e.Graphics.FillRectangle(fill,ClientRectangle);}
   using(var circle=new SolidBrush(Warm?Color.FromArgb(190,246,177,83):Color.FromArgb(190,69,211,195))){for(int i=0;i<7;i++)e.Graphics.FillEllipse(circle,i*230-80,90+(i%3)*170,330,330);}
   using(var pen=new Pen(Color.FromArgb(70,255,255,255),2)){for(int x=0;x<Width;x+=64)e.Graphics.DrawLine(pen,x,0,x,Height);}
  }
  public void SetWarm(bool warm){Warm=warm;Invalidate();Update();Application.DoEvents();}
+ public void SetStripes(bool inverted){stripePhase=inverted?-1:1;Invalidate();Update();Application.DoEvents();}
+ internal Color StripeColor(int x)
+ {
+  int value=128+stripePhase*(int)Math.Round(52*Math.Cos(2*Math.PI*x/192)+38*Math.Cos(2*Math.PI*x/16));
+  return Color.FromArgb(value,value,value);
+ }
+ internal bool ShowsStripes {get{return stripePhase!=0;}}
 }
 
 public static class LumaOwnedCapture
@@ -91,6 +109,75 @@ public static class LumaOwnedCapture
    if(Verify(target,process,host)!=bounds)throw new InvalidOperationException("Target moved during capture");
    bitmap.Save(destination,ImageFormat.Png);
   }
+ }
+ public static Bitmap CaptureStripes(IntPtr target,uint process,LumaPatternHost host,Rectangle sample)
+ {
+  uint actual;
+  GetWindowThreadProcessId(target,out actual);
+  if(actual!=process||!host.ShowsStripes)throw new InvalidOperationException("Own striped capture pair required");
+  if(!SetWindowPos(host.Handle,target,0,0,0,0,0x13))throw new InvalidOperationException("Could not place own pattern host");
+  FocusOwned(target,process);
+  var bounds=Verify(target,process,host.Handle);
+  if(!new Rectangle(Point.Empty,bounds.Size).Contains(sample))throw new InvalidOperationException("Sample must stay inside the Luma window");
+  var screenSample=sample;
+  screenSample.Offset(bounds.Location);
+  if(!Screen.FromHandle(target).Bounds.Contains(screenSample))throw new InvalidOperationException("Sample must stay on one display");
+  var pixels=new Bitmap(sample.Width,sample.Height,PixelFormat.Format32bppArgb);
+  try
+  {
+   using(var graphics=Graphics.FromImage(pixels))
+    graphics.CopyFromScreen(screenSample.Location,Point.Empty,screenSample.Size,CopyPixelOperation.SourceCopy);
+   if(Verify(target,process,host.Handle)!=bounds)throw new InvalidOperationException("Target moved during capture");
+   return pixels;
+  }
+  catch
+  {
+   pixels.Dispose();
+   throw;
+  }
+ }
+ public static Bitmap StripeReference(IntPtr target,LumaPatternHost host,Rectangle sample)
+ {
+  Rect bounds;
+  if(!GetWindowRect(target,out bounds))throw new InvalidOperationException("Own sample origin unavailable");
+  var origin=host.PointToClient(new Point(bounds.L+sample.X,bounds.T+sample.Y));
+  var reference=new Bitmap(sample.Width,sample.Height,PixelFormat.Format32bppArgb);
+  using(var graphics=Graphics.FromImage(reference))
+  using(var brush=new SolidBrush(Color.Black))
+   for(int x=0;x<sample.Width;x++)
+   {
+    brush.Color=host.StripeColor(origin.X+x);
+    graphics.FillRectangle(brush,x,0,1,sample.Height);
+   }
+  return reference;
+ }
+ public static double Difference(Bitmap a,Bitmap b)
+ {
+  double total=0;
+  for(int y=0;y<a.Height;y++)
+   for(int x=0;x<a.Width;x++)
+   {
+    var p=a.GetPixel(x,y);var q=b.GetPixel(x,y);
+    total+=Math.Abs(p.R-q.R)+Math.Abs(p.G-q.G)+Math.Abs(p.B-q.B);
+   }
+  return total/(3*a.Width*a.Height);
+ }
+ public static double StripeAmplitude(Bitmap normal,Bitmap inverted,int period)
+ {
+  double real=0,imaginary=0;
+  for(int x=0;x<normal.Width;x++)
+  {
+   double phase=2*Math.PI*x/period;
+   double column=0;
+   for(int y=0;y<normal.Height;y++)
+   {
+    var a=normal.GetPixel(x,y);var b=inverted.GetPixel(x,y);
+    column+=.2126*(a.R-b.R)+.7152*(a.G-b.G)+.0722*(a.B-b.B);
+   }
+   real+=column*Math.Cos(phase);
+   imaginary+=column*Math.Sin(phase);
+  }
+  return Math.Sqrt(real*real+imaginary*imaginary)/(normal.Width*normal.Height);
  }
  public static double Difference(string first,string second,int x,int y,int width,int height)
  {

@@ -49,3 +49,5 @@
 1.4.5：正方形侧栏按钮将图标与两字标签纵向居中。默认 56 DIP 按钮和 76 DIP 侧栏，大字号使用 68 DIP 按钮和 88 DIP 侧栏。检查见 verification-1.4.5。
 
 1.4.6：窗口根节点统一继承生效的明暗主题，由系统前景颜色变更和 Windows 设置通知更新跟随系统状态。外观可选三种亚克力表现及实色，背景覆盖层支持实时透明度调节，偏好沿用旧窗口配置文件。侧栏、工具与空状态使用统一矢量图标。检查见 verification-1.4.6。
+
+1.4.7：0% 和 100% 分别对应实色和零 Alpha 窗口背景。亚克力与磨砂玻璃对 Windows 合成器提供的窗后内容使用不同半径与饱和度。液态玻璃风格保留清晰底层，以渐变和控件高光构成边缘层次。效果只在窗口一级合成，可见控件和图片保持自己的不透明度。参考 [WinUIEx 透明背景源码](https://github.com/dotMorten/WinUIEx/blob/main/src/WinUIEx/TransparentTintBackdrop.cs) 和 [Microsoft Composition brushes](https://learn.microsoft.com/windows/apps/develop/composition/composition-brushes)。检查见 verification-1.4.7。

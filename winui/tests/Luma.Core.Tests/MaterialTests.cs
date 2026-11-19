@@ -25,10 +25,13 @@ internal static class MaterialTests
    {SelectedMaterial:BackgroundMaterial.Liquid,BackgroundTransparency:72},"material and transparency round trip");
   Check(new WindowPreferences(UseMaterials:false,Material:"future").SelectedMaterial==BackgroundMaterial.Solid,"unknown material preserves last compatible preference");
   Check(MaterialPolicy.BackgroundWash(-4)==1&&MaterialPolicy.BackgroundWash(120)==0&&MaterialPolicy.BackgroundWash(50)==.5,"slider boundaries and direction");
+  Check(MaterialPolicy.EffectWeight(0)==1&&MaterialPolicy.EffectWeight(100)==0&&
+   MaterialPolicy.EffectWeight(99)<MaterialPolicy.EffectWeight(85),"effect strength fades to zero along with the background");
   var acrylic=BackgroundLook.For(BackgroundMaterial.Acrylic);
   var frost=BackgroundLook.For(BackgroundMaterial.Frosted);
   var liquid=BackgroundLook.For(BackgroundMaterial.Liquid);
   Check(frost.ControlTint>acrylic.ControlTint&&acrylic.ControlTint>liquid.ControlTint&&frost.Coat>liquid.Coat,"three distinct acrylic treatments");
+  Check(frost.Blur>acrylic.Blur&&acrylic.Blur>liquid.Blur&&frost.Saturation<liquid.Saturation,"frost and clear glass have different sampling and tone");
   Check(liquid.Highlight>acrylic.Highlight&&acrylic.Highlight>frost.Highlight,"liquid edge and frosted surface hierarchy");
   return count+GlassPressMotionTests.Run();
  }

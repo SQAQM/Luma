@@ -1,0 +1,6 @@
+{
+  "result": "passed_viewer_glass_ui",
+  "checks": 96,
+  "textScale": 150,
+  "scope": "isolated synthetic WinUI profile on Windows 10 build 19045"
+}

@@ -14,7 +14,7 @@ public sealed partial class ShellView
     private ElementTheme? _verificationSystemTheme;
 
     internal async Task VerifyAppearanceUi(string directory, FrameworkElement surface, Border wash, TitleBar titleBar,
-        Func<SystemBackdrop?> backdrop, Func<Task> capture)
+        Func<string> renderMode, Func<Task> capture)
     {
         if (!_diagnostics) return;
         var checks = new List<(bool Passed, string Name)>();
@@ -76,33 +76,27 @@ public sealed partial class ShellView
                 "settings exposes four materials and a 0–100 transparency slider");
             bool acrylicAllowed=_settings.AdvancedEffectsEnabled&&!_accessibility.HighContrast&&
                 Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported();
-            MaterialPicker.SelectedIndex=(int)BackgroundMaterial.Acrylic;
-            TransparencySlider.Value=100;
-            var single=backdrop();
-            Check(!acrylicAllowed || single is not null,"Windows connects one native backdrop for acrylic");
-            if(acrylicAllowed && single is not null)
+            if(acrylicAllowed)
             {
-                Check(wash.Opacity==0,"maximum background transparency clears the window tint");
-                TransparencySlider.Value=25;
-                Check(wash.Opacity==.75&&ReferenceEquals(single,backdrop()),"dragging the slider changes only the background tint");
-                TransparencySlider.Value=0;
-                Check(wash.Opacity==1&&Workspace.Opacity==1,"zero transparency covers the backdrop without dimming controls");
+                foreach(var material in new[]{BackgroundMaterial.Acrylic,BackgroundMaterial.Frosted,BackgroundMaterial.Liquid})
+                {
+                    MaterialPicker.SelectedIndex=(int)material;
+                    TransparencySlider.Value=0;
+                    Check(renderMode()=="Solid"&&wash.Opacity==1&&Workspace.Opacity==1,material+" zero percent uses solid background");
+                    TransparencySlider.Value=70;
+                    Check((material==BackgroundMaterial.Liquid?renderMode()=="ClearGlass":renderMode() is "HostEffect" or "SystemAcrylic")&&
+                        wash.Opacity is >0 and <1,material+" intermediate transparency uses the matching compositor path");
+                    await Capture(material.ToString().ToLowerInvariant());
+                    TransparencySlider.Value=100;
+                    Check(renderMode()=="Clear"&&wash.Opacity==0&&((SolidColorBrush)RailTint.Background).Opacity==0&&
+                        ((SolidColorBrush)Workspace.Background).Opacity==0&&Workspace.Opacity==1,
+                        material+" maximum transparency clears blur, tint and pane backgrounds without dimming content");
+                }
                 TransparencySlider.Value=85;
-                await Capture("acrylic");
-                MaterialPicker.SelectedIndex=(int)BackgroundMaterial.Frosted;
-                Check(Material==BackgroundMaterial.Frosted&&ReferenceEquals(single,backdrop()),"frosted glass uses the existing compositor layer");
-                double frost=((SolidColorBrush)RailTint.Background).Opacity;
-                double frostedWash=wash.Opacity;
-                await Capture("frosted");
-                MaterialPicker.SelectedIndex=(int)BackgroundMaterial.Liquid;
-                Check(Material==BackgroundMaterial.Liquid&&ReferenceEquals(single,backdrop())&&
-                    ((SolidColorBrush)RailTint.Background).Opacity<frost&&wash.Opacity<frostedWash&&wash.Background is LinearGradientBrush,
-                    "liquid and frosted glass have distinct coating and keep one layer");
-                await Capture("liquid");
             }
             else await Capture("fallback");
             MaterialPicker.SelectedIndex=(int)BackgroundMaterial.Solid;
-            Check(!TransparencySlider.IsEnabled&&backdrop() is null&&wash.Opacity==1&&BackgroundTransparency==85,
+            Check(!TransparencySlider.IsEnabled&&renderMode()=="Solid"&&wash.Opacity==1&&BackgroundTransparency==85,
                 "solid switches off the layer and retains the previous transparency");
             await Capture("solid");
             MaterialPicker.SelectedIndex=(int)BackgroundMaterial.Liquid;

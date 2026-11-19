@@ -109,7 +109,7 @@ public sealed partial class MainWindow : Window
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_FILMSTRIP_PERF_UI_TEST")=="1")_=Shell.VerifyFilmstripPerformanceUi(_options.DataDirectory,CaptureVerificationFrame);
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_VIEWER_GLASS_UI_TEST")=="1")_=Shell.VerifyViewerGlassUi(_options.DataDirectory,CaptureVerificationFrame);
         if(_options.Diagnostics&&Environment.GetEnvironmentVariable("LUMA_APPEARANCE_UI_TEST")=="1")
-            _=Shell.VerifyAppearanceUi(_options.DataDirectory,Surface,WindowTint,Chrome,()=>SystemBackdrop,CaptureVerificationFrame);
+            _=Shell.VerifyAppearanceUi(_options.DataDirectory,Surface,WindowTint,Chrome,()=>_materials.RenderMode,CaptureVerificationFrame);
     }
     private async void PickImage()
     {

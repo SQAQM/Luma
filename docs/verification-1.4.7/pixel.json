@@ -1,0 +1,72 @@
+{
+  "result": "passed",
+  "scope": "Light Settings on a fresh synthetic profile, guarded Luma sampling rectangle, generated stripes",
+  "windowsBuild": 19045,
+  "reference": {
+    "highFrequencyAmplitude": 38.03927190062763,
+    "lowFrequencyAmplitude": 52.05753794418095
+  },
+  "samples": {
+    "Acrylic-0": {
+      "lowFrequencyAmplitude": 0.0,
+      "highFrequencyAmplitude": 0.0,
+      "referenceRgbError": 114.34375,
+      "solidRgbError": 0.0
+    },
+    "Acrylic-70": {
+      "lowFrequencyAmplitude": 5.104636064400415,
+      "highFrequencyAmplitude": 3.7066765750606487,
+      "referenceRgbError": 57.39409722222222,
+      "solidRgbError": null
+    },
+    "Acrylic-100": {
+      "lowFrequencyAmplitude": 52.05753794418095,
+      "highFrequencyAmplitude": 38.03927190062763,
+      "referenceRgbError": 0.0,
+      "solidRgbError": null
+    },
+    "Frosted-0": {
+      "lowFrequencyAmplitude": 0.0,
+      "highFrequencyAmplitude": 0.0,
+      "referenceRgbError": 114.34375,
+      "solidRgbError": 0.0
+    },
+    "Frosted-70": {
+      "lowFrequencyAmplitude": 8.655487736338957,
+      "highFrequencyAmplitude": 2.946445633561551,
+      "referenceRgbError": 60.46788194444444,
+      "solidRgbError": null
+    },
+    "Frosted-100": {
+      "lowFrequencyAmplitude": 52.05753794418095,
+      "highFrequencyAmplitude": 38.03927190062763,
+      "referenceRgbError": 0.0,
+      "solidRgbError": null
+    },
+    "Liquid-0": {
+      "lowFrequencyAmplitude": 0.0,
+      "highFrequencyAmplitude": 0.0,
+      "referenceRgbError": 114.34375,
+      "solidRgbError": 0.0
+    },
+    "Liquid-70": {
+      "lowFrequencyAmplitude": 33.25375097364436,
+      "highFrequencyAmplitude": 24.316340922595693,
+      "referenceRgbError": 38.650983796296295,
+      "solidRgbError": null
+    },
+    "Liquid-100": {
+      "lowFrequencyAmplitude": 52.05753794418095,
+      "highFrequencyAmplitude": 38.03927190062763,
+      "referenceRgbError": 0.0,
+      "solidRgbError": null
+    },
+    "Solid": {
+      "lowFrequencyAmplitude": 0.0,
+      "highFrequencyAmplitude": 0.0,
+      "referenceRgbError": 114.34375,
+      "solidRgbError": null
+    }
+  },
+  "failures": []
+}

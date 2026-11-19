@@ -1,0 +1,81 @@
+{
+  "result": "appearance_not_verified",
+  "scope": "Light Settings on a fresh synthetic profile, guarded Luma sampling rectangle, generated stripes",
+  "windowsBuild": 19045,
+  "reference": {
+    "highFrequencyAmplitude": 38.03927190062763,
+    "lowFrequencyAmplitude": 52.05753794418095
+  },
+  "samples": {
+    "Acrylic-0": {
+      "lowFrequencyAmplitude": 0.0,
+      "highFrequencyAmplitude": 0.0,
+      "referenceRgbError": 115.34375,
+      "solidRgbError": 1.6666666666666667
+    },
+    "Acrylic-70": {
+      "lowFrequencyAmplitude": 3.2015609552826474,
+      "highFrequencyAmplitude": 0.026383651885499307,
+      "referenceRgbError": 107.83333333333333,
+      "solidRgbError": null
+    },
+    "Acrylic-100": {
+      "lowFrequencyAmplitude": 4.302477175226704,
+      "highFrequencyAmplitude": 0.029020583233241422,
+      "referenceRgbError": 105.953125,
+      "solidRgbError": null
+    },
+    "Frosted-0": {
+      "lowFrequencyAmplitude": 0.0,
+      "highFrequencyAmplitude": 0.0,
+      "referenceRgbError": 107.01041666666667,
+      "solidRgbError": 7.333333333333333
+    },
+    "Frosted-70": {
+      "lowFrequencyAmplitude": 1.8203721016059238,
+      "highFrequencyAmplitude": 0.017970284783650137,
+      "referenceRgbError": 107.359375,
+      "solidRgbError": null
+    },
+    "Frosted-100": {
+      "lowFrequencyAmplitude": 2.7634684753432857,
+      "highFrequencyAmplitude": 0.010806338871415149,
+      "referenceRgbError": 106.93489583333333,
+      "solidRgbError": null
+    },
+    "Liquid-0": {
+      "lowFrequencyAmplitude": 0.0,
+      "highFrequencyAmplitude": 0.0,
+      "referenceRgbError": 106.01984953703703,
+      "solidRgbError": 9.055266203703704
+    },
+    "Liquid-70": {
+      "lowFrequencyAmplitude": 3.1184393387100102,
+      "highFrequencyAmplitude": 0.016139786660431088,
+      "referenceRgbError": 105.62809606481481,
+      "solidRgbError": null
+    },
+    "Liquid-100": {
+      "lowFrequencyAmplitude": 4.422085099879092,
+      "highFrequencyAmplitude": 0.031566324814682876,
+      "referenceRgbError": 106.0859375,
+      "solidRgbError": null
+    },
+    "Solid": {
+      "lowFrequencyAmplitude": 0.0,
+      "highFrequencyAmplitude": 0.0,
+      "referenceRgbError": 114.34375,
+      "solidRgbError": null
+    }
+  },
+  "failures": [
+    "Acrylic 0% matches Solid and ignores stripe changes",
+    "Acrylic 100% matches both unblurred stripe patterns",
+    "Frosted 0% matches Solid and ignores stripe changes",
+    "Frosted 100% matches both unblurred stripe patterns",
+    "Liquid 0% matches Solid and ignores stripe changes",
+    "Liquid 100% matches both unblurred stripe patterns",
+    "70% Frosted suppresses fine stripes relative to broad stripes more than Acrylic",
+    "70% Liquid retains more fine stripe detail than Acrylic and Frosted"
+  ]
+}

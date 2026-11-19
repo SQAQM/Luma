@@ -16,10 +16,15 @@ internal sealed class MaterialService:IDisposable
  private readonly AccessibilitySettings _accessibility=new();
  private readonly DispatcherQueue _dispatcher;
  private readonly Window _window;
+ private readonly WindowGlass _glass;
  private readonly FrameworkElement _root;
  private readonly Border _wash;
  private readonly Action<MaterialPlan> _applyChrome;
- private bool _disposed,_failed,_supported,_effectsHook,_contrastHook,_reduceMotion;
+ private bool _disposed,_failed,_hostFailed,_clearFailed,_supported,_effectsHook,_contrastHook,_reduceMotion;
+ private string _renderMode="Solid";
+ private string? _effectError;
+ internal string RenderMode=>_renderMode;
+ private double _paneLevel=-1;
  private BackgroundMaterial _material=BackgroundMaterial.Acrylic;
  private int _transparency=MaterialPolicy.DefaultTransparency;
  private ElementTheme _theme;
@@ -27,7 +32,7 @@ internal sealed class MaterialService:IDisposable
  public event Action? Changed;
  public MaterialService(DispatcherQueue dispatcher,Window window,FrameworkElement root,Border wash,Action<MaterialPlan> applyChrome)
  {
-  InitializationStep="targets";_dispatcher=dispatcher;_window=window;_root=root;_wash=wash;_applyChrome=applyChrome;
+  InitializationStep="targets";_dispatcher=dispatcher;_window=window;_glass=new(window);_root=root;_wash=wash;_applyChrome=applyChrome;
   InitializationStep="capability";try{_supported=DesktopAcrylicController.IsSupported();}catch(Exception){_supported=false;}
   InitializationStep="effects_event";try{_settings.AdvancedEffectsEnabledChanged+=EffectsChanged;_effectsHook=true;}catch(System.Runtime.InteropServices.COMException e) when(e.HResult==unchecked((int)0x80070490)){}
   InitializationStep="contrast_event";try{_accessibility.HighContrastChanged+=ContrastChanged;_contrastHook=true;}catch(System.Runtime.InteropServices.COMException e) when(e.HResult==unchecked((int)0x80070490)){}InitializationStep="ready";
@@ -35,36 +40,35 @@ internal sealed class MaterialService:IDisposable
  public object Snapshot=>new{requested=_material!=BackgroundMaterial.Solid,material=_material.ToString(),backgroundTransparency=_transparency,
   backgroundWash=_wash.Opacity,supported=_supported,advancedEffects=_settings.AdvancedEffectsEnabled,highContrast=_accessibility.HighContrast,
   acrylicRequested=_plan?.UseAcrylic??false,reason=_plan?.Reason??"initializing",nativeLayers=_window.SystemBackdrop is not null?1:0,
-  appearance="system_managed",failed=_failed,effectsEventHooked=_effectsHook,contrastEventHooked=_contrastHook,disposed=_disposed};
+  appearance="system_managed",renderMode=_renderMode,hostEffectFailed=_hostFailed,clearFailed=_clearFailed,effectError=_effectError,
+  blurAmount=_renderMode=="HostEffect"?BackgroundLook.For(_material).Blur:0,
+  failed=_failed,effectsEventHooked=_effectsHook,contrastEventHooked=_contrastHook,disposed=_disposed};
  public void Apply(BackgroundMaterial material,int transparency,ElementTheme theme,bool reduceMotion=false)
  {
   if(_disposed)return;
   _reduceMotion=reduceMotion;
   if(_root.XamlRoot is{} xamlRoot){bool motion=!reduceMotion&&_settings.AnimationsEnabled&&!_accessibility.HighContrast;GlassButtonEffects.SetPolicy(xamlRoot,motion);GlassSurfaceEffects.SetPolicy(xamlRoot,motion,!_accessibility.HighContrast);}
-  var plan=MaterialPolicy.Choose(material!=BackgroundMaterial.Solid,_settings.AdvancedEffectsEnabled,_accessibility.HighContrast,_supported&&!_failed);
+  var plan=MaterialPolicy.Choose(material!=BackgroundMaterial.Solid,_settings.AdvancedEffectsEnabled,_accessibility.HighContrast,(_supported||!_clearFailed)&&!_failed);
   bool appearanceChanged=plan!=_plan||_theme!=theme||_material!=material;
   bool transparencyChanged=_transparency!=transparency;
   _material=material;_transparency=transparency;_theme=theme;
   if(!appearanceChanged&&!transparencyChanged)return;
   var look=BackgroundLook.For(material);
+  string render=SelectBackdrop(plan,look,transparency);
+  bool renderChanged=_renderMode!=render;
+  _renderMode=render;
+  bool transparentBackground=render!="Solid";
+  bool glassDetails=plan.UseAcrylic&&transparency>0;
+  if(renderChanged)appearanceChanged=true;
   if(appearanceChanged)
   {
    var colors=_root.Resources.MergedDictionaries[0].ThemeDictionaries[
     plan.Reason=="high_contrast"?"HighContrast":theme==ElementTheme.Dark?"Default":"Light"];
    var palette=(ResourceDictionary)colors;
    var canvas=(SolidColorBrush)palette["LumaCanvas"];
-   if(plan.UseAcrylic && _window.SystemBackdrop is null)
-   {
-    try { _window.SystemBackdrop=new DesktopAcrylicBackdrop(); }
-    catch(Exception error) when(error is System.Runtime.InteropServices.COMException or InvalidOperationException or NotSupportedException)
-    {
-     _failed=true;plan=new(false,"unsupported");
-    }
-   }
-   if(!plan.UseAcrylic&&_window.SystemBackdrop is not null)_window.SystemBackdrop=null;
    _plan=plan;
-   ApplyBrushes(look,plan.UseAcrylic);
-   _wash.Background=plan.UseAcrylic?(Brush)palette[material switch
+   ApplyBrushes(look,glassDetails);
+   _wash.Background=transparentBackground?(Brush)palette[material switch
    {
     BackgroundMaterial.Frosted=>"LumaFrostedTint",
     BackgroundMaterial.Liquid=>"LumaLiquidTint",
@@ -73,7 +77,57 @@ internal sealed class MaterialService:IDisposable
    _applyChrome(plan);
   }
   double wash=MaterialPolicy.BackgroundWash(transparency);
-  _wash.Opacity=plan.UseAcrylic?wash+(1-wash)*look.Coat:1;
+  _wash.Opacity=transparentBackground?wash+(1-wash)*look.Coat*MaterialPolicy.EffectWeight(transparency):1;
+  var paneLevel=transparentBackground?Math.Min(1,wash/.15)*look.PaneWeight:-1;
+  if(paneLevel!=_paneLevel)
+  {
+   _paneLevel=paneLevel;
+   foreach(var palette in _root.Resources.MergedDictionaries.SelectMany(dict=>dict.ThemeDictionaries.Values.OfType<ResourceDictionary>()))
+    foreach(var (key,opacity) in new[]{("LumaSidebar",.13),("LumaWorkspace",.12),("LumaViewerShell",.12),("LumaViewerMatte",.10)})
+     if(palette.TryGetValue(key,out var value)&&value is SolidColorBrush brush)
+      brush.Opacity=paneLevel<0?1:opacity*paneLevel;
+  }
+ }
+ private string SelectBackdrop(MaterialPlan plan,BackgroundLook look,int transparency)
+ {
+  if(!plan.UseAcrylic||transparency==0)
+  {
+   _glass.Dispose();
+   if(_window.SystemBackdrop is not null)_window.SystemBackdrop=null;
+   return "Solid";
+  }
+  bool clear=transparency==100;
+  bool clearGlass=_material==BackgroundMaterial.Liquid;
+  if(!_clearFailed&&(clear||clearGlass||!_hostFailed))
+  {
+   try
+   {
+    if(_window.SystemBackdrop is DesktopAcrylicBackdrop)_window.SystemBackdrop=null;
+    if(clear){_glass.ShowClear();return "Clear";}
+    if(clearGlass){_glass.ShowClear();return "ClearGlass";}
+    _glass.ShowEffect(look,MaterialPolicy.EffectWeight(transparency));
+    return "HostEffect";
+   }
+   catch(Exception error) when(error is System.Runtime.InteropServices.COMException or InvalidOperationException or NotSupportedException or
+    ArgumentException or InvalidCastException or TypeLoadException or DllNotFoundException)
+   {
+    _effectError=error.GetType().Name+" "+error.HResult.ToString("X8");
+    if(clear||clearGlass||!_glass.IsOpen)_clearFailed=true;
+    else _hostFailed=true;
+    _glass.Dispose();
+   }
+  }
+  if(clear||!_supported)return "Solid";
+  try
+  {
+   _window.SystemBackdrop??=new DesktopAcrylicBackdrop();
+   return "SystemAcrylic";
+  }
+  catch(Exception error) when(error is System.Runtime.InteropServices.COMException or InvalidOperationException or NotSupportedException)
+  {
+   _failed=true;
+   return "Solid";
+  }
  }
  private void ApplyBrushes(BackgroundLook look,bool acrylic)
  {
@@ -92,10 +146,8 @@ internal sealed class MaterialService:IDisposable
     foreach(var (key,opacity) in new[]{("LumaGlassSpecular",look.Highlight),("LumaGlassUnderEdge",look.Rim),
      ("LumaGlassRim",look.Rim),("LumaGlassInnerRim",look.Rim)})
      if(value.TryGetValue(key,out var glass)&&glass is Brush brush)brush.Opacity=acrylic?opacity:0;
-    foreach(var (key,opacity) in new[]{("LumaSidebar",.13),("LumaSurface",.38),
-        ("LumaWorkspace",.12),("LumaViewerShell",.12),("LumaViewerMatte",.10)})
-     if(value.TryGetValue(key,out var resource)&&resource is SolidColorBrush brush)
-      brush.Opacity=acrylic?opacity*look.PaneWeight:1;
+    if(value.TryGetValue("LumaSurface",out var surface)&&surface is SolidColorBrush surfaceBrush)
+     surfaceBrush.Opacity=acrylic?.38*look.PaneWeight:1;
    }
  }
  private void EffectsChanged(UISettings sender,object args)=>QueueRefresh();
@@ -105,6 +157,7 @@ internal sealed class MaterialService:IDisposable
  {
   if(_disposed)return;_disposed=true;
   if(_effectsHook)_settings.AdvancedEffectsEnabledChanged-=EffectsChanged;if(_contrastHook)_accessibility.HighContrastChanged-=ContrastChanged;
+  _glass.Dispose();
   _window.SystemBackdrop=null;
  }
 }
