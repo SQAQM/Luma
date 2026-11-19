@@ -1,0 +1,6 @@
+{
+  "result": "passed_native_appearance",
+  "checks": 20,
+  "textScale": 150,
+  "scope": "synthetic WinUI profile"
+}

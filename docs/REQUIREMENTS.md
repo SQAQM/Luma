@@ -53,3 +53,5 @@
 1.4.7：0% 和 100% 分别对应实色和零 Alpha 窗口背景。亚克力与磨砂玻璃对 Windows 合成器提供的窗后内容使用不同半径与饱和度。液态玻璃风格保留清晰底层，以渐变和控件高光构成边缘层次。效果只在窗口一级合成，可见控件和图片保持自己的不透明度。参考 [WinUIEx 透明背景源码](https://github.com/dotMorten/WinUIEx/blob/main/src/WinUIEx/TransparentTintBackdrop.cs) 和 [Microsoft Composition brushes](https://learn.microsoft.com/windows/apps/develop/composition/composition-brushes)。检查见 verification-1.4.7。
 
 1.4.8：移除普通透明窗口顶栏上沿的系统绘制线。背景可选择材质、纯色或本地图片。文字和背景颜色即时生效，文字颜色可恢复主题默认。应用保存背景图路径，按窗口背景需要缩小解码，原图保持原位。设置下拉框和输入框共用底色、描边和圆角。
+
+1.4.9：恢复 Windows 10 系统窗口合成，修复旧式边框回归。Windows 10 保留最外沿一像素系统边框，透明度仍应用于标题栏和正文。实际窗口检查同时覆盖 DWM 状态、标题栏按钮、最大化、还原与透明区域像素。

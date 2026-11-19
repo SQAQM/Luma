@@ -1,0 +1,72 @@
+{
+  "result": "appearance_not_verified",
+  "windowsBuild": 19045,
+  "scope": "Light Settings on a fresh synthetic profile, guarded Luma sampling rectangle, generated stripes",
+  "samples": {
+    "Acrylic-0": {
+      "nativeFrameComposed": false,
+      "titleStripRgbError": null,
+      "clientTitleRgbError": null,
+      "bodyRgbError": 114.34375
+    },
+    "Acrylic-70": {
+      "nativeFrameComposed": false,
+      "titleStripRgbError": null,
+      "clientTitleRgbError": null,
+      "bodyRgbError": 50.314236111111114
+    },
+    "Acrylic-100": {
+      "nativeFrameComposed": false,
+      "titleStripRgbError": 0.0,
+      "clientTitleRgbError": null,
+      "bodyRgbError": 0.0
+    },
+    "Frosted-0": {
+      "nativeFrameComposed": false,
+      "titleStripRgbError": null,
+      "clientTitleRgbError": null,
+      "bodyRgbError": 114.34375
+    },
+    "Frosted-70": {
+      "nativeFrameComposed": false,
+      "titleStripRgbError": null,
+      "clientTitleRgbError": null,
+      "bodyRgbError": 60.46788194444444
+    },
+    "Frosted-100": {
+      "nativeFrameComposed": false,
+      "titleStripRgbError": 0.0,
+      "clientTitleRgbError": null,
+      "bodyRgbError": 0.0
+    },
+    "Liquid-0": {
+      "nativeFrameComposed": false,
+      "titleStripRgbError": null,
+      "clientTitleRgbError": null,
+      "bodyRgbError": 114.34375
+    },
+    "Liquid-70": {
+      "nativeFrameComposed": false,
+      "titleStripRgbError": null,
+      "clientTitleRgbError": null,
+      "bodyRgbError": 38.650983796296295
+    },
+    "Liquid-100": {
+      "nativeFrameComposed": false,
+      "titleStripRgbError": 0.0,
+      "clientTitleRgbError": null,
+      "bodyRgbError": 0.0
+    },
+    "Solid": {
+      "nativeFrameComposed": false,
+      "titleStripRgbError": null,
+      "clientTitleRgbError": null,
+      "bodyRgbError": 114.34375
+    }
+  },
+  "failures": [
+    "Acrylic keeps native DWM window-frame rendering enabled",
+    "Frosted keeps native DWM window-frame rendering enabled",
+    "Liquid keeps native DWM window-frame rendering enabled"
+  ]
+}

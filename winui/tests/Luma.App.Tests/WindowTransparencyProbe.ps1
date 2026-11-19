@@ -32,6 +32,8 @@ $hostWindow = $null
 $root = $null
 $sample = [Drawing.Rectangle]::new(576, 470, 384, 30)
 $titleStrip = [Drawing.Rectangle]::new(240, 0, 384, 4)
+$win10 = [Environment]::OSVersion.Version.Build -lt 22000
+$clientTitle = [Drawing.Rectangle]::new($titleStrip.X, 1, $titleStrip.Width, $titleStrip.Height - 1)
 $levels = @(0, 70, 100)
 $materials = @('Acrylic', 'Frosted', 'Liquid')
 $pixels = @{}
@@ -109,8 +111,10 @@ function Measure-Backdrop([string]$name) {
         $pixels["$name-$inverted"] = [LumaOwnedCapture]::CaptureStripes($hwnd, $process.Id, $hostWindow, $sample)
         if ($name -like '*-100') {
             $pixels["Title-$name-$inverted"] = [LumaOwnedCapture]::CaptureStripes($hwnd, $process.Id, $hostWindow, $titleStrip)
+            $pixels["ClientTitle-$name-$inverted"] = [LumaOwnedCapture]::CaptureStripes($hwnd, $process.Id, $hostWindow, $clientTitle)
             if ($name -eq 'Acrylic-100') {
                 $pixels["TitleReference-$inverted"] = [LumaOwnedCapture]::StripeReference($hwnd, $hostWindow, $titleStrip)
+                $pixels["ClientTitleReference-$inverted"] = [LumaOwnedCapture]::StripeReference($hwnd, $hostWindow, $clientTitle)
             }
         }
         if ($name -eq 'Acrylic-0') {
@@ -120,10 +124,14 @@ function Measure-Backdrop([string]$name) {
     $normal = $pixels["$name-False"]
     $inverted = $pixels["$name-True"]
     $titleError = $null
+    $clientTitleError = $null
     if ($name -like '*-100') {
         $titleError = [Math]::Max(
             [LumaOwnedCapture]::Difference($pixels["Title-$name-False"], $pixels['TitleReference-False']),
             [LumaOwnedCapture]::Difference($pixels["Title-$name-True"], $pixels['TitleReference-True']))
+        $clientTitleError = [Math]::Max(
+            [LumaOwnedCapture]::Difference($pixels["ClientTitle-$name-False"], $pixels['ClientTitleReference-False']),
+            [LumaOwnedCapture]::Difference($pixels["ClientTitle-$name-True"], $pixels['ClientTitleReference-True']))
     }
     return [ordered]@{
         responseMean = [LumaOwnedCapture]::Difference($normal, $inverted)
@@ -134,6 +142,8 @@ function Measure-Backdrop([string]$name) {
             [LumaOwnedCapture]::Difference($inverted, $pixels['Reference-True']))
         materialState = $state.material
         titleStripRgbError = $titleError
+        clientTitleRgbError = $clientTitleError
+        nativeFrameComposed = [LumaOwnedCapture]::ComposesFrame($hwnd, $process.Id)
     }
 }
 
@@ -185,11 +195,15 @@ try {
     foreach ($material in $materials) {
         $zero = $results["$material-0"]
         $clear = $results["$material-100"]
+        Check ($zero.nativeFrameComposed -and $results["$material-70"].nativeFrameComposed -and
+            $clear.nativeFrameComposed) "$material keeps native DWM window-frame rendering enabled"
         $zero.solidRgbError = [LumaOwnedCapture]::Difference($pixels["$material-0-False"], $pixels['Solid-False'])
         Check ($zero.responseMean -le .5 -and $zero.solidRgbError -le 1) "$material 0% matches Solid and ignores stripe changes"
         Check ($clear.referenceRgbError -le 2 -and $clear.lowFrequencyAmplitude -ge .98*$referenceLow -and
             $clear.highFrequencyAmplitude -ge .98*$referenceHigh) "$material 100% matches both unblurred stripe patterns"
-        Check ($null -ne $clear.titleStripRgbError -and $clear.titleStripRgbError -le 2) "$material 100% leaves no painted strip above the title bar"
+        # Windows 10 owns the outermost frame row even when the WinUI client is clear.
+        $edgeError = if ($win10) { $clear.clientTitleRgbError } else { $clear.titleStripRgbError }
+        Check ($null -ne $edgeError -and $edgeError -le 2) "$material 100% keeps the title client clear below the native frame edge"
     }
 
     $acrylic = $results['Acrylic-70']
@@ -204,9 +218,20 @@ try {
     Check ($liquid.highFrequencyAmplitude - $acrylic.highFrequencyAmplitude -ge .05*$referenceHigh -and
         $liquid.highFrequencyAmplitude - $frosted.highFrequencyAmplitude -ge .05*$referenceHigh) '70% Liquid retains more fine stripe detail than Acrylic and Frosted'
 
+    $caption = (State).titleBar
+    Check ($caption.extended -and $caption.visible -and $caption.captionRightInset -gt 0 -and -not $caption.colorFailure) 'WinUI title bar keeps its native caption buttons'
+    $windowPattern = $root.GetCurrentPattern([Windows.Automation.WindowPattern]::Pattern)
+    Check ($windowPattern.Current.CanMaximize -and $windowPattern.Current.CanMinimize) 'native window still exposes maximize and minimize'
+    $windowPattern.SetWindowVisualState([Windows.Automation.WindowVisualState]::Maximized)
+    Await {$windowPattern.Current.WindowVisualState -eq [Windows.Automation.WindowVisualState]::Maximized} 'native maximize'
+    $windowPattern.SetWindowVisualState([Windows.Automation.WindowVisualState]::Normal)
+    Await {$windowPattern.Current.WindowVisualState -eq [Windows.Automation.WindowVisualState]::Normal} 'native restore'
+    Check ([LumaOwnedCapture]::ComposesFrame($hwnd, $process.Id)) 'native frame stays composed after maximize and restore'
+
     $report = [ordered]@{
         result = $(if ($failures.Count) {'appearance_not_verified'} else {'passed'})
         scope = 'Light Settings on a fresh synthetic profile, guarded Luma sampling rectangle, generated stripes'
+        windowsBuild = [Environment]::OSVersion.Version.Build
         sample = @{ x = $sample.X; y = $sample.Y; width = $sample.Width; height = $sample.Height }
         reference = @{ lowFrequencyAmplitude = $referenceLow; highFrequencyAmplitude = $referenceHigh }
         samples = $results

@@ -1,0 +1,44 @@
+{
+  "result": "passed_local_native_candidate_only",
+  "version": "1.4.9",
+  "sourceInputs": 302,
+  "engineInputs": 102,
+  "payloadFiles": 737,
+  "engineModules": 746,
+  "setup": {
+    "requestedExecutionLevel": "asInvoker",
+    "name": "Luma-1.4.9-Setup-x64.exe",
+    "bytes": 94467967,
+    "sha256": "667744ae711cbfb8a2bf568b0d844e2571b86697b7fe624be32a3a1b2c2ce9e7"
+  },
+  "portable": {
+    "name": "Luma-1.4.9-Portable-x64.zip",
+    "bytes": 132567501,
+    "sha256": "d47699b0a1240801437dcd767d95bbe68fd8afbd68acf6fbca39c858074390dc",
+    "crcAndEntriesVerified": true
+  },
+  "evidence": {
+    "docs/verification-1.4.9/appearance-150.json": {
+      "sha256": "8ea321d3c2f6ea87bec698d36d7610ddf2d897aa97c3ed18f188ec4032736930",
+      "result": "passed_native_appearance",
+      "checks": 20
+    },
+    "docs/verification-1.4.9/viewer-150.json": {
+      "sha256": "cb9a928218119b3bebcfa2f231b5f7de91df84253633e5d8f840f7491dee3c85",
+      "result": "passed_viewer_glass_ui",
+      "checks": 96
+    },
+    "docs/verification-1.4.9/frozen-runtime.json": {
+      "sha256": "763407631e9a98d7618155152ccd75396bc08317d1d8b4bf3b5e7b1344391c1e",
+      "result": "passed_frozen_runtime_selfcheck",
+      "checks": null
+    },
+    "docs/verification-1.4.9/window-frame.json": {
+      "sha256": "c6cc6ebd460ecfcb7c4a155ce9c3b9ebb0c18d6edd7401520b9d0babf97a560c",
+      "result": "passed",
+      "checks": null
+    }
+  },
+  "verifierSha256": "18a505c5066411f6284e955836d539368afdb4734e0fc6f087e33a94cd80520c",
+  "scope": "immutable payload and supplied local synthetic evidence; no production-capacity or real-library claim"
+}

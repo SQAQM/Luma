@@ -50,6 +50,16 @@ public static class LumaOwnedCapture
  [DllImport("user32.dll")]static extern IntPtr GetTopWindow(IntPtr h);
  [DllImport("user32.dll")]static extern IntPtr GetWindow(IntPtr h,uint kind);
  [DllImport("user32.dll")]static extern uint GetWindowThreadProcessId(IntPtr h,out uint process);
+ [DllImport("dwmapi.dll")]static extern int DwmGetWindowAttribute(IntPtr h,int attribute,out int value,int size);
+ public static bool ComposesFrame(IntPtr target,uint process)
+ {
+  uint owner;
+  GetWindowThreadProcessId(target,out owner);
+  if(owner!=process)throw new InvalidOperationException("Own frame required");
+  int rendering;
+  if(DwmGetWindowAttribute(target,1,out rendering,sizeof(int))<0)throw new InvalidOperationException("DWM frame state unavailable");
+  return rendering!=0;
+ }
  [StructLayout(LayoutKind.Sequential)]struct HitPoint{public int X,Y;public HitPoint(int x,int y){X=x;Y=y;}}
  [DllImport("user32.dll")]static extern IntPtr WindowFromPoint(HitPoint p);
  [DllImport("user32.dll")]static extern int GetSystemMetrics(int index);

@@ -10,8 +10,8 @@ namespace Luma.Preview.Services;
 // XAML supplies the material and identity; Windows retains caption controls/hit testing.
 internal sealed class WindowChrome
 {
- private const int DwmNcRenderingPolicy=2,DwmBorderColor=34;
- private const uint DwmUseWindowStyle=0,DwmDisableNcRendering=1,DwmDefaultColor=0xffffffff,DwmNoBorderColor=0xfffffffe;
+ private const int DwmBorderColor=34;
+ private const uint DwmDefaultColor=0xffffffff,DwmNoBorderColor=0xfffffffe;
  private readonly Window _window;
  private readonly Grid _area;
  private readonly Func<string,Brush> _brush;
@@ -33,16 +33,11 @@ internal sealed class WindowChrome
   bool changed=_highContrast!=(plan.Reason=="high_contrast");
   _highContrast=plan.Reason=="high_contrast";
   var hwnd=WinRT.Interop.WindowNative.GetWindowHandle(_window);
+  // Windows 10 has no per-border color override. Keep its DWM frame composed.
   if(Supported&&OperatingSystem.IsWindowsVersionAtLeast(10,0,22000))
   {
    uint border=_highContrast?DwmDefaultColor:DwmNoBorderColor;
    _=DwmSetWindowAttribute(hwnd,DwmBorderColor,ref border,sizeof(uint));
-  }
-  else if(Supported)
-  {
-   // Windows 10 draws its non-client line above the transparent WinUI bridge.
-   uint renderingPolicy=_highContrast?DwmUseWindowStyle:DwmDisableNcRendering;
-   _=DwmSetWindowAttribute(hwnd,DwmNcRenderingPolicy,ref renderingPolicy,sizeof(uint));
   }
   if(changed)SetWindowPos(hwnd,0,0,0,0,0,0x37);
   Refresh();
