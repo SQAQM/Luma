@@ -32,7 +32,6 @@ $hostWindow = $null
 $root = $null
 $sample = [Drawing.Rectangle]::new(576, 470, 384, 30)
 $titleStrip = [Drawing.Rectangle]::new(240, 0, 384, 4)
-$win10 = [Environment]::OSVersion.Version.Build -lt 22000
 $clientTitle = [Drawing.Rectangle]::new($titleStrip.X, 1, $titleStrip.Width, $titleStrip.Height - 1)
 $levels = @(0, 70, 100)
 $materials = @('Acrylic', 'Frosted', 'Liquid')
@@ -201,9 +200,7 @@ try {
         Check ($zero.responseMean -le .5 -and $zero.solidRgbError -le 1) "$material 0% matches Solid and ignores stripe changes"
         Check ($clear.referenceRgbError -le 2 -and $clear.lowFrequencyAmplitude -ge .98*$referenceLow -and
             $clear.highFrequencyAmplitude -ge .98*$referenceHigh) "$material 100% matches both unblurred stripe patterns"
-        # Windows 10 owns the outermost frame row even when the WinUI client is clear.
-        $edgeError = if ($win10) { $clear.clientTitleRgbError } else { $clear.titleStripRgbError }
-        Check ($null -ne $edgeError -and $edgeError -le 2) "$material 100% keeps the title client clear below the native frame edge"
+        Check ($null -ne $clear.titleStripRgbError -and $clear.titleStripRgbError -le 2) "$material 100% leaves no painted line in the first physical row"
     }
 
     $acrylic = $results['Acrylic-70']
@@ -227,11 +224,26 @@ try {
     $windowPattern.SetWindowVisualState([Windows.Automation.WindowVisualState]::Normal)
     Await {$windowPattern.Current.WindowVisualState -eq [Windows.Automation.WindowVisualState]::Normal} 'native restore'
     Check ([LumaOwnedCapture]::ComposesFrame($hwnd, $process.Id)) 'native frame stays composed after maximize and restore'
+    Check ([LumaOwnedCapture]::DragWindow($hwnd, $process.Id, $hostWindow, $false)) 'dragging the native title bar moves the restored window'
+    Check ([LumaOwnedCapture]::DragWindow($hwnd, $process.Id, $hostWindow, $true)) 'dragging the right edge resizes the restored window'
+    Select-LumaBackgroundMaterial $root $process.Id 'Acrylic'
+    Await {(State).material.material -eq 'Acrylic'} 'material restored after resizing'
+    Set-Transparency 100
+    $hostWindow.SetStripes($true)
+    for ($i = 0; $i -lt 10; $i++) {
+        [LumaOwnedCapture]::Pump()
+        Start-Sleep -Milliseconds 40
+    }
+    $pixels['ResizedTitle'] = [LumaOwnedCapture]::CaptureStripes($hwnd, $process.Id, $hostWindow, $titleStrip)
+    $pixels['ResizedReference'] = [LumaOwnedCapture]::StripeReference($hwnd, $hostWindow, $titleStrip)
+    $resizedTitleError = [LumaOwnedCapture]::Difference($pixels['ResizedTitle'], $pixels['ResizedReference'])
+    Check ($resizedTitleError -le 2 -and [LumaOwnedCapture]::ComposesFrame($hwnd, $process.Id)) 'outermost title row stays clear after moving and resizing'
 
     $report = [ordered]@{
         result = $(if ($failures.Count) {'appearance_not_verified'} else {'passed'})
         scope = 'Light Settings on a fresh synthetic profile, guarded Luma sampling rectangle, generated stripes'
         windowsBuild = [Environment]::OSVersion.Version.Build
+        resizedTitleRgbError = $resizedTitleError
         sample = @{ x = $sample.X; y = $sample.Y; width = $sample.Width; height = $sample.Height }
         reference = @{ lowFrequencyAmplitude = $referenceLow; highFrequencyAmplitude = $referenceHigh }
         samples = $results

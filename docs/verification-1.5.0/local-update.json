@@ -1,0 +1,21 @@
+{
+  "result": "passed_manifest_owned_program_update",
+  "oldVersion": "1.4.9",
+  "newVersion": "1.5.0",
+  "writeProgramFiles": 737,
+  "obsoleteProgramFiles": 0,
+  "dataAccessed": false,
+  "unknownFilesPreserved": true,
+  "setup": {
+    "requestedExecutionLevel": "asInvoker",
+    "name": "Luma-1.5.0-Setup-x64.exe",
+    "bytes": 94472350,
+    "sha256": "3d3202d88bc2064ca994c185204547352c853062e431333767e42cdfe2e83cbd"
+  },
+  "portable": {
+    "name": "Luma-1.5.0-Portable-x64.zip",
+    "bytes": 132572984,
+    "sha256": "57d3a95ef865c9e7b860cb3b05206664ccb3e204339728c1035be76e0fd2e213",
+    "crcAndEntriesVerified": true
+  }
+}

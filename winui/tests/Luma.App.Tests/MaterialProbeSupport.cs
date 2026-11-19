@@ -67,6 +67,44 @@ public static class LumaOwnedCapture
  [DllImport("user32.dll")]public static extern bool SetForegroundWindow(IntPtr h);
  [DllImport("user32.dll")]public static extern bool SetWindowPos(IntPtr h,IntPtr after,int x,int y,int width,int height,uint flags);
  public static void Place(IntPtr target){SetWindowPos(target,new IntPtr(-1),0,0,1000,650,0x40);SetForegroundWindow(target);}
+ public static bool DragWindow(IntPtr target,uint process,LumaPatternHost host,bool resize)
+ {
+  FocusOwned(target,process);
+  if(!SetWindowPos(host.Handle,target,0,0,0,0,0x13))throw new InvalidOperationException("Could not position the owned backdrop");
+  var before=Verify(target,process,host.Handle);
+  Point start=resize?new Point(before.Right-2,before.Top+220):new Point(before.Left+330,before.Top+17);
+  Point end=new Point(start.X+48,start.Y+(resize?0:36));
+  if(!Screen.PrimaryScreen.Bounds.Contains(start)||!Screen.PrimaryScreen.Bounds.Contains(end))
+   throw new InvalidOperationException("Own drag must fit the primary display");
+  MovePointer(start);
+  Application.DoEvents();
+  GetWindowThreadProcessId(WindowFromPoint(new HitPoint(start.X,start.Y)),out uint owner);
+  if(owner!=process||GetForegroundWindow()!=target)throw new InvalidOperationException("Drag skipped: own foreground target required");
+  mouse_event(2,0,0,0,UIntPtr.Zero);
+  try
+  {
+   System.Threading.Thread.Sleep(80);
+   for(int step=1;step<=8;step++)
+   {
+    if(GetForegroundWindow()!=target)throw new InvalidOperationException("Drag interrupted by another window");
+    MovePointer(new Point(start.X+(end.X-start.X)*step/8,start.Y+(end.Y-start.Y)*step/8));
+    Application.DoEvents();
+    System.Threading.Thread.Sleep(35);
+   }
+  }
+  finally{mouse_event(4,0,0,0,UIntPtr.Zero);}
+  for(int settle=0;settle<8;settle++){Application.DoEvents();System.Threading.Thread.Sleep(30);}
+  var after=Verify(target,process,host.Handle);
+  System.Console.WriteLine("Owned drag {0}: {1} -> {2}",resize?"resize":"move",before,after);
+  return resize?after.Width-before.Width>=32&&after.Location==before.Location:
+   after.Left-before.Left>=32&&after.Top-before.Top>=24&&after.Size==before.Size;
+ }
+ private static void MovePointer(Point point)
+ {
+  uint x=(uint)Math.Round(point.X*65535.0/(GetSystemMetrics(0)-1));
+  uint y=(uint)Math.Round(point.Y*65535.0/(GetSystemMetrics(1)-1));
+  mouse_event(0x8001,x,y,0,UIntPtr.Zero);
+ }
  static void FocusOwned(IntPtr target,uint process)
  {
   uint actual,foreground;GetWindowThreadProcessId(target,out actual);if(actual!=process)throw new InvalidOperationException("Own activation target required");

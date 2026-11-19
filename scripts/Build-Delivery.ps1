@@ -1,6 +1,6 @@
 param(
  [Parameter(Mandatory=$true)][string]$BundleDirectory,
- [string]$OutputDirectory='release/Luma-1.4.9',
+ [string]$OutputDirectory='release/Luma-1.5.0',
  [string]$Compiler='build/toolchain/nsis-3.13/nsis-3.13/makensis.exe'
 )
 $ErrorActionPreference='Stop'

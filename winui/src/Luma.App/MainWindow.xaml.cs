@@ -62,6 +62,7 @@ public sealed partial class MainWindow : Window
         Shell.WindowHandle=_hwnd;
         _settingsCallback = OnWindowMessage;
         _settingsHook = SetWindowSubclass(_hwnd, _settingsCallback, 1, 0);
+        ConfigureFrameSizing();
         Activated += (_, _) => { if (_ready && !_closed) Shell.RefreshSystemPreferences(); };
         string icon = Path.Combine(AppContext.BaseDirectory, "Assets", "Luma.ico");
         if (File.Exists(icon)) AppWindow.SetIcon(icon);
@@ -307,13 +308,14 @@ public sealed partial class MainWindow : Window
     [StructLayout(LayoutKind.Sequential)] private struct Rectangle { public int Left, Top, Right, Bottom; }
     private nint OnWindowMessage(nint handle, uint message, nuint wparam, nint lparam, nuint id, nuint data)
     {
-        // Cover Win10's 1px DWM strip without changing native frame styles or hit testing.
-        if(message==0x0083&&wparam!=0&&_chrome is{Supported:true,HighContrast:false}&&!OperatingSystem.IsWindowsVersionAtLeast(10,0,22000)&&!IsZoomed(handle)){
-            var before=Marshal.PtrToStructure<Rectangle>(lparam);
-            var result=DefSubclassProc(handle,message,wparam,lparam);
-            var after=Marshal.PtrToStructure<Rectangle>(lparam);
-            if(after.Top-before.Top is 0 or 1){after.Top=before.Top-1;Marshal.StructureToPtr(after,lparam,false);}
-            return result;
+        if (message == WmNcCalcSize && wparam != 0 && lparam != 0 && UsesExtendedFrame)
+        {
+            // Keep WinUI's frame processing, then extend the client to all
+            // four edges so DWM has no separate Windows 10 strip to paint.
+            var proposedWindow = Marshal.PtrToStructure<Rectangle>(lparam);
+            _ = DefSubclassProc(handle, message, wparam, lparam);
+            Marshal.StructureToPtr(proposedWindow, lparam, false);
+            return 0;
         }
         if ((message == 0x001A || message == 0x031A) && !_closed)
             DispatcherQueue.TryEnqueue(() => { if (!_closed) Shell.RefreshSystemPreferences(true); });

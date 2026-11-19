@@ -1,0 +1,67 @@
+{
+  "result": "appearance_not_verified",
+  "windowsBuild": 19045,
+  "scope": "Light Settings on a fresh synthetic profile, guarded Luma sampling rectangle, generated stripes",
+  "samples": {
+    "Acrylic-0": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": null,
+      "bodyRgbError": 114.34375
+    },
+    "Acrylic-70": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": null,
+      "bodyRgbError": 50.314236111111114
+    },
+    "Acrylic-100": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": 31.752604166666668,
+      "bodyRgbError": 0.0
+    },
+    "Frosted-0": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": null,
+      "bodyRgbError": 114.34375
+    },
+    "Frosted-70": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": null,
+      "bodyRgbError": 60.46788194444444
+    },
+    "Frosted-100": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": 31.752604166666668,
+      "bodyRgbError": 0.0
+    },
+    "Liquid-0": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": null,
+      "bodyRgbError": 114.34375
+    },
+    "Liquid-70": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": null,
+      "bodyRgbError": 38.650983796296295
+    },
+    "Liquid-100": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": 31.752604166666668,
+      "bodyRgbError": 0.0
+    },
+    "Solid": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": null,
+      "bodyRgbError": 114.34375
+    }
+  },
+  "resizedTitleRgbError": null,
+  "observedDrag": [
+    "Owned drag move: {X=0,Y=0,Width=1000,Height=650} -> {X=48,Y=36,Width=1000,Height=650}",
+    "Owned drag resize: {X=48,Y=36,Width=1000,Height=650} -> {X=48,Y=36,Width=1048,Height=650}"
+  ],
+  "failures": [
+    "Acrylic 100% leaves no painted line in the first physical row",
+    "Frosted 100% leaves no painted line in the first physical row",
+    "Liquid 100% leaves no painted line in the first physical row"
+  ]
+}

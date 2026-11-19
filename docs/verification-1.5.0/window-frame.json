@@ -1,0 +1,63 @@
+{
+  "result": "passed",
+  "windowsBuild": 19045,
+  "scope": "Light Settings on a fresh synthetic profile, guarded Luma sampling rectangle, generated stripes",
+  "samples": {
+    "Acrylic-0": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": null,
+      "bodyRgbError": 114.34375
+    },
+    "Acrylic-70": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": null,
+      "bodyRgbError": 50.18663194444444
+    },
+    "Acrylic-100": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": 0.0,
+      "bodyRgbError": 0.0
+    },
+    "Frosted-0": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": null,
+      "bodyRgbError": 114.34375
+    },
+    "Frosted-70": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": null,
+      "bodyRgbError": 60.298611111111114
+    },
+    "Frosted-100": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": 0.0,
+      "bodyRgbError": 0.0
+    },
+    "Liquid-0": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": null,
+      "bodyRgbError": 114.34375
+    },
+    "Liquid-70": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": null,
+      "bodyRgbError": 38.74939236111111
+    },
+    "Liquid-100": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": 0.0,
+      "bodyRgbError": 0.0
+    },
+    "Solid": {
+      "nativeFrameComposed": true,
+      "outerTitleRgbError": null,
+      "bodyRgbError": 114.34375
+    }
+  },
+  "resizedTitleRgbError": 0.0,
+  "observedDrag": [
+    "Owned drag move: {X=0,Y=0,Width=1000,Height=650} -> {X=48,Y=36,Width=1000,Height=650}",
+    "Owned drag resize: {X=48,Y=36,Width=1000,Height=650} -> {X=48,Y=36,Width=1048,Height=650}"
+  ],
+  "failures": []
+}
